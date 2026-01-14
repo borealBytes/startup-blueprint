@@ -1,6 +1,6 @@
 # 1. Legal Foundation ⚜️
 
-**Executive Summary**: Register your business as an LLC, get your EIN, and establish legal compliance. Time: 2-3 hours. Cost: $50-150.
+**Executive Summary**: Register your business as an LLC, get your EIN, and establish legal compliance. Time: 2-3 hours. Cost: state filing fee + domain.
 
 ---
 
@@ -38,7 +38,7 @@ graph TD
     style H fill:#e8f5e9
 ```
 
-**This guide recommends: LLC**
+**This guide recommends: LLC (or PLLC if required)**
 
 Why?
 - Simple to set up
@@ -47,6 +47,8 @@ Why?
 - Flexible for adding members later
 - Can later convert to C-Corp if needed
 
+> ⚠️ **Professional LLCs (PLLCs)**: If you’re in a regulated, licensed profession (e.g., doctor, lawyer, architect, engineer, certain construction trades), your state may require a **PLLC** instead of a standard LLC. Always check your state’s rules for your specific license type before filing.
+
 ---
 
 ## Step 1: Finalize Your Business Name
@@ -54,14 +56,15 @@ Why?
 ### Requirements
 
 Most states require:
-- Must end in "LLC" or "L.L.C."
+- Must end in "LLC", "L.L.C.", or the PLLC equivalent where required
 - Cannot be identical to existing registered businesses
 - Cannot contain prohibited words (usually "bank", "insurance", etc.)
 
 ### Availability Check
 
 1. Go to your state's business registry:
-   - **Michigan**: [LARA](https://onecorp.lara.state.mi.us)
+   - **Michigan** (LLC/PLLC): [LARA Business Entity Search](https://cofs.lara.state.mi.us/SearchApi/Search/Search)
+   - **Florida** (LLC/PLLC): [Sunbiz (Division of Corporations)](https://search.sunbiz.org/Inquiry/CorporationSearch/ByName)
    - **California**: [Secretary of State](https://bpd.sos.ca.gov/)
    - **New York**: [Department of State](https://www.dos.ny.gov/business-services/)
    - **Other**: Google `[YOUR STATE] LLC registration online`
@@ -84,32 +87,48 @@ Most states require:
 
 ---
 
-## Step 2: Register Your LLC
+## Step 2: Register Your LLC (or PLLC)
 
 ### Filing Articles of Organization
 
 **What to prepare**:
-- LLC name (from Step 1)
+- Entity type (LLC or PLLC, depending on your profession and state rules)
+- BUSINESS NAME (from Step 1)
 - Principal address (your address)
-- Registered agent (you)
+- Registered agent (you, or a service)
 - Member(s) (you, for solo)
 - Manager(s) (you, for solo)
+- Professional license information if filing PLLC (license number, issuing board, etc.)
 
-**How to file**:
+**How to file** (general pattern):
 
 1. Go to your state's business registration website
-2. Select "Form LLC" or "Articles of Organization"
+2. Select "Form LLC" or "Articles of Organization" (or PLLC equivalent)
 3. Complete the form:
-   - **Name**: `BUSINESS NAME, LLC`
+   - **Name**: `BUSINESS NAME, LLC` or `BUSINESS NAME, PLLC` as required
    - **Address**: Your physical address
-   - **Registered Agent**: You (your name and address)
+   - **Registered Agent**: You (or a registered agent service)
    - **Members**: You
    - **Managers**: You
    - **Duration**: Perpetual (or "as allowed by law")
+   - **Professional purpose / license**: If PLLC, state the professional service and license details exactly as your state requires
 
 4. Upload or mail the form
-5. Pay filing fee ($50-150 depending on state)
+5. Pay filing fee ($50–$150 depending on state)
 6. Receive confirmation and Certificate of Organization
+
+### State-Specific Notes (Examples)
+
+- **Michigan (LARA)**
+  - Online filing via LARA is straightforward for LLCs and PLLCs
+  - Pay fee online, get confirmation and entity ID
+
+- **Florida (Sunbiz)**
+  - Use [Sunbiz](https://dos.myflorida.com/sunbiz/) to file LLC or PLLC
+  - Florida requires clear indication of professional service for PLLCs
+  - Annual report due each year to keep the entity active
+
+> 📝 These examples are only patterns. Always read the current instructions on your state’s filing site to confirm entity type (LLC vs PLLC), wording, and fee schedule.
 
 ### Timeline
 
@@ -124,7 +143,7 @@ Most states require:
 
 ### What is an EIN?
 
-Employer Identification Number—your business's tax ID. Similar to a SSN but for the LLC.
+Employer Identification Number—your business's tax ID. Similar to a SSN but for the LLC/PLLC.
 
 **Why you need it**:
 - Open business bank account
@@ -137,8 +156,8 @@ Employer Identification Number—your business's tax ID. Similar to a SSN but fo
 1. Go to [IRS.gov EIN page](https://www.irs.gov/ein)
 2. Click "Apply for an EIN Online"
 3. Answer questions:
-   - Business name: `BUSINESS NAME, LLC`
-   - Address: Same as LLC
+   - Business name: `BUSINESS NAME, LLC` or `BUSINESS NAME, PLLC`
+   - Address: Same as LLC/PLLC
    - Type of entity: LLC
    - Reason: Started new business
    - Expected payroll: "No employees" (for now)
@@ -164,7 +183,7 @@ Alternatives if online doesn't work:
 
 **Do you need it?**
 - Selling physical products: YES
-- Selling services only: Usually NO
+- Selling services only: Usually NO (but check your state)
 - Selling services in multiple states: Check each state
 
 **How to register**:
@@ -194,7 +213,7 @@ Keeping business and personal finances separate:
 - Articles of Organization (from Step 2)
 - EIN Letter (from Step 3)
 - Your ID
-- Initial deposit ($0-100 depending on bank)
+- Initial deposit ($0–$100 depending on bank)
 
 **Recommended banks** (low fees, online):
 - **Mercury**: Startup-friendly, no minimum balance
@@ -215,7 +234,7 @@ Keeping business and personal finances separate:
 
 ### What is it?
 
-Document that outlines how your LLC operates—internal rules for yourself (or co-members if team).
+Document that outlines how your LLC/PLLC operates—internal rules for yourself (or co-members if team).
 
 **Required?** Varies by state, but highly recommended.
 
@@ -230,7 +249,7 @@ For solo founder:
 
 ### Template
 
-Download from your state's SBA office or use a template. For solo LLC, this is usually a simple 1-2 page document.
+Download from your state's SBA office or use a template. For solo LLC/PLLC, this is usually a simple 1–2 page document.
 
 **Pro tip**: Keep this on file but don't overthink it for a solo founder.
 
@@ -241,8 +260,8 @@ Download from your state's SBA office or use a template. For solo LLC, this is u
 ### Annual Filings
 
 Most states require annual reports:
-- **Cost**: $0-50/year
-- **Deadline**: Usually anniversary of incorporation
+- **Cost**: $0–$150/year depending on state/entity type
+- **Deadline**: Usually anniversary of incorporation or a fixed date (e.g., Florida uses a fixed window)
 - **What**: Confirm registered agent, address, members
 - **How**: File with state (online or mail)
 
@@ -276,7 +295,7 @@ Maintain:
 ## Checklist: Legal Foundation Complete ✅
 
 - [ ] Business name finalized and checked for availability
-- [ ] LLC registered with state (have certificate)
+- [ ] LLC or PLLC registered with state (have certificate)
 - [ ] EIN obtained (saved securely)
 - [ ] Business bank account opened
 - [ ] Sales tax registered (if applicable)
@@ -297,7 +316,7 @@ Maintain:
 ## Estimated Total Time: 2-3 hours
 
 - Name availability check: 15 min
-- LLC filing: 30 min
+- LLC/PLLC filing: 30 min
 - EIN application: 10 min
 - Bank account: 30 min
 - State taxes: 30 min
@@ -308,7 +327,9 @@ Maintain:
 ## Resources
 
 - **IRS EIN**: https://www.irs.gov/ein
-- **State Business Registries**: Google `[STATE] LLC registration`
+- **Michigan LARA (LLC/PLLC)**: https://www.michigan.gov/lara
+- **Florida Sunbiz (LLC/PLLC)**: https://dos.myflorida.com/sunbiz/
+- **State Business Registries**: Google `[STATE] LLC PLLC registration`
 - **SBA Guide**: https://www.sba.gov/business-guide/launch/choose-business-structure
 - **NerdWallet LLC Guide**: https://www.nerdwallet.com/article/small-business/start-an-llc
 
