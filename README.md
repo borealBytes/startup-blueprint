@@ -82,7 +82,11 @@ Repetitive tasks are automated. Deployment is automatic. Email forwarding is aut
 2FA on everything. Recovery codes backed up. Secrets management in place. GDPR-ready from the start.
 
 ### 5. **Low Cost, High ROI**
-Most tools are free or very cheap (~$50/year domain, ~$15/year email, free Git). The ROI comes from saved time and avoided mistakes.
+Most tools are free or extremely low cost (free Gmail, GitHub, Perplexity Spaces; domain registrar cost-only pricing from Cloudflare). Your primary recurring expense is your domain (about ~$10.50/year at Cloudflare’s cost-based pricing).
+
+> **Strategy:** Buy 10 years of domain registration up front (~$140). Forgetting to renew once and paying recovery premiums (or losing the domain) is more expensive than prepaying.
+
+The ROI comes from saved time, avoided mistakes, and a professional foundation that doesn’t need to be rebuilt later.
 
 ---
 
@@ -93,8 +97,8 @@ To reduce decision fatigue, this guide makes specific recommendations:
 | Decision | Recommendation | Why |
 |----------|---|---|
 | **Legal Structure** | LLC | Limited liability + simplicity + pass-through taxation |
-| **Domain Registrar** | Cloudflare | Integrated email routing + DNS + low cost |
-| **Email Service** | Gmail + Cloudflare routing | Reliability + plus-addressing + affordable |
+| **Domain Registrar** | Cloudflare | Integrated email routing + DNS + cost-only pricing |
+| **Email Service** | Gmail + Cloudflare routing | Reliable, free, and supports plus-addressing |
 | **Code Repository** | GitHub | Industry standard + native CI/CD + free private repos |
 | **AI Workflow** | Perplexity Spaces | Version-controlled instructions + transparent agent behavior |
 | **Hosting** | Cloudflare Pages + Workers | Fast + cheap + auto-scaling + DDoS protection |
