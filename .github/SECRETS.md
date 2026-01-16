@@ -29,6 +29,7 @@ As we add more features, we may need:
 **Status:** Not yet implemented
 
 **Permissions needed:**
+
 - Account.Cloudflare Workers Scripts: Edit
 - Account.Cloudflare Pages: Edit
 
@@ -78,9 +79,9 @@ As we add more features, we may need:
 
 ## Audit Trail
 
-| Secret | Created | By | Expires | Last Rotated | Status |
-|--------|---------|-----|---------|--------------|--------|
-| _None yet_ | - | - | - | - | - |
+| Secret     | Created | By  | Expires | Last Rotated | Status |
+| ---------- | ------- | --- | ------- | ------------ | ------ |
+| _None yet_ | -       | -   | -       | -            | -      |
 
 **Update this table when adding/rotating secrets.**
 

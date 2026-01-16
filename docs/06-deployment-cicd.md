@@ -7,12 +7,15 @@
 ## Why This Matters
 
 ### Always Up-to-Date
+
 Every change you merge to `main` can trigger an automatic deployment.
 
 ### Professional Web Presence
+
 A fast, secure site on your domain builds credibility for BUSINESS NAME.
 
 ### Low Maintenance
+
 No manual FTP uploads. No "What version is live?" confusion.
 
 ---
@@ -25,7 +28,7 @@ graph LR
     B --> C["Build Website"]
     C --> D["Cloudflare Pages"]
     D --> E["https://BUSINESS-NAME.com"]
-    
+
     style B fill:#e1f5ff
     style D fill:#c8e6c9
 ```
@@ -36,11 +39,11 @@ graph LR
 
 ### Options
 
-| Stack | Complexity | Use When |
-|---|---|---|
-| Static HTML/CSS | Low | Landing page only |
-| Next.js (React) | Medium | Marketing + app |
-| Astro | Medium | Content-heavy sites |
+| Stack           | Complexity | Use When            |
+| --------------- | ---------- | ------------------- |
+| Static HTML/CSS | Low        | Landing page only   |
+| Next.js (React) | Medium     | Marketing + app     |
+| Astro           | Medium     | Content-heavy sites |
 
 **Recommendation**: If you're just starting, use **simple static HTML/CSS** for a landing page. You can upgrade later.
 
@@ -65,19 +68,19 @@ website/
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BUSINESS NAME</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-<body>
-  <main>
-    <h1>BUSINESS NAME</h1>
-    <p>Short, clear description of what BUSINESS NAME does.</p>
-    <a href="mailto:founder@BUSINESS-NAME.com">Contact</a>
-  </main>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BUSINESS NAME</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>BUSINESS NAME</h1>
+      <p>Short, clear description of what BUSINESS NAME does.</p>
+      <a href="mailto:founder@BUSINESS-NAME.com">Contact</a>
+    </main>
+  </body>
 </html>
 ```
 
@@ -116,9 +119,9 @@ name: ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -131,7 +134,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -187,6 +190,7 @@ Once deployed:
 ## Dependencies
 
 **Before this**:
+
 - [Guide 2: Domain & DNS](./02-domain-dns.md)
 - [Guide 4: Git & Repository](./04-git-repository.md)
 

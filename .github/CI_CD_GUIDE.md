@@ -124,17 +124,20 @@ Add to `.vscode/settings.json`:
 **Solutions:**
 
 1. **Pull latest changes:**
+
    ```bash
    git pull origin <branch-name>
    ```
 
 2. **Run format/lint locally:**
+
    ```bash
    pnpm format
    pnpm lint:all
    ```
 
 3. **Check what changed:**
+
    ```bash
    git diff
    ```
@@ -153,6 +156,7 @@ Add to `.vscode/settings.json`:
 **Cause:** Commit message doesn't follow Conventional Commits format
 
 **Fix:** Use this format:
+
 ```
 type(scope): description
 
@@ -162,6 +166,7 @@ Description: required, no period at end
 ```
 
 **Examples:**
+
 ```bash
 git commit -m "feat: add new CI workflow"
 git commit -m "fix(ci): correct prettier config"
@@ -175,6 +180,7 @@ git commit -m "docs: update CI guide"
 **Fix:**
 
 1. **Check types locally:**
+
    ```bash
    pnpm typecheck
    ```
@@ -199,6 +205,7 @@ git commit -m "docs: update CI guide"
 2. **Fix links in your Markdown files**
 
 3. **Test links locally** (optional):
+
    ```bash
    npx lychee --offline '**/*.md'
    ```
