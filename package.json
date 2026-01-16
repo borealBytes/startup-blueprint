@@ -1,0 +1,33 @@
+{
+  "name": "startup-blueprint",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Startup Blueprint - Comprehensive startup development toolkit",
+  "scripts": {
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css,scss}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css,scss}\"",
+    "lint:all": "pnpm format && pnpm eslint --fix \"**/*.{js,ts,jsx,tsx}\" && pnpm markdownlint-cli2 \"**/*.md\" --fix",
+    "lint": "eslint \"**/*.{js,ts,jsx,tsx}\"",
+    "lint:fix": "eslint --fix \"**/*.{js,ts,jsx,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.55.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "markdownlint-cli2": "^0.11.0",
+    "prettier": "^3.1.0",
+    "stylelint": "^16.0.2",
+    "stylelint-config-prettier": "^9.0.5",
+    "stylelint-config-standard": "^35.0.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
