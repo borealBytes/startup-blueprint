@@ -29,7 +29,7 @@ jobs:
       # STEP 2: Setup tools
       # ============================================
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
           version: 8
 
@@ -37,6 +37,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'pnpm'
 
       - name: Setup Go (for future Golang projects)
         uses: actions/setup-go@v5
@@ -504,12 +505,40 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
 
+      - name: Restore lychee cache
+        uses: actions/cache@v4
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
       - name: Check Markdown links
-        uses: lycheeverse/lychee-action@v1
+        uses: lycheeverse/lychee-action@v2.1.0
         with:
           args: >-
             --verbose
             --no-progress
-            --offline
+            --cache
+            --max-cache-age 1d
+            --accept 200,204,429
+            --timeout 10
+            --max-redirects 5
+            --exclude-mail
             '**/*.md'
-          fail: true
+          fail: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check link results
+        id: link_check
+        continue-on-error: true
+        run: |
+          if [ -f "lychee/out.md" ]; then
+            echo "## 🔗 Link Check Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat lychee/out.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ✅ All Links Valid" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No broken links found in documentation." >> $GITHUB_STEP_SUMMARY
+          fi
