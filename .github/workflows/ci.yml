@@ -64,7 +64,7 @@ jobs:
         id: prettier
         continue-on-error: true
         run: |
-          pnpm prettier --write \
+          npx prettier --write \
             "**/*.{js,ts,jsx,tsx,json,md,yml,yaml,css,scss,html}" \
             --ignore-path .gitignore \
             --log-level warn
@@ -82,7 +82,7 @@ jobs:
         run: |
           # Check if any JS/TS files exist first
           if find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
-            pnpm eslint \
+            pnpm exec eslint \
               "**/*.{js,ts,jsx,tsx}" \
               --fix \
               --ignore-path .gitignore \
@@ -104,7 +104,7 @@ jobs:
         continue-on-error: true
         run: |
           if [ -f ".stylelintrc.json" ]; then
-            pnpm stylelint \
+            pnpm exec stylelint \
               "**/*.{css,scss}" \
               --fix \
               --allow-empty-input
@@ -123,7 +123,7 @@ jobs:
         id: markdownlint
         continue-on-error: true
         run: |
-          pnpm markdownlint-cli2 \
+          pnpm exec markdownlint-cli2 \
             "**/*.md" \
             "#node_modules" \
             "#.github" \
@@ -204,9 +204,6 @@ jobs:
         id: commitlint
         continue-on-error: true
         run: |
-          # Install commitlint deps
-          pnpm add -D @commitlint/cli @commitlint/config-conventional
-          
           # Create config inline
           cat > commitlint.config.js << 'EOF'
           module.exports = {
@@ -244,7 +241,7 @@ jobs:
           # Get base branch and lint commits
           BASE_SHA=$(git merge-base origin/${{ github.base_ref }} HEAD)
           echo "🔍 Linting commits from $BASE_SHA to HEAD"
-          npx commitlint --from $BASE_SHA --to HEAD --verbose
+          pnpm exec commitlint --from $BASE_SHA --to HEAD --verbose
           
           if [ $? -eq 0 ]; then
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
@@ -267,7 +264,7 @@ jobs:
             
             # Check root tsconfig if exists
             if [ -f "tsconfig.json" ]; then
-              pnpm tsc --noEmit --skipLibCheck
+              pnpm exec tsc --noEmit --skipLibCheck
               if [ $? -ne 0 ]; then
                 HAS_ERRORS=1
               fi
@@ -278,7 +275,7 @@ jobs:
               if [ -f "$tsconfig" ]; then
                 echo "Checking $tsconfig"
                 cd $(dirname $tsconfig)
-                pnpm tsc --noEmit --skipLibCheck
+                pnpm exec tsc --noEmit --skipLibCheck
                 if [ $? -ne 0 ]; then
                   HAS_ERRORS=1
                 fi
