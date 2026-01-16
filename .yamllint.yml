@@ -9,11 +9,11 @@ rules:
   line-length:
     max: 120
     level: warning
-  
+
   # Allow document start to be omitted
   document-start:
     present: false
-  
+
   # Allow truthy values like "on" in GitHub Actions
   truthy:
     allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
@@ -23,17 +23,17 @@ ignore: |
   # Ignore all dependencies
   node_modules/
   .pnpm/
-  
+
   # Ignore lockfiles (they're generated)
   pnpm-lock.yaml
   package-lock.json
   yarn.lock
-  
+
   # Ignore build outputs
   dist/
   build/
   .next/
   .nuxt/
-  
+
   # Ignore vendored dependencies
   vendor/
