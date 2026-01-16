@@ -1,0 +1,514 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: write       # Needed to commit fixes
+  checks: write         # Needed to create check runs
+  pull-requests: write  # Needed for future PR interactions
+
+jobs:
+  format-and-lint:
+    name: Format and Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # ============================================
+      # STEP 1: Checkout code
+      # ============================================
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ============================================
+      # STEP 2: Setup tools
+      # ============================================
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Go (for future Golang projects)
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: false  # No Go modules yet
+
+      - name: Install Node dependencies
+        run: |
+          pnpm install
+
+      - name: Install Go tools (for future)
+        run: |
+          if [ -d "apps/credibility-markets" ]; then
+            go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          else
+            echo "⏭️  Skipping Go tools (no Go projects yet)"
+          fi
+
+      # ============================================
+      # STEP 3: Run all formatters/linters with auto-fix
+      # ============================================
+      - name: Run Prettier (format all files)
+        id: prettier
+        continue-on-error: true
+        run: |
+          pnpm prettier --write \
+            "**/*.{js,ts,jsx,tsx,json,md,yml,yaml,css,scss,html}" \
+            --ignore-path .gitignore \
+            --ignore-pattern ".github/workflows/**" \
+            --ignore-pattern "pnpm-lock.yaml" \
+            --ignore-pattern "package-lock.json" \
+            --ignore-pattern "yarn.lock" \
+            --log-level warn
+          
+          if [ $? -eq 0 ]; then
+            echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run ESLint (auto-fix JS/TS)
+        id: eslint
+        continue-on-error: true
+        run: |
+          pnpm eslint \
+            "**/*.{js,ts,jsx,tsx}" \
+            --fix \
+            --ignore-path .gitignore \
+            --ignore-pattern ".github/workflows/**" \
+            --max-warnings 0
+          
+          if [ $? -eq 0 ]; then
+            echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run stylelint (auto-fix CSS/SCSS)
+        id: stylelint
+        continue-on-error: true
+        run: |
+          if [ -f ".stylelintrc.json" ]; then
+            pnpm stylelint \
+              "**/*.{css,scss}" \
+              --fix \
+              --allow-empty-input
+            
+            if [ $? -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run markdownlint (auto-fix Markdown)
+        id: markdownlint
+        continue-on-error: true
+        run: |
+          pnpm markdownlint-cli2 \
+            "**/*.md" \
+            "#node_modules" \
+            "#.github" \
+            --fix \
+            --config .markdownlint.json
+          
+          if [ $? -eq 0 ]; then
+            echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Run yamllint (check YAML, no auto-fix)
+        id: yamllint
+        continue-on-error: true
+        run: |
+          if command -v yamllint &> /dev/null; then
+            yamllint .
+            if [ $? -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run shellcheck (check bash scripts)
+        id: shellcheck
+        continue-on-error: true
+        run: |
+          if command -v shellcheck &> /dev/null; then
+            find . -type f -name "*.sh" -not -path "./node_modules/*" -exec shellcheck {} +
+            if [ $? -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run gofmt (format Go files)
+        id: gofmt
+        continue-on-error: true
+        run: |
+          if [ -d "apps/credibility-markets" ]; then
+            gofmt -w apps/credibility-markets/
+            echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run golangci-lint (lint Go files)
+        id: golangci
+        continue-on-error: true
+        run: |
+          if [ -d "apps/credibility-markets" ] && command -v golangci-lint &> /dev/null; then
+            cd apps/credibility-markets
+            golangci-lint run --fix
+            if [ $? -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+          fi
+
+      # ============================================
+      # STEP 3.5: Lint commit messages (NEW)
+      # ============================================
+      - name: Lint commit messages
+        id: commitlint
+        continue-on-error: true
+        run: |
+          # Install commitlint deps
+          pnpm add -D @commitlint/cli @commitlint/config-conventional
+          
+          # Create config inline
+          cat > commitlint.config.js << 'EOF'
+          module.exports = {
+            extends: ['@commitlint/config-conventional'],
+            rules: {
+              'type-enum': [
+                2,
+                'always',
+                [
+                  'feat',     // New feature
+                  'fix',      // Bug fix
+                  'docs',     // Documentation only
+                  'style',    // Formatting, missing semi colons, etc
+                  'refactor', // Code change that neither fixes nor adds
+                  'perf',     // Performance improvements
+                  'test',     // Adding missing tests
+                  'chore',    // Maintain, dependencies, etc
+                  'ci',       // CI/CD changes
+                  'build',    // Build system changes
+                  'revert',   // Revert a previous commit
+                ],
+              ],
+              'scope-case': [2, 'always', 'kebab-case'],
+              'subject-case': [0],  // Allow any case
+              'subject-empty': [2, 'never'],
+              'subject-full-stop': [2, 'never', '.'],
+              'header-max-length': [2, 'always', 100],
+              'body-leading-blank': [2, 'always'],
+              'body-max-line-length': [0],  // Allow long lines in body
+              'footer-leading-blank': [2, 'always'],
+            },
+          };
+          EOF
+          
+          # Get base branch and lint commits
+          BASE_SHA=$(git merge-base origin/${{ github.base_ref }} HEAD)
+          echo "🔍 Linting commits from $BASE_SHA to HEAD"
+          npx commitlint --from $BASE_SHA --to HEAD --verbose
+          
+          if [ $? -eq 0 ]; then
+            echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      # ============================================
+      # STEP 3.6: Check TypeScript types (NEW)
+      # ============================================
+      - name: Check TypeScript types
+        id: typescript
+        continue-on-error: true
+        run: |
+          if [ -f "tsconfig.json" ] || [ -f "apps/*/tsconfig.json" ]; then
+            echo "🔍 Checking TypeScript types..."
+            
+            HAS_ERRORS=0
+            
+            # Check root tsconfig if exists
+            if [ -f "tsconfig.json" ]; then
+              pnpm tsc --noEmit --skipLibCheck
+              if [ $? -ne 0 ]; then
+                HAS_ERRORS=1
+              fi
+            fi
+            
+            # Check app tsconfigs
+            for tsconfig in apps/*/tsconfig.json; do
+              if [ -f "$tsconfig" ]; then
+                echo "Checking $tsconfig"
+                cd $(dirname $tsconfig)
+                pnpm tsc --noEmit --skipLibCheck
+                if [ $? -ne 0 ]; then
+                  HAS_ERRORS=1
+                fi
+                cd - > /dev/null
+              fi
+            done
+            
+            if [ $HAS_ERRORS -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "⏭️  No TypeScript projects found"
+          fi
+
+      # ============================================
+      # STEP 4: Check for changes and commit if needed
+      # ============================================
+      - name: Unstage workflow files (security safeguard)
+        if: always()
+        run: |
+          # CRITICAL: Never commit workflow changes
+          # This is a fail-safe in case ignore patterns didn't work
+          if [ -d ".github/workflows" ]; then
+            echo "🔒 Ensuring workflow files are not staged..."
+            git reset HEAD .github/workflows/ 2>/dev/null || true
+            git checkout -- .github/workflows/ 2>/dev/null || true
+            echo "✅ Workflow files excluded from commit"
+          fi
+
+      - name: Check for changes
+        id: check_changes
+        if: always()
+        run: |
+          git add -A
+          
+          # Double-check: Ensure no workflow files are staged
+          if git diff --cached --name-only | grep -q "^\.github/workflows/"; then
+            echo "::error::Workflow files are staged despite safeguards!"
+            echo "::error::This should never happen. Aborting."
+            git diff --cached --name-only | grep "^\.github/workflows/"
+            exit 1
+          fi
+          
+          if git diff --cached --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "file_count=0" >> $GITHUB_OUTPUT
+            echo "✅ No formatting/linting changes needed"
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+            FILE_COUNT=$(git diff --cached --name-only | wc -l)
+            echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+            echo "📝 Changes detected in $FILE_COUNT file(s)"
+            
+            # Save changed files list
+            git diff --cached --name-only > /tmp/changed_files.txt
+          fi
+
+      - name: Generate summary report
+        if: always()
+        run: |
+          # Check if any steps failed
+          FAILED=false
+          if [[ "${{ steps.prettier.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.eslint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.stylelint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.yamllint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.shellcheck.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.gofmt.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.golangci.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.commitlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.typescript.conclusion }}" == "failure" ]]; then
+            FAILED=true
+          fi
+          
+          # Start summary with appropriate header
+          if [ "$FAILED" == "true" ]; then
+            echo "## ❌ Format & Lint Summary: Failures Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **One or more checks failed. See details below and check the [full log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for errors.**" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.check_changes.outputs.changes }}" == "true" ]; then
+            echo "## 📝 Format & Lint Summary: Changes Applied" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ✅ Format & Lint Summary: All Clean!" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Tools table
+          echo "### 🧰 Tools Run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Tool | Status | Purpose |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Prettier** | ${{ steps.prettier.outputs.status || '❌ Failed' }} | Format JS/TS/JSON/MD/YAML/CSS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **ESLint** | ${{ steps.eslint.outputs.status || '❌ Failed' }} | Lint & auto-fix JS/TS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **stylelint** | ${{ steps.stylelint.outputs.status || '❌ Failed' }} | Lint & auto-fix CSS/SCSS |" >> $GITHUB_STEP_SUMMARY
+          echo "| **markdownlint** | ${{ steps.markdownlint.outputs.status || '❌ Failed' }} | Lint & auto-fix Markdown |" >> $GITHUB_STEP_SUMMARY
+          echo "| **yamllint** | ${{ steps.yamllint.outputs.status || '❌ Failed' }} | Check YAML syntax |" >> $GITHUB_STEP_SUMMARY
+          echo "| **shellcheck** | ${{ steps.shellcheck.outputs.status || '❌ Failed' }} | Lint Bash scripts |" >> $GITHUB_STEP_SUMMARY
+          echo "| **gofmt** | ${{ steps.gofmt.outputs.status || '❌ Failed' }} | Format Go code |" >> $GITHUB_STEP_SUMMARY
+          echo "| **golangci-lint** | ${{ steps.golangci.outputs.status || '❌ Failed' }} | Lint Go code |" >> $GITHUB_STEP_SUMMARY
+          echo "| **commitlint** | ${{ steps.commitlint.outputs.status || '❌ Failed' }} | Validate commit messages |" >> $GITHUB_STEP_SUMMARY
+          echo "| **TypeScript** | ${{ steps.typescript.outputs.status || '❌ Failed' }} | Check type errors |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Changes section or failure notice
+          if [ "$FAILED" == "true" ]; then
+            echo "### 🛠️ Action Required" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review the failed checks above and fix the issues:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "1. Check the [full action log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for detailed error messages" >> $GITHUB_STEP_SUMMARY
+            echo "2. Fix the issues locally" >> $GITHUB_STEP_SUMMARY
+            echo "3. Push your changes" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.check_changes.outputs.changes }}" == "true" ]; then
+            echo "### 📝 Changed Files (${{ steps.check_changes.outputs.file_count }})" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            cat /tmp/changed_files.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Auto-commit will be created below**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🎉 No Changes Needed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All code is properly formatted and linted!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail job if any check failed
+        if: always()
+        run: |
+          if [[ "${{ steps.prettier.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.eslint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.stylelint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.yamllint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.shellcheck.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.gofmt.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.golangci.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.commitlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.typescript.conclusion }}" == "failure" ]]; then
+            echo "❌ One or more format/lint checks failed"
+            exit 1
+          fi
+
+      - name: Commit and push changes
+        if: steps.check_changes.outputs.changes == 'true'
+        id: commit
+        run: |
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --cached --name-only | wc -l)
+          
+          # Create commit message
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          cat > /tmp/commit_msg.txt <<EOF
+          chore: auto-format and lint fixes
+
+          Applied automatic formatting and linting fixes to ${CHANGED_FILES} file(s).
+          
+          Tools applied:
+          - Prettier (JS/TS/JSON/MD/YAML/CSS)
+          - ESLint (JS/TS)
+          - markdownlint (MD)
+          - stylelint (CSS/SCSS)
+          - gofmt (Go)
+          - golangci-lint (Go)
+          
+          Changed files:
+          $(git diff --cached --name-only | sed 's/^/  - /')
+          EOF
+          
+          git commit -F /tmp/commit_msg.txt
+          COMMIT_SHA=$(git rev-parse HEAD)
+          echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          
+          git push
+          
+          echo "✅ Committed and pushed formatting fixes"
+          echo "📝 Commit SHA: $COMMIT_SHA"
+
+      - name: Update summary with commit info
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Auto-Commit Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit SHA:** \`${{ steps.commit.outputs.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Message:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "chore: auto-format and lint fixes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Applied automatic formatting and linting fixes to ${{ steps.check_changes.outputs.file_count }} file(s)." >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "➡️ Documentation link check will run next..." >> $GITHUB_STEP_SUMMARY
+
+      - name: Final summary
+        if: steps.check_changes.outputs.changes == 'false' && success()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "➡️ Documentation link check will run next..." >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # JOB 2: Check documentation links
+  # Only runs after format-and-lint succeeds
+  # ============================================
+  link-check:
+    name: Check Documentation Links
+    runs-on: ubuntu-latest
+    needs: [format-and-lint]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Check Markdown links
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: >-
+            --verbose
+            --no-progress
+            --offline
+            '**/*.md'
+          fail: true
