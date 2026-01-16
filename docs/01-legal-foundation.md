@@ -42,7 +42,7 @@ graph TD
     style H fill:#e8f5e9
 ```
 
-**This guide recommends: LLC (or PLLC if required)**
+### Recommendation: LLC (or PLLC if required)
 
 Why?
 
@@ -52,7 +52,7 @@ Why?
 - Flexible for adding members later
 - Can later convert to C-Corp if needed
 
-> ⚠️ **Professional LLCs (PLLCs)**: If you’re in a regulated, licensed profession (e.g., doctor, lawyer, architect, engineer, certain construction trades), your state may require a **PLLC** instead of a standard LLC. Always check your state’s rules for your specific license type before filing.
+> ⚠️ **Professional LLCs (PLLCs)**: If you're in a regulated, licensed profession (e.g., doctor, lawyer, architect, engineer, certain construction trades), your state may require a **PLLC** instead of a standard LLC. Always check your state's rules for your specific license type before filing.
 
 ---
 
@@ -137,7 +137,7 @@ Most states require:
   - Florida requires clear indication of professional service for PLLCs
   - Annual report due each year to keep the entity active
 
-> 📝 These examples are only patterns. Always read the current instructions on your state’s filing site to confirm entity type (LLC vs PLLC), wording, and fee schedule.
+> 📝 These examples are only patterns. Always read the current instructions on your state's filing site to confirm entity type (LLC vs PLLC), wording, and fee schedule.
 
 ### Timeline
 

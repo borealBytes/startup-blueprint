@@ -66,10 +66,6 @@ jobs:
           pnpm prettier --write \
             "**/*.{js,ts,jsx,tsx,json,md,yml,yaml,css,scss,html}" \
             --ignore-path .gitignore \
-            --ignore-pattern ".github/workflows/**" \
-            --ignore-pattern "pnpm-lock.yaml" \
-            --ignore-pattern "package-lock.json" \
-            --ignore-pattern "yarn.lock" \
             --log-level warn
           
           if [ $? -eq 0 ]; then
@@ -83,18 +79,23 @@ jobs:
         id: eslint
         continue-on-error: true
         run: |
-          pnpm eslint \
-            "**/*.{js,ts,jsx,tsx}" \
-            --fix \
-            --ignore-path .gitignore \
-            --ignore-pattern ".github/workflows/**" \
-            --max-warnings 0
-          
-          if [ $? -eq 0 ]; then
-            echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          # Check if any JS/TS files exist first
+          if find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
+            pnpm eslint \
+              "**/*.{js,ts,jsx,tsx}" \
+              --fix \
+              --ignore-path .gitignore \
+              --max-warnings 0
+            
+            if [ $? -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
           else
-            echo "status=❌ Failed" >> $GITHUB_OUTPUT
-            exit 1
+            echo "status=⏭️  Skipped (no JS/TS files)" >> $GITHUB_OUTPUT
+            echo "⏭️  No JavaScript/TypeScript files found"
           fi
 
       - name: Run stylelint (auto-fix CSS/SCSS)
@@ -114,7 +115,7 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️  Skipped" >> $GITHUB_OUTPUT
           fi
 
       - name: Run markdownlint (auto-fix Markdown)
@@ -148,7 +149,7 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️  Skipped" >> $GITHUB_OUTPUT
           fi
 
       - name: Run shellcheck (check bash scripts)
@@ -164,7 +165,7 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️  Skipped" >> $GITHUB_OUTPUT
           fi
 
       - name: Run gofmt (format Go files)
@@ -175,7 +176,7 @@ jobs:
             gofmt -w apps/credibility-markets/
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️  Skipped" >> $GITHUB_OUTPUT
           fi
 
       - name: Run golangci-lint (lint Go files)
@@ -192,7 +193,7 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️  Skipped" >> $GITHUB_OUTPUT
           fi
 
       # ============================================
@@ -291,7 +292,7 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️  Skipped" >> $GITHUB_OUTPUT
             echo "⏭️  No TypeScript projects found"
           fi
 
