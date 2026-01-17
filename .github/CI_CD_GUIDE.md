@@ -17,7 +17,8 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 ### Key Features
 
 ✅ **Auto-fixes issues** - Bot commits fixes automatically
-✅ **Comprehensive tooling** - Prettier, ESLint, markdownlint, stylelint, commitlint, TypeScript
+✅ **Comprehensive tooling** - Prettier, ESLint, Black, markdownlint, stylelint, commitlint, TypeScript
+✅ **Multi-language** - JavaScript/TypeScript, Python, Go, CSS/SCSS, Markdown, YAML, Bash
 ✅ **Works for all** - Humans, AI agents, web UI commits
 ✅ **Link checking** - Validates all Markdown links
 
@@ -33,19 +34,34 @@ Push Commit → Format & Lint Job → Link Check Job
                     v
               Has changes?
                     |
-                    ├─ Yes → Bot commits fixes → Job ends
+                    |├─ Yes → Bot commits fixes → Job ends
                     └─ No  → Success → Link check runs
 ```
 
 ### Tools Run
 
-1. **Prettier** - Format all code files
-2. **ESLint** - Lint JavaScript/TypeScript with auto-fix
-3. **stylelint** - Lint CSS/SCSS with auto-fix
-4. **markdownlint** - Lint Markdown files
-5. **commitlint** - Validate commit message format
-6. **TypeScript** - Check types (no emit)
-7. **Lychee** - Check Markdown links (offline mode)
+**Formatting:**
+
+1. **Prettier** - Format JS/TS/JSON/MD/YAML/CSS/SCSS
+2. **Black** - Format Python code (PEP 8 compliant)
+3. **isort** - Sort Python imports
+4. **gofmt** - Format Go code (when Go projects exist)
+
+**Linting:**
+
+5. **ESLint** - Lint JavaScript/TypeScript with auto-fix
+6. **flake8** - Lint Python code (PEP 8 style guide)
+7. **stylelint** - Lint CSS/SCSS with auto-fix
+8. **markdownlint** - Lint Markdown files
+9. **yamllint** - Check YAML syntax
+10. **shellcheck** - Lint Bash scripts
+11. **golangci-lint** - Lint Go code (when Go projects exist)
+12. **commitlint** - Validate commit message format
+13. **TypeScript** - Check types (no emit)
+
+**Link Validation:**
+
+14. **Lychee** - Check Markdown links
 
 ---
 
@@ -53,12 +69,28 @@ Push Commit → Format & Lint Job → Link Check Job
 
 ### Prerequisites
 
+**Node.js & pnpm:**
+
 ```bash
 # Install pnpm (if not already installed)
 npm install -g pnpm@8
 
 # Install dependencies
 pnpm install
+```
+
+**Python (optional, for Python projects):**
+
+```bash
+# Install Python 3.13+ (if not already installed)
+# On macOS:
+brew install python@3.13
+
+# On Ubuntu/Debian:
+sudo apt-get install python3.13 python3-pip
+
+# Install Python formatting/linting tools
+pip install black isort flake8
 ```
 
 ### Running Format/Lint Locally
@@ -78,6 +110,19 @@ pnpm eslint --fix "**/*.{js,ts,jsx,tsx}"
 pnpm markdownlint-cli2 "**/*.md" --fix
 ```
 
+**For Python projects:**
+
+```bash
+# Format Python code
+black .
+
+# Sort imports
+isort .
+
+# Lint Python code
+flake8 . --max-line-length=88 --extend-ignore=E203,W503
+```
+
 ### Editor Integration
 
 #### VS Code (Recommended)
@@ -88,6 +133,9 @@ pnpm markdownlint-cli2 "**/*.md" --fix
 - [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
 - [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint)
 - [stylelint](https://marketplace.visualstudio.com/items?itemName=stylelint.vscode-stylelint)
+- [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (for Python projects)
+- [Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) (for Python projects)
+- [isort](https://marketplace.visualstudio.com/items?itemName=ms-python.isort) (for Python projects)
 
 **Enable Format on Save:**
 
@@ -99,7 +147,8 @@ Add to `.vscode/settings.json`:
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true,
-    "source.fixAll.stylelint": true
+    "source.fixAll.stylelint": true,
+    "source.organizeImports": true
   },
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -109,7 +158,15 @@ Add to `.vscode/settings.json`:
   },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "black-formatter.args": ["--line-length=88"],
+  "isort.args": ["--profile", "black"]
 }
 ```
 
@@ -132,8 +189,14 @@ Add to `.vscode/settings.json`:
 2. **Run format/lint locally:**
 
    ```bash
+   # For JS/TS/Markdown/etc:
    pnpm format
    pnpm lint:all
+
+   # For Python (if applicable):
+   black .
+   isort .
+   flake8 . --max-line-length=88 --extend-ignore=E203,W503
    ```
 
 3. **Check what changed:**
@@ -193,6 +256,46 @@ git commit -m "docs: update CI guide"
    git commit -m "fix: resolve TypeScript errors"
    git push
    ```
+
+### Problem: Python linting errors
+
+**Error:** "Black", "isort", or "flake8" check failed
+
+**Fix:**
+
+1. **Format Python code:**
+
+   ```bash
+   black .
+   ```
+
+2. **Sort imports:**
+
+   ```bash
+   isort .
+   ```
+
+3. **Check for remaining issues:**
+
+   ```bash
+   flake8 . --max-line-length=88 --extend-ignore=E203,W503
+   ```
+
+4. **Fix any remaining issues manually**
+
+5. **Push fixes:**
+   ```bash
+   git add -A
+   git commit -m "style: fix Python formatting"
+   git push
+   ```
+
+**Common flake8 issues:**
+
+- `E501`: Line too long (Black should fix this)
+- `F401`: Imported but unused (remove unused imports)
+- `E402`: Module level import not at top (move imports to top)
+- `W503`: Line break before binary operator (ignored by our config)
 
 ### Problem: Broken Markdown links
 
@@ -254,6 +357,24 @@ git commit -m "docs: update CI guide"
 - Extends `stylelint-config-standard`
 - Extends `stylelint-config-prettier`
 - `selector-class-pattern: null` (allow any class naming)
+
+### Python Configuration
+
+**Black** (via command-line args):
+
+- Line length: 88 (Black's default, optimal for readability)
+- Target: Python 3.13+
+
+**isort** (via command-line args):
+
+- Profile: `black` (compatible with Black's formatting)
+
+**flake8** (via command-line args):
+
+- `--max-line-length=88` (match Black)
+- `--extend-ignore=E203,W503` (ignore Black-incompatible rules)
+  - `E203`: Whitespace before ':' (Black's style)
+  - `W503`: Line break before binary operator (PEP 8 updated)
 
 ---
 
