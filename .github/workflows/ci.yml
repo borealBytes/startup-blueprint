@@ -13,6 +13,8 @@ jobs:
     name: Format and Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      commit-sha: ${{ steps.output_sha.outputs.sha }}
 
     steps:
       - name: Checkout
@@ -22,6 +24,13 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+
+      - name: Capture initial commit SHA
+        id: initial_sha
+        run: |
+          INITIAL_SHA=$(git rev-parse HEAD)
+          echo "sha=$INITIAL_SHA" >> $GITHUB_OUTPUT
+          echo "📝 Initial commit SHA: $INITIAL_SHA"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
@@ -630,13 +639,30 @@ jobs:
 
           git commit -m "chore: auto-format and lint fixes" -m "Applied automatic formatting and linting fixes."
 
-          COMMIT_SHA=$(git rev-parse HEAD)
-          echo "sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          BOT_COMMIT_SHA=$(git rev-parse HEAD)
+          echo "sha=$BOT_COMMIT_SHA" >> $GITHUB_OUTPUT
 
           git push
 
           echo "✅ Committed and pushed formatting fixes"
-          echo "📝 Commit SHA: $COMMIT_SHA"
+          echo "📝 Bot commit SHA: $BOT_COMMIT_SHA"
+
+      - name: Output final commit SHA
+        id: output_sha
+        if: always()
+        run: |
+          if [ "${{ steps.check_changes.outputs.changes }}" == "true" ]; then
+            # Bot committed changes, use bot's commit SHA
+            FINAL_SHA="${{ steps.commit.outputs.sha }}"
+            echo "🤖 Using bot commit SHA: $FINAL_SHA"
+          else
+            # No changes, use original commit SHA
+            FINAL_SHA="${{ steps.initial_sha.outputs.sha }}"
+            echo "📝 Using original commit SHA: $FINAL_SHA"
+          fi
+          
+          echo "sha=$FINAL_SHA" >> $GITHUB_OUTPUT
+          echo "➡️ Link check will validate commit: $FINAL_SHA"
 
       - name: Update summary with commit info
         if: steps.check_changes.outputs.changes == 'true'
@@ -646,13 +672,13 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Commit SHA:** \`${{ steps.commit.outputs.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "➡️ Documentation link check will run next..." >> $GITHUB_STEP_SUMMARY
+          echo "➡️ Documentation link check will run next on this commit..." >> $GITHUB_STEP_SUMMARY
 
       - name: Final summary
         if: steps.check_changes.outputs.changes == 'false' && success()
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "➡️ Documentation link check will run next..." >> $GITHUB_STEP_SUMMARY
+          echo "➡️ Documentation link check will run next on commit \`${{ steps.initial_sha.outputs.sha }}\`..." >> $GITHUB_STEP_SUMMARY
 
   link-check:
     name: Check Documentation Links
@@ -660,11 +686,26 @@ jobs:
     needs: [format-and-lint]
 
     steps:
-      - name: Checkout
+      - name: Checkout specific commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: ${{ needs.format-and-lint.outputs.commit-sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Verify checkout
+        run: |
+          CURRENT_SHA=$(git rev-parse HEAD)
+          EXPECTED_SHA="${{ needs.format-and-lint.outputs.commit-sha }}"
+          
+          echo "🔍 Expected commit: $EXPECTED_SHA"
+          echo "📝 Current commit:  $CURRENT_SHA"
+          
+          if [ "$CURRENT_SHA" == "$EXPECTED_SHA" ]; then
+            echo "✅ Checked out correct commit"
+          else
+            echo "❌ Commit mismatch!"
+            exit 1
+          fi
 
       - name: Restore lychee cache
         uses: actions/cache@v4
@@ -695,12 +736,15 @@ jobs:
       - name: Display link check results
         if: always()
         run: |
+          echo "## 🔗 Link Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Checked commit:** \`${{ needs.format-and-lint.outputs.commit-sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
           if [ -f "lychee/out.md" ]; then
-            echo "## 🔗 Link Check Results" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
             cat lychee/out.md >> $GITHUB_STEP_SUMMARY
           else
-            echo "## ✅ All Links Valid" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ All Links Valid" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "No broken links found in documentation." >> $GITHUB_STEP_SUMMARY
           fi
