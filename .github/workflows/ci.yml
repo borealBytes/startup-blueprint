@@ -1,6 +1,6 @@
 name: CI
 
-on:
+"on":
   pull_request:
 
 permissions:
@@ -111,20 +111,20 @@ jobs:
           # Check if any JS/TS files exist (excluding node_modules and .git)
           if find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) \
              -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
-            
+
             echo "🔍 Found JS/TS files, running ESLint..."
-            
+
             # Run ESLint with --quiet to suppress warnings about all files ignored
-            # This happens when only config files exist (*.config.js) which are intentionally ignored
+            # This happens when only config files exist (*.config.js)
             pnpm exec eslint \
               "**/*.{js,ts,jsx,tsx}" \
               --fix \
               --ignore-path .gitignore \
               --max-warnings 0 \
               2>&1 | tee /tmp/eslint.log
-            
+
             EXIT_CODE=${PIPESTATUS[0]}
-            
+
             # Check if error is "all files ignored" (exit code 2)
             if [ $EXIT_CODE -eq 2 ] && grep -q "all of the files matching the glob pattern" /tmp/eslint.log; then
               echo "📝 All JS/TS files are config files (intentionally ignored)"
@@ -391,7 +391,9 @@ jobs:
           if [ "$FAILED" == "true" ]; then
             echo "## ❌ Format & Lint Summary: Failures Detected" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "⚠️ **One or more checks failed. See details below and check the [full log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for errors.**" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **One or more checks failed. See details below and check " \
+              "the [full log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) " \
+              "for errors.**" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ steps.check_changes.outputs.changes }}" == "true" ]; then
             echo "## 📝 Format & Lint Summary: Changes Applied" >> $GITHUB_STEP_SUMMARY
           else
