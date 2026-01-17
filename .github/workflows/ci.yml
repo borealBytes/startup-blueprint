@@ -520,13 +520,13 @@ jobs:
             --max-redirects 5
             --exclude-mail
             '**/*.md'
+          output: lychee/out.md
           fail: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check link results
-        id: link_check
-        continue-on-error: true
+      - name: Display link check results
+        if: always()
         run: |
           if [ -f "lychee/out.md" ]; then
             echo "## 🔗 Link Check Results" >> $GITHUB_STEP_SUMMARY
