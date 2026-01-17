@@ -113,13 +113,23 @@ jobs:
              -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
             
             echo "🔍 Found JS/TS files, running ESLint..."
+            
+            # Run ESLint with --quiet to suppress warnings about all files ignored
+            # This happens when only config files exist (*.config.js) which are intentionally ignored
             pnpm exec eslint \
               "**/*.{js,ts,jsx,tsx}" \
               --fix \
               --ignore-path .gitignore \
-              --max-warnings 0
-
-            if [ $? -eq 0 ]; then
+              --max-warnings 0 \
+              2>&1 | tee /tmp/eslint.log
+            
+            EXIT_CODE=${PIPESTATUS[0]}
+            
+            # Check if error is "all files ignored" (exit code 2)
+            if [ $EXIT_CODE -eq 2 ] && grep -q "all of the files matching the glob pattern" /tmp/eslint.log; then
+              echo "📝 All JS/TS files are config files (intentionally ignored)"
+              echo "status=⏭️ Skipped (only config files)" >> $GITHUB_OUTPUT
+            elif [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
