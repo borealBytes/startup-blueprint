@@ -28,14 +28,71 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 
 ### Workflow Chain
 
+```mermaid
+flowchart TD
+    A[Push Commit] --> B[Format & Lint Job]
+    B --> C{Has Changes?}
+    C -->|Yes| D[Bot Commits Fixes]
+    C -->|No| E[Success]
+    D --> F[Job Ends]
+    E --> G[Link Check Job]
+    G --> H[Validate Markdown Links]
+    H --> I{Links Valid?}
+    I -->|Yes| J[✅ All Checks Pass]
+    I -->|No| K[❌ Job Fails]
+    
+    style A fill:#e1f5ff
+    style J fill:#c8e6c9
+    style K fill:#ffcdd2
+    style D fill:#fff9c4
 ```
-Push Commit → Format & Lint Job → Link Check Job
-                    |
-                    v
-              Has changes?
-                    |
-                    |├─ Yes → Bot commits fixes → Job ends
-                    └─ No  → Success → Link check runs
+
+### Tool Execution Flow by Language
+
+```mermaid
+flowchart LR
+    A[Code Push] --> B{Detect Languages}
+    
+    B --> C[JavaScript/TypeScript]
+    B --> D[Python]
+    B --> E[SQL]
+    B --> F[Go]
+    B --> G[CSS/SCSS]
+    B --> H[Other]
+    
+    C --> C1[Prettier]
+    C1 --> C2[ESLint]
+    C2 --> C3[TypeScript]
+    
+    D --> D1[Black]
+    D1 --> D2[isort]
+    D2 --> D3[flake8]
+    
+    E --> E1[SQLFluff Format]
+    E1 --> E2[SQLFluff Lint]
+    
+    F --> F1[gofmt]
+    F1 --> F2[golangci-lint]
+    
+    G --> G1[Prettier]
+    G1 --> G2[stylelint]
+    
+    H --> H1[markdownlint]
+    H1 --> H2[yamllint]
+    H2 --> H3[shellcheck]
+    
+    C3 --> I[Commit Check]
+    D3 --> I
+    E2 --> I
+    F2 --> I
+    G2 --> I
+    H3 --> I
+    
+    I --> J[commitlint]
+    J --> K[✅ Complete]
+    
+    style A fill:#e1f5ff
+    style K fill:#c8e6c9
 ```
 
 ### Tools Run
@@ -68,6 +125,44 @@ Push Commit → Format & Lint Job → Link Check Job
 ---
 
 ## Local Development Setup
+
+### Development Workflow
+
+```mermaid
+flowchart TD
+    A[Start Development] --> B{Have Dependencies?}
+    B -->|No| C[Install Node.js & pnpm]
+    B -->|Yes| D[Write Code]
+    C --> D
+    
+    D --> E[Before Commit]
+    E --> F[Run pnpm format]
+    F --> G[Run pnpm lint:all]
+    G --> H{Errors?}
+    
+    H -->|Yes| I[Fix Issues]
+    I --> F
+    H -->|No| J[git add & commit]
+    
+    J --> K{Using Python?}
+    K -->|Yes| L[Run black & isort]
+    K -->|No| M{Using SQL?}
+    L --> M
+    
+    M -->|Yes| N[Run sqlfluff fix]
+    M -->|No| O[Push to GitHub]
+    N --> O
+    
+    O --> P[CI Runs Automatically]
+    P --> Q{✅ CI Pass?}
+    Q -->|Yes| R[Ready for Review]
+    Q -->|No| S[Check CI Logs]
+    S --> I
+    
+    style A fill:#e1f5ff
+    style R fill:#c8e6c9
+    style I fill:#fff9c4
+```
 
 ### Prerequisites
 
@@ -144,6 +239,29 @@ sqlfluff lint --dialect duckdb .
 
 ### Editor Integration
 
+```mermaid
+flowchart LR
+    A[VS Code] --> B[Install Extensions]
+    B --> C[Prettier]
+    B --> D[ESLint]
+    B --> E[Black Formatter]
+    B --> F[SQLFluff]
+    B --> G[markdownlint]
+    
+    C --> H[Configure settings.json]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+    
+    H --> I[Enable Format on Save]
+    I --> J[Enable Auto-fix on Save]
+    J --> K[✅ Automatic Formatting]
+    
+    style A fill:#007acc
+    style K fill:#c8e6c9
+```
+
 #### VS Code (Recommended)
 
 **Install Extensions:**
@@ -197,6 +315,43 @@ Add to `.vscode/settings.json`:
 ---
 
 ## Troubleshooting
+
+### Troubleshooting Decision Tree
+
+```mermaid
+flowchart TD
+    A[CI Failed ❌] --> B{Which Job Failed?}
+    
+    B -->|Format & Lint| C{Which Tool?}
+    B -->|Link Check| D[Broken Links]
+    B -->|commitlint| E[Bad Commit Message]
+    
+    C -->|Prettier/ESLint| F[Run pnpm format]
+    C -->|Black/isort| G[Run black & isort]
+    C -->|SQLFluff| H[Run sqlfluff fix]
+    C -->|TypeScript| I[Run pnpm typecheck]
+    
+    F --> J[git add & commit]
+    G --> J
+    H --> J
+    I --> K[Fix Type Errors]
+    K --> J
+    
+    D --> L[Check CI Logs]
+    L --> M[Fix Broken URLs]
+    M --> J
+    
+    E --> N[Use Conventional Format]
+    N --> O[feat/fix/docs/etc]
+    O --> J
+    
+    J --> P[git push]
+    P --> Q[✅ CI Passes]
+    
+    style A fill:#ffcdd2
+    style Q fill:#c8e6c9
+    style J fill:#fff9c4
+```
 
 ### Problem: CI fails on format/lint checks
 
@@ -393,6 +548,46 @@ dialect = duckdb
 ---
 
 ## Configuration Files Reference
+
+### Configuration Architecture
+
+```mermaid
+flowchart TD
+    A[Root Config Files] --> B[.prettierrc.json]
+    A --> C[.eslintrc.json]
+    A --> D[.markdownlint.json]
+    A --> E[.stylelintrc.json]
+    A --> F[.sqlfluff]
+    A --> G[.yamllint.yml]
+    A --> H[commitlint.config.js]
+    
+    B --> I[Prettier Engine]
+    C --> J[ESLint Engine]
+    D --> K[markdownlint Engine]
+    E --> L[stylelint Engine]
+    F --> M[SQLFluff Engine]
+    G --> N[yamllint Engine]
+    H --> O[commitlint Engine]
+    
+    I --> P[Format JS/TS/JSON/MD/YAML/CSS]
+    J --> Q[Lint JS/TS]
+    K --> R[Lint Markdown]
+    L --> S[Lint CSS/SCSS]
+    M --> T[Format & Lint SQL]
+    N --> U[Validate YAML]
+    O --> V[Validate Commits]
+    
+    P --> W[✅ Consistent Code]
+    Q --> W
+    R --> W
+    S --> W
+    T --> W
+    U --> W
+    V --> W
+    
+    style A fill:#e1f5ff
+    style W fill:#c8e6c9
+```
 
 ### `.prettierrc.json`
 
