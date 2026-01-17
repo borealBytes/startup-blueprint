@@ -17,10 +17,16 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 ### Key Features
 
 ✅ **Auto-fixes issues** - Bot commits fixes automatically
+
 ✅ **Comprehensive tooling** - Prettier, ESLint, Black, SQLFluff, markdownlint, stylelint, commitlint, TypeScript
+
 ✅ **Multi-language** - JavaScript/TypeScript, Python, SQL, Go, CSS/SCSS, Markdown, YAML, Bash
+
 ✅ **Works with Perplexity** - Designed for MCP/Git tool commits
+
 ✅ **Link checking** - Validates all Markdown links
+
+✅ **Race-condition safe** - Exact commit SHA passed between jobs
 
 ### Single Linear Process
 
@@ -28,7 +34,7 @@ Every commit follows this flow:
 
 1. 📝 **Perplexity commits code** via Git MCP tool
 2. ⚙️ **Format & Lint runs**, bot may commit fixes
-3. 🔗 **Link Check validates** the final formatted code
+3. 🔗 **Link Check validates** the exact commit SHA from format-lint
 
 ---
 
@@ -38,87 +44,96 @@ Every commit follows this flow:
 
 ```mermaid
 flowchart TD
-    A[Perplexity Git Tool Commits] --> B[Format & Lint Job Runs]
-    B --> C{Has Changes?}
-    C -->|Yes| D[Bot Commits Fixes]
-    C -->|No| E[Job Completes]
-    D --> F[Job Completes]
-    E --> G[Link Check Job Starts]
-    F --> G
-    G --> H[Checkout Latest Commit]
-    H --> I[Validate Markdown Links]
-    I --> J{Links Valid?}
-    J -->|Yes| K[✅ All Checks Pass]
-    J -->|No| L[❌ Job Fails]
-
+    A[Perplexity Git Tool Commits] --> B[Capture Initial SHA]
+    B --> C[Format & Lint Job Runs]
+    C --> D{Has Changes?}
+    D -->|Yes| E[Bot Commits Fixes]
+    D -->|No| F[Output Initial SHA]
+    E --> G[Output Bot SHA]
+    F --> H[Link Check Receives SHA]
+    G --> H
+    H --> I[Checkout Exact Commit]
+    I --> J[Verify SHA Match]
+    J --> K[Validate Markdown Links]
+    K --> L{Links Valid?}
+    L -->|Yes| M[✅ All Checks Pass]
+    L -->|No| N[❌ Job Fails]
+    
     style A fill:#e1f5ff
-    style K fill:#c8e6c9
-    style L fill:#ffcdd2
-    style D fill:#fff9c4
+    style B fill:#fff9c4
+    style F fill:#c8e6c9
+    style G fill:#fff9c4
     style H fill:#e1f5ff
+    style I fill:#e1f5ff
+    style J fill:#fff9c4
+    style M fill:#c8e6c9
+    style N fill:#ffcdd2
 ```
 
 **How This Works:**
 
 1. **You commit via Perplexity** - Using the Git MCP tool, your changes are committed to the branch
-2. **Format & Lint job runs** - All formatting and linting tools execute
-3. **Bot commits fixes (if needed)** - If formatting changes are detected, the bot commits them automatically
-4. **Job completes** - Format & Lint job finishes (with or without bot commit)
-5. **Link Check waits** - Uses `needs: [format-and-lint]` to wait for completion
-6. **Link Check runs on latest commit** - Checks out the most recent commit (bot's fix or your original)
-7. **Links validated** - All Markdown links are checked
+2. **Capture initial SHA** - Format & Lint job captures the commit SHA at the start (`git rev-parse HEAD`)
+3. **Format & Lint job runs** - All formatting and linting tools execute
+4. **Bot commits fixes (if needed)** - If formatting changes are detected, bot commits and captures new SHA
+5. **Output correct SHA** - Job outputs either the initial SHA (no changes) or bot's SHA (changes applied)
+6. **Link Check receives SHA** - Via `needs: [format-and-lint]` and `outputs.commit-sha`
+7. **Checkout exact commit** - Link Check checks out the specific SHA using `ref: ${{ needs.format-and-lint.outputs.commit-sha }}`
+8. **Verify SHA match** - Confirms checked out commit matches expected SHA
+9. **Links validated** - All Markdown links are checked on the correct commit
 
 **Key Points:**
 
-- ✅ Single linear workflow - no CI re-runs
-- ✅ Bot commits don't trigger new CI runs (GitHub Actions bot is ignored)
-- ✅ Link Check always validates the final, formatted code
-- ✅ Everything happens automatically after your commit
+- ✅ **Race-condition safe** - Exact SHA passed between jobs, no ambiguity
+- ✅ **No concurrent commit conflicts** - Each link-check validates its specific commit
+- ✅ **Single linear workflow** - No CI re-runs needed
+- ✅ **Bot commits don't trigger CI** - GitHub Actions bot is ignored
+- ✅ **Verification step** - Link Check fails if wrong commit is checked out
 
 ### Tool Execution Flow by Language
 
 ```mermaid
 flowchart LR
     A[Code Push] --> B{Detect Languages}
-
+    
     B --> C[JavaScript/TypeScript]
     B --> D[Python]
     B --> E[SQL]
     B --> F[Go]
     B --> G[CSS/SCSS]
     B --> H[Other]
-
+    
     C --> C1[Prettier]
     C1 --> C2[ESLint]
     C2 --> C3[TypeScript]
-
+    
     D --> D1[Black]
     D1 --> D2[isort]
     D2 --> D3[flake8]
-
+    
     E --> E1[SQLFluff Format]
     E1 --> E2[SQLFluff Lint]
-
+    
     F --> F1[gofmt]
     F1 --> F2[golangci-lint]
-
+    
     G --> G1[Prettier]
     G1 --> G2[stylelint]
-
+    
     H --> H1[markdownlint]
     H1 --> H2[yamllint]
     H2 --> H3[shellcheck]
-
+    
     C3 --> I[Commit Check]
     D3 --> I
     E2 --> I
     F2 --> I
     G2 --> I
     H3 --> I
-
+    
     I --> J[commitlint]
     J --> K[✅ Complete]
-
+    
     style A fill:#e1f5ff
     style K fill:#c8e6c9
 ```
@@ -159,32 +174,32 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[CI Failed ❌] --> B{Which Job Failed?}
-
+    
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
     B -->|commitlint| E[Bad Commit Message]
-
+    
     C -->|Prettier/ESLint| F[Check File Syntax]
     C -->|Black/isort| G[Check Python Code]
     C -->|SQLFluff| H[Check SQL Syntax]
     C -->|TypeScript| I[Check Type Errors]
-
+    
     F --> J[Fix in Perplexity]
     G --> J
     H --> J
     I --> J
-
+    
     D --> K[Check CI Logs]
     K --> L[Fix Broken URLs]
     L --> J
-
+    
     E --> M[Use Conventional Format]
     M --> N[feat/fix/docs/etc]
     N --> J
-
+    
     J --> O[Commit via Perplexity]
     O --> P[✅ CI Re-runs & Passes]
-
+    
     style A fill:#ffcdd2
     style P fill:#c8e6c9
     style J fill:#fff9c4
@@ -330,7 +345,7 @@ flowchart TD
     A --> G[.yamllint.yml]
     A --> H[commitlint.config.js]
     A --> I[.lycheeignore]
-
+    
     B --> J[Prettier Engine]
     C --> K[ESLint Engine]
     D --> L[markdownlint Engine]
@@ -339,7 +354,7 @@ flowchart TD
     G --> O[yamllint Engine]
     H --> P[commitlint Engine]
     I --> Q[Lychee Engine]
-
+    
     J --> R[Format JS/TS/JSON/MD/YAML/CSS]
     K --> S[Lint JS/TS]
     L --> T[Lint Markdown]
@@ -348,7 +363,7 @@ flowchart TD
     O --> W[Validate YAML]
     P --> X[Validate Commits]
     Q --> Y[Validate Links]
-
+    
     R --> Z[✅ Consistent Code]
     S --> Z
     T --> Z
@@ -357,7 +372,7 @@ flowchart TD
     W --> Z
     X --> Z
     Y --> Z
-
+    
     style A fill:#e1f5ff
     style Z fill:#c8e6c9
 ```
@@ -419,8 +434,11 @@ When using Perplexity's Git MCP tool:
 ### Best Practices
 
 ✅ **Commit frequently** - Smaller commits are easier to debug if CI fails
+
 ✅ **Use descriptive messages** - Helps with PR reviews and history
+
 ✅ **Wait for CI** - Let CI complete before merging
+
 ✅ **Review summaries** - CI provides detailed job summaries in GitHub Actions
 
 ### Understanding the Flow
@@ -428,13 +446,14 @@ When using Perplexity's Git MCP tool:
 **When you commit via Perplexity:**
 
 ```
-Your Commit → Format & Lint → Bot Commit (if needed) → Link Check → ✅ Done
+Your Commit → Format & Lint (capture SHA) → Bot Commit (if needed) → Output SHA → Link Check (exact SHA) → ✅ Done
 ```
 
-- **Format & Lint**: Runs all 15 tools, may commit fixes
-- **Bot Commit**: Only if formatting changes needed
-- **Link Check**: Validates final code on latest commit
-- **No re-runs**: Single linear process per push
+- **Format & Lint**: Captures initial SHA, runs all 15 tools, may commit fixes, outputs correct SHA
+- **Bot Commit**: Only if formatting changes needed, new SHA captured
+- **SHA Output**: Job outputs either initial SHA (no changes) or bot SHA (changes applied)
+- **Link Check**: Receives SHA via `needs.format-and-lint.outputs.commit-sha`, checks out exact commit
+- **No re-runs**: Single linear process per push, no race conditions
 
 ---
 
@@ -454,4 +473,4 @@ If you encounter issues with the CI/CD pipeline:
 
 **Last updated:** 2026-01-17
 **Maintainer:** @borealBytes
-**Workflow:** Optimized for Perplexity Spaces
+**Workflow:** Optimized for Perplexity Spaces with race-condition safety
