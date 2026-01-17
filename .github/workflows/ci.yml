@@ -533,6 +533,28 @@ jobs:
             echo "✅ Workflow files excluded from commit"
           fi
 
+      - name: Clean tracking files (remove unstaged workflow files)
+        if: always()
+        run: |
+          echo "🧹 Cleaning tracking files to match staged files..."
+          
+          # Remove workflow file entries from all tracking files
+          for tracking_file in /tmp/*_changes.txt; do
+            if [ -f "$tracking_file" ]; then
+              # Filter out any lines matching .github/workflows/
+              grep -v "^\.github/workflows/" "$tracking_file" > "${tracking_file}.tmp" 2>/dev/null || touch "${tracking_file}.tmp"
+              mv "${tracking_file}.tmp" "$tracking_file"
+              
+              # Count remaining entries
+              REMAINING=$(wc -l < "$tracking_file" 2>/dev/null || echo 0)
+              if [ "$REMAINING" -gt 0 ]; then
+                echo "✅ $(basename $tracking_file): $REMAINING file(s) remaining after cleanup"
+              fi
+            fi
+          done
+          
+          echo "✅ Tracking files cleaned - commit message will be accurate"
+
       - name: Check for changes
         id: check_changes
         if: always()
