@@ -1,10 +1,10 @@
-# Quick Start Checklist    
+# Quick Start Checklist
 
-This is a 30-minute condensed version of the full blueprint. Use this when you need to move fast.  
+This is a 30-minute condensed version of the full blueprint. Use this when you need to move fast.
 
 ## Prerequisites
 
-- [ ] Business name decided  
+- [ ] Business name decided
 - [ ] ~$500 budget for filing fees (varies by state)
 - [ ] 1-2 hours of focused time
 
@@ -61,7 +61,7 @@ You now have:
 - ✅ Email forwarding
 - ✅ Version control
 
-### What to do next:
+### What to do next
 
 1. **Get EIN**: [Apply online](https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online) (free, takes 10 minutes)
 2. **Open business bank account**: Use EIN + LLC certificate
