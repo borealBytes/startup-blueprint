@@ -1,8 +1,8 @@
-# Startup Blueprint 🚀   
+# Startup Blueprint 🚀
 
 **A free, comprehensive guide to starting and operating a business from day one.**
 
-This repository contains everything you need to establish your business legally, technically, and operationally. No fluff—just actionable, repeatable processes you can implement immediately.  
+This repository contains everything you need to establish your business legally, technically, and operationally. No fluff—just actionable, repeatable processes you can implement immediately.
 
 > **Who this is for:** Solo entrepreneurs, co-founders, and small business operators who want a professional, scalable foundation from the start.
 
@@ -44,7 +44,7 @@ graph LR
 
 ---
 
-## 🗂️ Quick Navigation   
+## 🗂️ Quick Navigation
 
 ### For the Impatient
 
