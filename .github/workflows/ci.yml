@@ -521,6 +521,7 @@ jobs:
             --exclude-mail
             '**/*.md'
           output: lychee/out.md
+          jobSummary: false
           fail: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
