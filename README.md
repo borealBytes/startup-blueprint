@@ -30,15 +30,15 @@ graph LR
 
 ## 📚 Guide Structure
 
-| Guide                                                                          | Duration  | What You'll Set Up                                  |
-| ------------------------------------------------------------------------------ | --------- | --------------------------------------------------- |
-| **[1. Legal Foundation](./docs/guides/01-legal-foundation.md)**                | 2-3 hours | LLC registration, business license, naming          |
-| **[2. Domain & DNS](./docs/guides/02-domain-dns.md)**                          | 30 min    | Custom domain via Cloudflare, professional branding |
-| **[3. Email Infrastructure](./docs/guides/03-email-infrastructure.md)**        | 1 hour    | Professional email routing, multi-user setup        |
-| **[4. Git & Repository](./docs/guides/04-git-repository.md)**                  | 45 min    | GitHub repo, Perplexity Spaces, AI workflow         |
-| **[5. Financial Tools](./docs/guides/05-financial-tools.md)**                  | 1 hour    | Accounting, tax planning, payment processing        |
-| **[6. Deployment & CI/CD](./docs/guides/06-deployment-cicd.md)**               | 1.5 hours | Automated deployment, website hosting               |
-| **[7. Operations Manual](./docs/guides/07-operations-manual.md)**              | 2 hours   | Repeatable processes, checklists, handoff docs      |
+| Guide                                                                   | Duration  | What You'll Set Up                                  |
+| ----------------------------------------------------------------------- | --------- | --------------------------------------------------- |
+| **[1. Legal Foundation](./docs/guides/01-legal-foundation.md)**         | 2-3 hours | LLC registration, business license, naming          |
+| **[2. Domain & DNS](./docs/guides/02-domain-dns.md)**                   | 30 min    | Custom domain via Cloudflare, professional branding |
+| **[3. Email Infrastructure](./docs/guides/03-email-infrastructure.md)** | 1 hour    | Professional email routing, multi-user setup        |
+| **[4. Git & Repository](./docs/guides/04-git-repository.md)**           | 45 min    | GitHub repo, Perplexity Spaces, AI workflow         |
+| **[5. Financial Tools](./docs/guides/05-financial-tools.md)**           | 1 hour    | Accounting, tax planning, payment processing        |
+| **[6. Deployment & CI/CD](./docs/guides/06-deployment-cicd.md)**        | 1.5 hours | Automated deployment, website hosting               |
+| **[7. Operations Manual](./docs/guides/07-operations-manual.md)**       | 2 hours   | Repeatable processes, checklists, handoff docs      |
 
 **Total setup time: ~8-10 hours**
 
