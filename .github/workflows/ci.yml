@@ -44,12 +44,18 @@ jobs:
             echo "⚠️  pnpm-lock.yaml not found - will generate it"
           fi
 
-      - name: Setup Node.js
+      - name: Setup Node.js (with cache)
+        if: steps.check_lockfile.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # Only enable cache if lock file exists
-          cache: ${{ steps.check_lockfile.outputs.exists == 'true' && 'pnpm' || '' }}
+          cache: 'pnpm'
+
+      - name: Setup Node.js (without cache)
+        if: steps.check_lockfile.outputs.exists != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Setup Go (for future Golang projects)
         uses: actions/setup-go@v5
@@ -432,9 +438,9 @@ This enables dependency caching for faster subsequent runs."
           elif [ "${{ steps.check_changes.outputs.changes }}" == "true" ]; then
             echo "### 📝 Changed Files (${{ steps.check_changes.outputs.file_count }})" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             cat /tmp/changed_files.txt >> $GITHUB_STEP_SUMMARY
-            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⚠️ **Auto-commit will be created below**" >> $GITHUB_STEP_SUMMARY
           else
@@ -471,10 +477,10 @@ This enables dependency caching for faster subsequent runs."
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
-          cat > /tmp/commit_msg.txt <<EOF
+          cat > /tmp/commit_msg.txt << 'COMMIT_EOF'
           chore: auto-format and lint fixes
 
-          Applied automatic formatting and linting fixes to ${CHANGED_FILES} file(s).
+          Applied automatic formatting and linting fixes.
           
           Tools applied:
           - Prettier (JS/TS/JSON/MD/YAML/CSS)
@@ -483,10 +489,7 @@ This enables dependency caching for faster subsequent runs."
           - stylelint (CSS/SCSS)
           - gofmt (Go)
           - golangci-lint (Go)
-          
-          Changed files:
-          $(git diff --cached --name-only | sed 's/^/  - /')
-          EOF
+          COMMIT_EOF
           
           git commit -F /tmp/commit_msg.txt
           COMMIT_SHA=$(git rev-parse HEAD)
@@ -506,11 +509,11 @@ This enables dependency caching for faster subsequent runs."
           echo "**Commit SHA:** \`${{ steps.commit.outputs.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Message:**" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           echo "chore: auto-format and lint fixes" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Applied automatic formatting and linting fixes to ${{ steps.check_changes.outputs.file_count }} file(s)." >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "Applied automatic formatting and linting fixes." >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "➡️ Documentation link check will run next..." >> $GITHUB_STEP_SUMMARY
 
