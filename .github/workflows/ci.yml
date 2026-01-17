@@ -108,7 +108,11 @@ jobs:
         id: eslint
         continue-on-error: true
         run: |
-          if find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
+          # Check if any JS/TS files exist (excluding node_modules and .git)
+          if find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) \
+             -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
+            
+            echo "🔍 Found JS/TS files, running ESLint..."
             pnpm exec eslint \
               "**/*.{js,ts,jsx,tsx}" \
               --fix \
@@ -122,8 +126,9 @@ jobs:
               exit 1
             fi
           else
+            # No JS/TS files found - skip gracefully
             echo "status=⏭️ Skipped (no JS/TS files)" >> $GITHUB_OUTPUT
-            echo "⏭️ No JavaScript/TypeScript files found"
+            echo "⏭️ No JavaScript/TypeScript files found, skipping ESLint"
           fi
 
       - name: Run stylelint (auto-fix CSS/SCSS)
