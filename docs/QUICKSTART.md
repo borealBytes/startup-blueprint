@@ -13,7 +13,6 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 ### Checklist
 
 - [ ] **Brainstorm names** that are:
-
   - Memorable and pronounceable
   - Relevant to your business
   - Room to expand (not too narrow)
@@ -22,7 +21,6 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   **Examples**: `AlertShield`, `PeakCapital`, `StreamSync`
 
 - [ ] **Check availability** (use [this tool](https://instantdomainsearch.com)):
-
   - [ ] `BUSINESSNAME.com` (domain)
   - [ ] `BUSINESSNAME` LLC (state registrar, e.g., [Michigan LARA](https://mibusinessregistry.lara.state.mi.us/))
   - [ ] `@BUSINESSNAME` on Twitter/X
@@ -40,14 +38,12 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 ### Checklist
 
 - [ ] **Go to your state's business registration site**
-
   - Michigan: [LARA](https://mibusinessregistry.lara.state.mi.us/)
   - California: [Secretary of State](https://www.sos.ca.gov/business-programs/bizfile)
   - New York: [Department of State](https://dos.ny.gov/)
   - (Find yours: Google `[STATE] LLC registration`)
 
 - [ ] **File your Articles of Organization** with:
-
   - Business name: `BUSINESS NAME, LLC`
   - Registered agent: You (or your address)
   - Address: Your current address (can change later)
@@ -57,7 +53,6 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 - [ ] **Pay the filing fee** (~$50-150 depending on state)
 
 - [ ] **Get your confirmation**. You'll receive:
-
   - Certificate of Organization (save this)
   - State File Number (save this)
 
@@ -76,7 +71,6 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 ### Checklist
 
 - [ ] **Register domain at [Cloudflare](https://www.cloudflare.com/products/registrar/)**
-
   - Go to Registrar > Register domain
   - Search for `BUSINESSNAME.com`
   - 10-year registration (~$100 total, ~$10/year)
@@ -84,7 +78,6 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   - Keep it open for next step
 
 - [ ] **Set up email routing** (still in Cloudflare)
-
   - Go to Email Routing
   - Enable Email Routing
   - Create custom address: `founder@BUSINESSNAME.com` → `[your-personal-email]@gmail.com`
@@ -105,13 +98,11 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 ### Checklist
 
 - [ ] **Create GitHub account** if you don't have one
-
   - Go to [GitHub](https://github.com)
   - Sign up with business Gmail from Phase 3
   - Enable 2FA
 
 - [ ] **Create private repository**
-
   - Click "New"
   - Name: `BUSINESSNAME` or `BUSINESSNAME.com`
   - Description: "BUSINESS NAME | Docs, code, operations"
@@ -123,6 +114,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   - Click "Add file" → "Create new file"
   - Name: `.gitignore`
   - Paste:
+
     ```
     .env
     .env.local
@@ -133,6 +125,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
     *.swp
     .secrets/
     ```
+
   - Commit
 
 ---

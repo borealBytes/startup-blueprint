@@ -127,7 +127,6 @@ Most states require:
 ### State-Specific Notes (Examples)
 
 - **Michigan (LARA)**
-
   - Online filing via LARA is straightforward for LLCs and PLLCs
   - Pay fee online, get confirmation and entity ID
 
