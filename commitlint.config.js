@@ -5,26 +5,26 @@ module.exports = {
       2,
       'always',
       [
-        'feat',     // New feature
-        'fix',      // Bug fix
-        'docs',     // Documentation only
-        'style',    // Formatting, missing semi colons, etc
-        'refactor', // Code change that neither fixes nor adds
-        'perf',     // Performance improvements
-        'test',     // Adding missing tests
-        'chore',    // Maintain, dependencies, etc
-        'ci',       // CI/CD changes
-        'build',    // Build system changes
-        'revert',   // Revert a previous commit
+        'feat',
+        'fix',
+        'docs',
+        'style',
+        'refactor',
+        'perf',
+        'test',
+        'chore',
+        'ci',
+        'build',
+        'revert',
       ],
     ],
     'scope-case': [2, 'always', 'kebab-case'],
-    'subject-case': [0],  // Allow any case
+    'subject-case': [0],
     'subject-empty': [2, 'never'],
     'subject-full-stop': [2, 'never', '.'],
     'header-max-length': [2, 'always', 100],
     'body-leading-blank': [2, 'always'],
-    'body-max-line-length': [0],  // Allow long lines in body
+    'body-max-line-length': [0],
     'footer-leading-blank': [2, 'always'],
   },
 };
