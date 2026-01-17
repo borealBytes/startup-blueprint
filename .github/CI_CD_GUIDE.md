@@ -4,23 +4,30 @@
 
 - [Overview](#overview)
 - [How It Works](#how-it-works)
-- [Local Development Setup](#local-development-setup)
 - [Troubleshooting](#troubleshooting)
 - [Configuration Files Reference](#configuration-files-reference)
+- [Perplexity Workflow Tips](#perplexity-workflow-tips)
 
 ---
 
 ## Overview
 
-Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code formatting and linting issues before running any tests. This ensures consistent code quality across all commits, whether from humans or AI agents.
+Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code formatting and linting issues before validating links. This ensures consistent code quality for every commit made through Perplexity Spaces.
 
 ### Key Features
 
 ✅ **Auto-fixes issues** - Bot commits fixes automatically
 ✅ **Comprehensive tooling** - Prettier, ESLint, Black, SQLFluff, markdownlint, stylelint, commitlint, TypeScript
 ✅ **Multi-language** - JavaScript/TypeScript, Python, SQL, Go, CSS/SCSS, Markdown, YAML, Bash
-✅ **Works for all** - Humans, AI agents, web UI commits
+✅ **Works with Perplexity** - Designed for MCP/Git tool commits
 ✅ **Link checking** - Validates all Markdown links
+
+### Single Linear Process
+
+Every commit follows this flow:
+1. 📝 **Perplexity commits code** via Git MCP tool
+2. ⚙️ **Format & Lint runs**, bot may commit fixes
+3. 🔗 **Link Check validates** the final formatted code
 
 ---
 
@@ -30,7 +37,7 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 
 ```mermaid
 flowchart TD
-    A[Push Commit] --> B[Format & Lint Job Runs]
+    A[Perplexity Git Tool Commits] --> B[Format & Lint Job Runs]
     B --> C{Has Changes?}
     C -->|Yes| D[Bot Commits Fixes]
     C -->|No| E[Job Completes]
@@ -42,7 +49,7 @@ flowchart TD
     I --> J{Links Valid?}
     J -->|Yes| K[✅ All Checks Pass]
     J -->|No| L[❌ Job Fails]
-
+    
     style A fill:#e1f5ff
     style K fill:#c8e6c9
     style L fill:#ffcdd2
@@ -50,65 +57,73 @@ flowchart TD
     style H fill:#e1f5ff
 ```
 
-**Key Points:**
+**How This Works:**
 
-- Format & Lint job commits fixes if needed, then completes
-- Link Check job waits for Format & Lint to complete (`needs: [format-and-lint]`)
-- Link Check always checks out the **latest commit** on the branch (bot's fix or original)
-- Bot commits do NOT trigger CI to re-run (GitHub Actions bot is ignored)
-- This ensures link check validates the final, formatted code
+1. **You commit via Perplexity** - Using the Git MCP tool, your changes are committed to the branch
+2. **Format & Lint job runs** - All formatting and linting tools execute
+3. **Bot commits fixes (if needed)** - If formatting changes are detected, the bot commits them automatically
+4. **Job completes** - Format & Lint job finishes (with or without bot commit)
+5. **Link Check waits** - Uses `needs: [format-and-lint]` to wait for completion
+6. **Link Check runs on latest commit** - Checks out the most recent commit (bot's fix or your original)
+7. **Links validated** - All Markdown links are checked
+
+**Key Points:**
+- ✅ Single linear workflow - no CI re-runs
+- ✅ Bot commits don't trigger new CI runs (GitHub Actions bot is ignored)
+- ✅ Link Check always validates the final, formatted code
+- ✅ Everything happens automatically after your commit
 
 ### Tool Execution Flow by Language
 
 ```mermaid
 flowchart LR
     A[Code Push] --> B{Detect Languages}
-
+    
     B --> C[JavaScript/TypeScript]
     B --> D[Python]
     B --> E[SQL]
     B --> F[Go]
     B --> G[CSS/SCSS]
     B --> H[Other]
-
+    
     C --> C1[Prettier]
     C1 --> C2[ESLint]
     C2 --> C3[TypeScript]
-
+    
     D --> D1[Black]
     D1 --> D2[isort]
     D2 --> D3[flake8]
-
+    
     E --> E1[SQLFluff Format]
     E1 --> E2[SQLFluff Lint]
-
+    
     F --> F1[gofmt]
     F1 --> F2[golangci-lint]
-
+    
     G --> G1[Prettier]
     G1 --> G2[stylelint]
-
+    
     H --> H1[markdownlint]
     H1 --> H2[yamllint]
     H2 --> H3[shellcheck]
-
+    
     C3 --> I[Commit Check]
     D3 --> I
     E2 --> I
     F2 --> I
     G2 --> I
     H3 --> I
-
+    
     I --> J[commitlint]
     J --> K[✅ Complete]
-
+    
     style A fill:#e1f5ff
     style K fill:#c8e6c9
 ```
 
 ### Tools Run
 
-**Formatting:**
+**Formatting (Auto-fix):**
 
 1. **Prettier** - Format JS/TS/JSON/MD/YAML/CSS/SCSS
 2. **Black** - Format Python code (PEP 8 compliant)
@@ -116,7 +131,7 @@ flowchart LR
 4. **SQLFluff** - Format SQL files (PostgreSQL/DuckDB)
 5. **gofmt** - Format Go code (when Go projects exist)
 
-**Linting:**
+**Linting (Auto-fix where possible):**
 
 6. **ESLint** - Lint JavaScript/TypeScript with auto-fix
 7. **flake8** - Lint Python code (PEP 8 style guide)
@@ -127,201 +142,11 @@ flowchart LR
 12. **shellcheck** - Lint Bash scripts
 13. **golangci-lint** - Lint Go code (when Go projects exist)
 14. **commitlint** - Validate commit message format
-15. **TypeScript** - Check types (no emit)
+15. **TypeScript** - Check type errors
 
 **Link Validation:**
 
 16. **Lychee** - Check Markdown links
-
----
-
-## Local Development Setup
-
-### Development Workflow
-
-```mermaid
-flowchart TD
-    A[Start Development] --> B{Have Dependencies?}
-    B -->|No| C[Install Node.js & pnpm]
-    B -->|Yes| D[Write Code]
-    C --> D
-
-    D --> E[Before Commit]
-    E --> F[Run pnpm format]
-    F --> G[Run pnpm lint:all]
-    G --> H{Errors?}
-
-    H -->|Yes| I[Fix Issues]
-    I --> F
-    H -->|No| J[git add & commit]
-
-    J --> K{Using Python?}
-    K -->|Yes| L[Run black & isort]
-    K -->|No| M{Using SQL?}
-    L --> M
-
-    M -->|Yes| N[Run sqlfluff fix]
-    M -->|No| O[Push to GitHub]
-    N --> O
-
-    O --> P[CI Runs Automatically]
-    P --> Q{✅ CI Pass?}
-    Q -->|Yes| R[Ready for Review]
-    Q -->|No| S[Check CI Logs]
-    S --> I
-
-    style A fill:#e1f5ff
-    style R fill:#c8e6c9
-    style I fill:#fff9c4
-```
-
-### Prerequisites
-
-**Node.js & pnpm:**
-
-```bash
-# Install pnpm (if not already installed)
-npm install -g pnpm@8
-
-# Install dependencies
-pnpm install
-```
-
-**Python (optional, for Python/SQL projects):**
-
-```bash
-# Install Python 3.13+ (if not already installed)
-# On macOS:
-brew install python@3.13
-
-# On Ubuntu/Debian:
-sudo apt-get install python3.13 python3-pip
-
-# Install Python formatting/linting tools
-pip install black isort flake8
-
-# Install SQL formatting/linting tools (optional)
-pip install sqlfluff
-```
-
-### Running Format/Lint Locally
-
-**Before committing, always run:**
-
-```bash
-# Format all files
-pnpm format
-
-# Fix all linting issues
-pnpm lint:all
-
-# Or individually:
-pnpm prettier --write "**/*.{js,ts,json,md,yml,yaml,css,scss}"
-pnpm eslint --fix "**/*.{js,ts,jsx,tsx}"
-pnpm markdownlint-cli2 "**/*.md" --fix
-```
-
-**For Python projects:**
-
-```bash
-# Format Python code
-black .
-
-# Sort imports
-isort .
-
-# Lint Python code
-flake8 . --max-line-length=88 --extend-ignore=E203,W503
-```
-
-**For SQL projects:**
-
-```bash
-# Format SQL files (auto-fix)
-sqlfluff fix --dialect postgres .
-
-# Lint SQL files
-sqlfluff lint --dialect postgres .
-
-# For DuckDB projects:
-sqlfluff fix --dialect duckdb .
-sqlfluff lint --dialect duckdb .
-```
-
-### Editor Integration
-
-```mermaid
-flowchart LR
-    A[VS Code] --> B[Install Extensions]
-    B --> C[Prettier]
-    B --> D[ESLint]
-    B --> E[Black Formatter]
-    B --> F[SQLFluff]
-    B --> G[markdownlint]
-
-    C --> H[Configure settings.json]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
-
-    H --> I[Enable Format on Save]
-    I --> J[Enable Auto-fix on Save]
-    J --> K[✅ Automatic Formatting]
-
-    style A fill:#007acc
-    style K fill:#c8e6c9
-```
-
-#### VS Code (Recommended)
-
-**Install Extensions:**
-
-- [Prettier - Code formatter](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-- [markdownlint](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint)
-- [stylelint](https://marketplace.visualstudio.com/items?itemName=stylelint.vscode-stylelint)
-- [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (for Python projects)
-- [Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) (for Python projects)
-- [isort](https://marketplace.visualstudio.com/items?itemName=ms-python.isort) (for Python projects)
-- [SQLFluff](https://marketplace.visualstudio.com/items?itemName=dorzey.vscode-sqlfluff) (for SQL projects)
-
-**Enable Format on Save:**
-
-Add to `.vscode/settings.json`:
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
-    "source.fixAll.stylelint": true,
-    "source.organizeImports": true
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": true
-    }
-  },
-  "[sql]": {
-    "editor.defaultFormatter": "dorzey.vscode-sqlfluff"
-  },
-  "black-formatter.args": ["--line-length=88"],
-  "isort.args": ["--profile", "black"],
-  "sqlfluff.dialect": "postgres"
-}
-```
 
 ---
 
@@ -332,35 +157,34 @@ Add to `.vscode/settings.json`:
 ```mermaid
 flowchart TD
     A[CI Failed ❌] --> B{Which Job Failed?}
-
+    
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
     B -->|commitlint| E[Bad Commit Message]
-
-    C -->|Prettier/ESLint| F[Run pnpm format]
-    C -->|Black/isort| G[Run black & isort]
-    C -->|SQLFluff| H[Run sqlfluff fix]
-    C -->|TypeScript| I[Run pnpm typecheck]
-
-    F --> J[git add & commit]
+    
+    C -->|Prettier/ESLint| F[Check File Syntax]
+    C -->|Black/isort| G[Check Python Code]
+    C -->|SQLFluff| H[Check SQL Syntax]
+    C -->|TypeScript| I[Check Type Errors]
+    
+    F --> J[Fix in Perplexity]
     G --> J
     H --> J
-    I --> K[Fix Type Errors]
-    K --> J
-
-    D --> L[Check CI Logs]
-    L --> M[Fix Broken URLs]
-    M --> J
-
-    E --> N[Use Conventional Format]
-    N --> O[feat/fix/docs/etc]
-    O --> J
-
-    J --> P[git push]
-    P --> Q[✅ CI Passes]
-
+    I --> J
+    
+    D --> K[Check CI Logs]
+    K --> L[Fix Broken URLs]
+    L --> J
+    
+    E --> M[Use Conventional Format]
+    M --> N[feat/fix/docs/etc]
+    N --> J
+    
+    J --> O[Commit via Perplexity]
+    O --> P[✅ CI Re-runs & Passes]
+    
     style A fill:#ffcdd2
-    style Q fill:#c8e6c9
+    style P fill:#c8e6c9
     style J fill:#fff9c4
 ```
 
@@ -368,43 +192,37 @@ flowchart TD
 
 **Symptoms:** Red X on PR, "Format & Lint" job failed
 
-**Solutions:**
+**Cause:** A tool detected an issue it cannot auto-fix, or a linting rule was violated
 
-1. **Pull latest changes:**
+**Solution:**
 
-   ```bash
-   git pull origin <branch-name>
-   ```
+1. **Check the CI logs** to see which tool failed and what the error message is
 
-2. **Run format/lint locally:**
+2. **Common issues:**
 
-   ```bash
-   # For JS/TS/Markdown/etc:
-   pnpm format
-   pnpm lint:all
+   **Prettier/ESLint Syntax Errors:**
+   - Check for missing brackets, parentheses, or semicolons
+   - Look for invalid JavaScript/TypeScript syntax
+   - Fix in Perplexity and commit again
 
-   # For Python (if applicable):
-   black .
-   isort .
-   flake8 . --max-line-length=88 --extend-ignore=E203,W503
+   **Python Issues:**
+   - `E501`: Line too long (Black should auto-fix, but may fail on comments)
+   - `F401`: Imported but unused (remove unused imports)
+   - `E402`: Module level import not at top (move imports to top)
 
-   # For SQL (if applicable):
-   sqlfluff fix --dialect postgres .
-   sqlfluff lint --dialect postgres .
-   ```
+   **SQL Issues:**
+   - Missing semicolons at end of statements
+   - Invalid PostgreSQL syntax
+   - Keywords not uppercase (SELECT, FROM, WHERE)
 
-3. **Check what changed:**
+   **TypeScript Errors:**
+   - Type mismatches
+   - Missing type definitions
+   - Incompatible types
 
-   ```bash
-   git diff
-   ```
+3. **Fix the issue in Perplexity** and commit the corrected code
 
-4. **Commit fixes:**
-   ```bash
-   git add -A
-   git commit -m "style: fix formatting issues"
-   git push
-   ```
+4. **CI will re-run automatically** on your new commit
 
 ### Problem: Commit message validation fails
 
@@ -412,7 +230,7 @@ flowchart TD
 
 **Cause:** Commit message doesn't follow Conventional Commits format
 
-**Fix:** Use this format:
+**Fix:** Use this format when committing:
 
 ```
 type(scope): description
@@ -425,136 +243,73 @@ Description: required, no period at end
 **Examples:**
 
 ```bash
-git commit -m "feat: add new CI workflow"
-git commit -m "fix(ci): correct prettier config"
-git commit -m "docs: update CI guide"
+feat: add new CI workflow
+fix(ci): correct prettier config
+docs: update CI guide
+chore: update dependencies
 ```
 
-### Problem: TypeScript errors
+**When using Perplexity Git tool:**
+- Ensure your commit message follows the format above
+- The tool will validate the format before committing
+
+### Problem: TypeScript type errors
 
 **Error:** "TypeScript" check failed
 
-**Fix:**
-
-1. **Check types locally:**
-
-   ```bash
-   pnpm typecheck
-   ```
-
-2. **Fix type errors in your code**
-
-3. **Push fixes:**
-   ```bash
-   git add -A
-   git commit -m "fix: resolve TypeScript errors"
-   git push
-   ```
-
-### Problem: Python linting errors
-
-**Error:** "Black", "isort", or "flake8" check failed
+**Cause:** Type mismatches, missing types, or invalid TypeScript code
 
 **Fix:**
 
-1. **Format Python code:**
+1. **Review the error in CI logs** - Look for the specific file and line number
 
-   ```bash
-   black .
-   ```
+2. **Common type errors:**
+   - Using `any` type (not recommended)
+   - Missing return type annotations
+   - Property does not exist on type
+   - Type 'X' is not assignable to type 'Y'
 
-2. **Sort imports:**
+3. **Fix the types in Perplexity** - Add proper type annotations or fix type mismatches
 
-   ```bash
-   isort .
-   ```
-
-3. **Check for remaining issues:**
-
-   ```bash
-   flake8 . --max-line-length=88 --extend-ignore=E203,W503
-   ```
-
-4. **Fix any remaining issues manually**
-
-5. **Push fixes:**
-   ```bash
-   git add -A
-   git commit -m "style: fix Python formatting"
-   git push
-   ```
-
-**Common flake8 issues:**
-
-- `E501`: Line too long (Black should fix this)
-- `F401`: Imported but unused (remove unused imports)
-- `E402`: Module level import not at top (move imports to top)
-- `W503`: Line break before binary operator (ignored by our config)
-
-### Problem: SQL linting errors
-
-**Error:** "SQLFluff" check failed
-
-**Fix:**
-
-1. **Format SQL files:**
-
-   ```bash
-   sqlfluff fix --dialect postgres .
-   ```
-
-2. **Check for remaining issues:**
-
-   ```bash
-   sqlfluff lint --dialect postgres .
-   ```
-
-3. **Fix any remaining issues manually**
-
-4. **Push fixes:**
-   ```bash
-   git add -A
-   git commit -m "style: fix SQL formatting"
-   git push
-   ```
-
-**Common SQLFluff issues:**
-
-- `L001`: Unnecessary trailing whitespace
-- `L003`: Indentation not consistent
-- `L010`: Keywords must be uppercase (SELECT, FROM, WHERE)
-- `L014`: Unquoted identifiers must be lowercase (table/column names)
-- `L016`: Line too long (relaxed to 200 chars in our config)
-
-**Tip:** If you need to use DuckDB dialect instead of PostgreSQL, update `.sqlfluff`:
-
-```ini
-[sqlfluff]
-dialect = duckdb
-```
+4. **Commit the fix** - CI will re-run and validate types again
 
 ### Problem: Broken Markdown links
 
 **Error:** "Check Documentation Links" job failed
 
+**Cause:** Links in Markdown files are broken, unreachable, or return errors
+
 **Fix:**
 
-1. **Check the workflow output** to see which links are broken
+1. **Check the CI logs** - Lychee will list all broken links with status codes
 
-2. **Fix links in your Markdown files**
+2. **Common link issues:**
+   - `404 Not Found` - Page doesn't exist, update URL
+   - `429 Too Many Requests` - Add URL to `.lycheeignore` if it's a false positive
+   - `Timeout` - Server is slow, may need exclusion
+   - Relative link broken - Check file path is correct
 
-3. **Test links locally** (optional):
+3. **Fix the links in Perplexity:**
+   - Update broken URLs to working ones
+   - Fix relative paths to correct locations
+   - Remove links to deleted pages
+   - Add persistent bot-protected URLs to `.lycheeignore`
 
-   ```bash
-   npx lychee --offline '**/*.md'
-   ```
+4. **Commit the fixes** - Link Check will re-run on your new commit
 
-4. **Push fixes:**
-   ```bash
-   git add -A
-   git commit -m "docs: fix broken links"
-   git push
-   ```
+### Problem: Bot committed formatting fixes, what now?
+
+**Situation:** CI shows bot committed formatting changes to your PR
+
+**This is normal!** The bot automatically fixes formatting issues.
+
+**What to do:**
+
+1. **Nothing** - The CI will complete and Link Check will run on the bot's commit
+2. **Continue working** - Make your next commit via Perplexity as usual
+3. **The bot commit will be included** in the PR when merged
+
+**Note:** You don't need to pull the bot's changes since you're working entirely through Perplexity.
 
 ---
 
@@ -571,99 +326,106 @@ flowchart TD
     A --> F[.sqlfluff]
     A --> G[.yamllint.yml]
     A --> H[commitlint.config.js]
-
-    B --> I[Prettier Engine]
-    C --> J[ESLint Engine]
-    D --> K[markdownlint Engine]
-    E --> L[stylelint Engine]
-    F --> M[SQLFluff Engine]
-    G --> N[yamllint Engine]
-    H --> O[commitlint Engine]
-
-    I --> P[Format JS/TS/JSON/MD/YAML/CSS]
-    J --> Q[Lint JS/TS]
-    K --> R[Lint Markdown]
-    L --> S[Lint CSS/SCSS]
-    M --> T[Format & Lint SQL]
-    N --> U[Validate YAML]
-    O --> V[Validate Commits]
-
-    P --> W[✅ Consistent Code]
-    Q --> W
-    R --> W
-    S --> W
-    T --> W
-    U --> W
-    V --> W
-
+    A --> I[.lycheeignore]
+    
+    B --> J[Prettier Engine]
+    C --> K[ESLint Engine]
+    D --> L[markdownlint Engine]
+    E --> M[stylelint Engine]
+    F --> N[SQLFluff Engine]
+    G --> O[yamllint Engine]
+    H --> P[commitlint Engine]
+    I --> Q[Lychee Engine]
+    
+    J --> R[Format JS/TS/JSON/MD/YAML/CSS]
+    K --> S[Lint JS/TS]
+    L --> T[Lint Markdown]
+    M --> U[Lint CSS/SCSS]
+    N --> V[Format & Lint SQL]
+    O --> W[Validate YAML]
+    P --> X[Validate Commits]
+    Q --> Y[Validate Links]
+    
+    R --> Z[✅ Consistent Code]
+    S --> Z
+    T --> Z
+    U --> Z
+    V --> Z
+    W --> Z
+    X --> Z
+    Y --> Z
+    
     style A fill:#e1f5ff
-    style W fill:#c8e6c9
+    style Z fill:#c8e6c9
 ```
 
-### `.prettierrc.json`
+### Key Configuration Files
 
-**Key settings:**
+**Formatting:**
+- `.prettierrc.json` - Code formatting rules (80 char width, single quotes, LF endings)
+- `.prettierignore` - Files to skip formatting
 
-- `printWidth: 80` for code, `120` for Markdown/JSON
-- `singleQuote: true` (consistent with most JS projects)
-- `semi: true` (explicit semicolons)
-- `trailingComma: "es5"` (IE11 compatible)
-- `endOfLine: "lf"` (Unix line endings)
+**Linting:**
+- `.eslintrc.json` - JavaScript/TypeScript linting rules
+- `.markdownlint.json` - Markdown linting rules (relaxed for docs)
+- `.stylelintrc.json` - CSS/SCSS linting rules
+- `.sqlfluff` - SQL formatting/linting (PostgreSQL dialect)
+- `.yamllint.yml` - YAML syntax validation
+- `commitlint.config.js` - Commit message format validation
 
-### `.eslintrc.json`
+**Link Checking:**
+- `.lycheeignore` - URLs to exclude from link checking (bot-protected, etc.)
 
-**Key settings:**
+**Python Configuration** (via command-line args in CI):
+- Black: Line length 88, Python 3.13+
+- isort: Profile `black` (compatible formatting)
+- flake8: Max line 88, ignore E203/W503 (Black-compatible)
 
-- Extends `plugin:@typescript-eslint/recommended`
-- Extends `plugin:prettier/recommended`
-- `@typescript-eslint/no-unused-vars: error` with `argsIgnorePattern: "^_"`
+**SQL Configuration** (`.sqlfluff`):
+- Dialect: PostgreSQL (change to `duckdb` if needed)
+- Keywords: UPPERCASE (SELECT, FROM, WHERE)
+- Identifiers: lowercase (table_name, column_name)
+- Max line: 200 characters
 
-### `.markdownlint.json`
+---
 
-**Key settings:**
+## Perplexity Workflow Tips
 
-- `MD013: false` (no line length limit, Prettier handles this)
-- `MD033: { allowed_elements: [...] }` (allow some HTML tags)
-- `MD041: false` (don't require H1 at top)
+### Making Commits
 
-### `.stylelintrc.json`
+When using Perplexity's Git MCP tool:
 
-**Key settings:**
+1. **Use Conventional Commit format** - CI will validate your message
+   ```
+   feat: add new feature
+   fix: resolve bug
+   docs: update documentation
+   chore: routine task
+   ```
 
-- Extends `stylelint-config-standard`
-- Extends `stylelint-config-prettier`
-- `selector-class-pattern: null` (allow any class naming)
+2. **Check CI status** - Wait for CI to complete before making another commit
+3. **Review bot commits** - If the bot commits formatting fixes, those will be included in your PR
+4. **Fix CI failures** - If CI fails, review logs, fix issues, and commit again
 
-### `.sqlfluff`
+### Best Practices
 
-**Key settings:**
+✅ **Commit frequently** - Smaller commits are easier to debug if CI fails
+✅ **Use descriptive messages** - Helps with PR reviews and history
+✅ **Wait for CI** - Let CI complete before merging
+✅ **Review summaries** - CI provides detailed job summaries in GitHub Actions
 
-- `dialect: postgres` (PostgreSQL by default, change to `duckdb` if needed)
-- `templater: raw` (plain SQL, no templating)
-- `max_line_length: 200` (relaxed for complex queries)
-- `indent_unit: space`, `tab_space_size: 2` (2-space indentation)
-- **Keywords:** UPPERCASE (SELECT, FROM, WHERE)
-- **Identifiers:** lowercase (table_name, column_name)
-- **Functions:** UPPERCASE (COUNT, SUM, AVG)
-- **Types:** UPPERCASE (INTEGER, VARCHAR)
+### Understanding the Flow
 
-### Python Configuration
+**When you commit via Perplexity:**
 
-**Black** (via command-line args):
+```
+Your Commit → Format & Lint → Bot Commit (if needed) → Link Check → ✅ Done
+```
 
-- Line length: 88 (Black's default, optimal for readability)
-- Target: Python 3.13+
-
-**isort** (via command-line args):
-
-- Profile: `black` (compatible with Black's formatting)
-
-**flake8** (via command-line args):
-
-- `--max-line-length=88` (match Black)
-- `--extend-ignore=E203,W503` (ignore Black-incompatible rules)
-  - `E203`: Whitespace before ':' (Black's style)
-  - `W503`: Line break before binary operator (PEP 8 updated)
+- **Format & Lint**: Runs all 15 tools, may commit fixes
+- **Bot Commit**: Only if formatting changes needed
+- **Link Check**: Validates final code on latest commit
+- **No re-runs**: Single linear process per push
 
 ---
 
@@ -671,14 +433,16 @@ flowchart TD
 
 If you encounter issues with the CI/CD pipeline:
 
-1. **Check this guide first** for common issues
-2. **Check the [workflow file](../.github/workflows/ci.yml)** for details
-3. **Open an issue** with:
-   - Workflow run link
-   - Error message
-   - Steps to reproduce
+1. **Check CI logs** - Click on the failed job in GitHub Actions
+2. **Review this guide** - Common issues are documented above
+3. **Check the [workflow file](.github/workflows/ci.yml)** - See exact tool configuration
+4. **Open an issue** - If you find a bug or need help:
+   - Include workflow run link
+   - Copy error message
+   - Describe what you were trying to do
 
 ---
 
 **Last updated:** 2026-01-17
 **Maintainer:** @borealBytes
+**Workflow:** Optimized for Perplexity Spaces
