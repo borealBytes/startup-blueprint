@@ -82,6 +82,22 @@ jobs:
             echo "⏭️ No Python files found, skipping Python tool installation"
           fi
 
+      - name: Install SQL tools (if SQL files exist)
+        id: check_sql
+        run: |
+          if find . -type f -name "*.sql" \
+             -not -path "./node_modules/*" \
+             -not -path "./.git/*" \
+             -not -path "./build/*" \
+             -not -path "./dist/*" | grep -q .; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "🗄️  Installing SQLFluff..."
+            pip install --quiet sqlfluff
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No SQL files found, skipping SQL tool installation"
+          fi
+
       - name: Commit lock file if newly generated
         if: steps.check_lockfile.outputs.exists == 'false'
         run: |
@@ -132,7 +148,6 @@ jobs:
           if [ "${{ steps.check_python.outputs.exists }}" == "true" ]; then
             echo "🐍 Running Black formatter..."
 
-            # Find all .py files excluding common directories
             find . -type f -name "*.py" \
               -not -path "./node_modules/*" \
               -not -path "./.git/*" \
@@ -160,7 +175,6 @@ jobs:
           if [ "${{ steps.check_python.outputs.exists }}" == "true" ]; then
             echo "🐍 Running isort..."
 
-            # Find all .py files excluding common directories
             find . -type f -name "*.py" \
               -not -path "./node_modules/*" \
               -not -path "./.git/*" \
@@ -181,18 +195,39 @@ jobs:
             echo "⏭️ No Python files found, skipping isort"
           fi
 
+      - name: Run SQLFluff (format & lint SQL files)
+        id: sqlfluff
+        continue-on-error: true
+        run: |
+          if [ "${{ steps.check_sql.outputs.exists }}" == "true" ]; then
+            echo "🗄️  Running SQLFluff formatter and linter..."
+
+            # Format SQL files (auto-fix)
+            sqlfluff fix --dialect postgres --force . \
+              --exclude-rules ambiguous.column_count
+
+            # Lint to check for remaining issues
+            if sqlfluff lint --dialect postgres . \
+              --exclude-rules ambiguous.column_count; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped (no SQL files)" >> $GITHUB_OUTPUT
+            echo "⏭️ No SQL files found, skipping SQLFluff"
+          fi
+
       - name: Run ESLint (auto-fix JS/TS)
         id: eslint
         continue-on-error: true
         run: |
-          # Check if any JS/TS files exist (excluding node_modules and .git)
           if find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) \
              -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
 
             echo "🔍 Found JS/TS files, running ESLint..."
 
-            # Run ESLint with --quiet to suppress warnings about all files ignored
-            # This happens when only config files exist (*.config.js)
             pnpm exec eslint \
               "**/*.{js,ts,jsx,tsx}" \
               --fix \
@@ -202,7 +237,6 @@ jobs:
 
             EXIT_CODE=${PIPESTATUS[0]}
 
-            # Check if error is "all files ignored" (exit code 2)
             if [ $EXIT_CODE -eq 2 ] && grep -q "all of the files matching the glob pattern" /tmp/eslint.log; then
               echo "📝 All JS/TS files are config files (intentionally ignored)"
               echo "status=⏭️ Skipped (only config files)" >> $GITHUB_OUTPUT
@@ -213,7 +247,6 @@ jobs:
               exit 1
             fi
           else
-            # No JS/TS files found - skip gracefully
             echo "status=⏭️ Skipped (no JS/TS files)" >> $GITHUB_OUTPUT
             echo "⏭️ No JavaScript/TypeScript files found, skipping ESLint"
           fi
@@ -279,7 +312,6 @@ jobs:
         continue-on-error: true
         run: |
           if command -v shellcheck &> /dev/null; then
-            # Check if any .sh files exist
             if find . -type f -name "*.sh" -not -path "./node_modules/*" | grep -q .; then
               find . -type f -name "*.sh" -not -path "./node_modules/*" -exec shellcheck {} +
               if [ $? -eq 0 ]; then
@@ -304,7 +336,6 @@ jobs:
           if [ "${{ steps.check_python.outputs.exists }}" == "true" ]; then
             echo "🐍 Running flake8 linter..."
 
-            # Find all .py files excluding common directories
             find . -type f -name "*.py" \
               -not -path "./node_modules/*" \
               -not -path "./.git/*" \
@@ -499,6 +530,7 @@ jobs:
           if [[ "${{ steps.prettier.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.black.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.isort.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.sqlfluff.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.eslint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.stylelint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
@@ -532,6 +564,7 @@ jobs:
           echo "| **Prettier** | ${{ steps.prettier.outputs.status || '❌ Failed' }} | Format JS/TS/JSON/MD/YAML/CSS |" >> $GITHUB_STEP_SUMMARY
           echo "| **Black** | ${{ steps.black.outputs.status || '❌ Failed' }} | Format Python code |" >> $GITHUB_STEP_SUMMARY
           echo "| **isort** | ${{ steps.isort.outputs.status || '❌ Failed' }} | Sort Python imports |" >> $GITHUB_STEP_SUMMARY
+          echo "| **SQLFluff** | ${{ steps.sqlfluff.outputs.status || '❌ Failed' }} | Format & lint SQL (PostgreSQL/DuckDB) |" >> $GITHUB_STEP_SUMMARY
           echo "| **ESLint** | ${{ steps.eslint.outputs.status || '❌ Failed' }} | Lint & auto-fix JS/TS |" >> $GITHUB_STEP_SUMMARY
           echo "| **stylelint** | ${{ steps.stylelint.outputs.status || '❌ Failed' }} | Lint & auto-fix CSS/SCSS |" >> $GITHUB_STEP_SUMMARY
           echo "| **markdownlint** | ${{ steps.markdownlint.outputs.status || '❌ Failed' }} | Lint & auto-fix Markdown |" >> $GITHUB_STEP_SUMMARY
@@ -573,6 +606,7 @@ jobs:
           if [[ "${{ steps.prettier.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.black.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.isort.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.sqlfluff.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.eslint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.stylelint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
