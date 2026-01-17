@@ -1,22 +1,39 @@
 # Dependencies
 node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
 
 # Build outputs
 dist/
 build/
-.turbo/
 .next/
 out/
 
-# Generated files
-*.generated.*
+# Cache directories
+.turbo/
+.cache/
+.parcel-cache/
 
-# GitHub workflows (should be human-reviewed)
-.github/workflows/**
+# Environment and config
+.env
+.env.*
+!.env.example
 
-# Cloudflare
-.wrangler/
+# Git
+.git/
 
-# Test coverage
-coverage/
-.nyc_output/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*

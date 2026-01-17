@@ -2,11 +2,7 @@
   "default": true,
   "MD013": false,
   "MD033": false,
-  "MD040": {
-    "level": "warning"
-  },
+  "MD040": false,
   "MD029": false,
-  "MD036": {
-    "level": "warning"
-  }
+  "MD036": false
 }
