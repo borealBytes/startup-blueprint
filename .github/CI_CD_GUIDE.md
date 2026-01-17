@@ -1,4 +1,4 @@
-# CI/CD Guide: Format-Lint Loop Workflow
+# CI/CD Guide: Code Quality Pipeline
 
 ## 📚 Table of Contents
 
@@ -12,7 +12,7 @@
 
 ## Overview
 
-Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code formatting and linting issues before validating links. This ensures consistent code quality for every commit made through Perplexity Spaces.
+Our CI/CD pipeline automatically formats, lints, and validates links for every commit. This ensures consistent code quality for every commit made through Perplexity Spaces.
 
 ### Key Features
 
@@ -53,7 +53,7 @@ flowchart TD
     K --> L{Links Valid?}
     L -->|Yes| M[✅ All Checks Pass]
     L -->|No| N[❌ Job Fails]
-
+    
     style A fill:#e1f5ff
     style B fill:#fff9c4
     style F fill:#c8e6c9
@@ -90,45 +90,45 @@ flowchart TD
 ```mermaid
 flowchart LR
     A[Code Push] --> B{Detect Languages}
-
+    
     B --> C[JavaScript/TypeScript]
     B --> D[Python]
     B --> E[SQL]
     B --> F[Go]
     B --> G[CSS/SCSS]
     B --> H[Other]
-
+    
     C --> C1[Prettier]
     C1 --> C2[ESLint]
     C2 --> C3[TypeScript]
-
+    
     D --> D1[Black]
     D1 --> D2[isort]
     D2 --> D3[flake8]
-
+    
     E --> E1[SQLFluff Format]
     E1 --> E2[SQLFluff Lint]
-
+    
     F --> F1[gofmt]
     F1 --> F2[golangci-lint]
-
+    
     G --> G1[Prettier]
     G1 --> G2[stylelint]
-
+    
     H --> H1[markdownlint]
     H1 --> H2[yamllint]
     H2 --> H3[shellcheck]
-
+    
     C3 --> I[Commit Check]
     D3 --> I
     E2 --> I
     F2 --> I
     G2 --> I
     H3 --> I
-
+    
     I --> J[commitlint]
     J --> K[✅ Complete]
-
+    
     style A fill:#e1f5ff
     style K fill:#c8e6c9
 ```
@@ -169,32 +169,32 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[CI Failed ❌] --> B{Which Job Failed?}
-
+    
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
     B -->|commitlint| E[Bad Commit Message]
-
+    
     C -->|Prettier/ESLint| F[Check File Syntax]
     C -->|Black/isort| G[Check Python Code]
     C -->|SQLFluff| H[Check SQL Syntax]
     C -->|TypeScript| I[Check Type Errors]
-
+    
     F --> J[Fix in Perplexity]
     G --> J
     H --> J
     I --> J
-
+    
     D --> K[Check CI Logs]
     K --> L[Fix Broken URLs]
     L --> J
-
+    
     E --> M[Use Conventional Format]
     M --> N[feat/fix/docs/etc]
     N --> J
-
+    
     J --> O[Commit via Perplexity]
     O --> P[✅ CI Re-runs & Passes]
-
+    
     style A fill:#ffcdd2
     style P fill:#c8e6c9
     style J fill:#fff9c4
@@ -339,7 +339,7 @@ flowchart TD
     A --> G[.yamllint.yml]
     A --> H[commitlint.config.js]
     A --> I[.lycheeignore]
-
+    
     B --> J[Prettier Engine]
     C --> K[ESLint Engine]
     D --> L[markdownlint Engine]
@@ -348,7 +348,7 @@ flowchart TD
     G --> O[yamllint Engine]
     H --> P[commitlint Engine]
     I --> Q[Lychee Engine]
-
+    
     J --> R[Format JS/TS/JSON/MD/YAML/CSS]
     K --> S[Lint JS/TS]
     L --> T[Lint Markdown]
@@ -357,7 +357,7 @@ flowchart TD
     O --> W[Validate YAML]
     P --> X[Validate Commits]
     Q --> Y[Validate Links]
-
+    
     R --> Z[✅ Consistent Code]
     S --> Z
     T --> Z
@@ -366,7 +366,7 @@ flowchart TD
     W --> Z
     X --> Z
     Y --> Z
-
+    
     style A fill:#e1f5ff
     style Z fill:#c8e6c9
 ```
