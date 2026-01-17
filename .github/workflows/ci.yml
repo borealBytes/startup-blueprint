@@ -673,18 +673,15 @@ Applied automatic formatting and linting fixes.
 
           # Function to add tool section if it has changes
           add_tool_section() {
-            TOOL_NAME="$1"
-            TOOL_FILE="$2"
+            local TOOL_NAME="$1"
+            local TOOL_FILE="$2"
             
             if [ -f "$TOOL_FILE" ] && [ -s "$TOOL_FILE" ]; then
-              MSG="$MSG
-$TOOL_NAME:"
+              MSG="${MSG}"$'\n'"${TOOL_NAME}:"
               while IFS= read -r file; do
-                MSG="$MSG
-- $file"
+                MSG="${MSG}"$'\n'"- ${file}"
               done < "$TOOL_FILE"
-              MSG="$MSG
-"
+              MSG="${MSG}"$'\n'
             fi
           }
 
@@ -700,7 +697,7 @@ $TOOL_NAME:"
           add_tool_section "golangci-lint" "/tmp/golangci_changes.txt"
 
           # Save to file for commit step
-          echo "$MSG" > /tmp/commit_message.txt
+          printf "%s" "$MSG" > /tmp/commit_message.txt
 
       - name: Commit and push changes
         if: steps.check_changes.outputs.changes == 'true'
