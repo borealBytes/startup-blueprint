@@ -16,17 +16,12 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 
 ### Key Features
 
-✅ **Auto-fixes issues** - Bot commits fixes automatically
-
-✅ **Comprehensive tooling** - Prettier, ESLint, Black, SQLFluff, markdownlint, stylelint, commitlint, TypeScript
-
-✅ **Multi-language** - JavaScript/TypeScript, Python, SQL, Go, CSS/SCSS, Markdown, YAML, Bash
-
-✅ **Works with Perplexity** - Designed for MCP/Git tool commits
-
-✅ **Link checking** - Validates all Markdown links
-
-✅ **Race-condition safe** - Exact commit SHA passed between jobs
+- ✅ **Auto-fixes issues** - Bot commits fixes automatically
+- ✅ **Comprehensive tooling** - Prettier, ESLint, Black, SQLFluff, markdownlint, stylelint, commitlint, TypeScript
+- ✅ **Multi-language** - JavaScript/TypeScript, Python, SQL, Go, CSS/SCSS, Markdown, YAML, Bash
+- ✅ **Works with Perplexity** - Designed for MCP/Git tool commits
+- ✅ **Link checking** - Validates all Markdown links
+- ✅ **Race-condition safe** - Exact commit SHA passed between jobs
 
 ### Single Linear Process
 
@@ -58,7 +53,7 @@ flowchart TD
     K --> L{Links Valid?}
     L -->|Yes| M[✅ All Checks Pass]
     L -->|No| N[❌ Job Fails]
-
+    
     style A fill:#e1f5ff
     style B fill:#fff9c4
     style F fill:#c8e6c9
@@ -70,7 +65,7 @@ flowchart TD
     style N fill:#ffcdd2
 ```
 
-**How This Works:**
+#### How This Works
 
 1. **You commit via Perplexity** - Using the Git MCP tool, your changes are committed to the branch
 2. **Capture initial SHA** - Format & Lint job captures the commit SHA at the start (`git rev-parse HEAD`)
@@ -82,7 +77,7 @@ flowchart TD
 8. **Verify SHA match** - Confirms checked out commit matches expected SHA
 9. **Links validated** - All Markdown links are checked on the correct commit
 
-**Key Points:**
+#### Key Points
 
 - ✅ **Race-condition safe** - Exact SHA passed between jobs, no ambiguity
 - ✅ **No concurrent commit conflicts** - Each link-check validates its specific commit
@@ -95,52 +90,52 @@ flowchart TD
 ```mermaid
 flowchart LR
     A[Code Push] --> B{Detect Languages}
-
+    
     B --> C[JavaScript/TypeScript]
     B --> D[Python]
     B --> E[SQL]
     B --> F[Go]
     B --> G[CSS/SCSS]
     B --> H[Other]
-
+    
     C --> C1[Prettier]
     C1 --> C2[ESLint]
     C2 --> C3[TypeScript]
-
+    
     D --> D1[Black]
     D1 --> D2[isort]
     D2 --> D3[flake8]
-
+    
     E --> E1[SQLFluff Format]
     E1 --> E2[SQLFluff Lint]
-
+    
     F --> F1[gofmt]
     F1 --> F2[golangci-lint]
-
+    
     G --> G1[Prettier]
     G1 --> G2[stylelint]
-
+    
     H --> H1[markdownlint]
     H1 --> H2[yamllint]
     H2 --> H3[shellcheck]
-
+    
     C3 --> I[Commit Check]
     D3 --> I
     E2 --> I
     F2 --> I
     G2 --> I
     H3 --> I
-
+    
     I --> J[commitlint]
     J --> K[✅ Complete]
-
+    
     style A fill:#e1f5ff
     style K fill:#c8e6c9
 ```
 
 ### Tools Run
 
-**Formatting (Auto-fix):**
+#### Formatting (Auto-fix)
 
 1. **Prettier** - Format JS/TS/JSON/MD/YAML/CSS/SCSS
 2. **Black** - Format Python code (PEP 8 compliant)
@@ -148,7 +143,7 @@ flowchart LR
 4. **SQLFluff** - Format SQL files (PostgreSQL/DuckDB)
 5. **gofmt** - Format Go code (when Go projects exist)
 
-**Linting (Auto-fix where possible):**
+#### Linting (Auto-fix where possible)
 
 6. **ESLint** - Lint JavaScript/TypeScript with auto-fix
 7. **flake8** - Lint Python code (PEP 8 style guide)
@@ -161,7 +156,7 @@ flowchart LR
 14. **commitlint** - Validate commit message format
 15. **TypeScript** - Check type errors
 
-**Link Validation:**
+#### Link Validation
 
 16. **Lychee** - Check Markdown links
 
@@ -174,32 +169,32 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[CI Failed ❌] --> B{Which Job Failed?}
-
+    
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
     B -->|commitlint| E[Bad Commit Message]
-
+    
     C -->|Prettier/ESLint| F[Check File Syntax]
     C -->|Black/isort| G[Check Python Code]
     C -->|SQLFluff| H[Check SQL Syntax]
     C -->|TypeScript| I[Check Type Errors]
-
+    
     F --> J[Fix in Perplexity]
     G --> J
     H --> J
     I --> J
-
+    
     D --> K[Check CI Logs]
     K --> L[Fix Broken URLs]
     L --> J
-
+    
     E --> M[Use Conventional Format]
     M --> N[feat/fix/docs/etc]
     N --> J
-
+    
     J --> O[Commit via Perplexity]
     O --> P[✅ CI Re-runs & Passes]
-
+    
     style A fill:#ffcdd2
     style P fill:#c8e6c9
     style J fill:#fff9c4
@@ -215,27 +210,27 @@ flowchart TD
 
 1. **Check the CI logs** to see which tool failed and what the error message is
 
-2. **Common issues:**
+2. **Common issues by tool:**
 
-   **Prettier/ESLint Syntax Errors:**
-   - Check for missing brackets, parentheses, or semicolons
-   - Look for invalid JavaScript/TypeScript syntax
-   - Fix in Perplexity and commit again
+   - **Prettier/ESLint Syntax Errors:**
+     - Check for missing brackets, parentheses, or semicolons
+     - Look for invalid JavaScript/TypeScript syntax
+     - Fix in Perplexity and commit again
 
-   **Python Issues:**
-   - `E501`: Line too long (Black should auto-fix, but may fail on comments)
-   - `F401`: Imported but unused (remove unused imports)
-   - `E402`: Module level import not at top (move imports to top)
+   - **Python Issues:**
+     - `E501`: Line too long (Black should auto-fix, but may fail on comments)
+     - `F401`: Imported but unused (remove unused imports)
+     - `E402`: Module level import not at top (move imports to top)
 
-   **SQL Issues:**
-   - Missing semicolons at end of statements
-   - Invalid PostgreSQL syntax
-   - Keywords not uppercase (SELECT, FROM, WHERE)
+   - **SQL Issues:**
+     - Missing semicolons at end of statements
+     - Invalid PostgreSQL syntax
+     - Keywords not uppercase (SELECT, FROM, WHERE)
 
-   **TypeScript Errors:**
-   - Type mismatches
-   - Missing type definitions
-   - Incompatible types
+   - **TypeScript Errors:**
+     - Type mismatches
+     - Missing type definitions
+     - Incompatible types
 
 3. **Fix the issue in Perplexity** and commit the corrected code
 
@@ -249,7 +244,7 @@ flowchart TD
 
 **Fix:** Use this format when committing:
 
-```
+```text
 type(scope): description
 
 Valid types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
@@ -345,7 +340,7 @@ flowchart TD
     A --> G[.yamllint.yml]
     A --> H[commitlint.config.js]
     A --> I[.lycheeignore]
-
+    
     B --> J[Prettier Engine]
     C --> K[ESLint Engine]
     D --> L[markdownlint Engine]
@@ -354,7 +349,7 @@ flowchart TD
     G --> O[yamllint Engine]
     H --> P[commitlint Engine]
     I --> Q[Lychee Engine]
-
+    
     J --> R[Format JS/TS/JSON/MD/YAML/CSS]
     K --> S[Lint JS/TS]
     L --> T[Lint Markdown]
@@ -363,7 +358,7 @@ flowchart TD
     O --> W[Validate YAML]
     P --> X[Validate Commits]
     Q --> Y[Validate Links]
-
+    
     R --> Z[✅ Consistent Code]
     S --> Z
     T --> Z
@@ -372,19 +367,19 @@ flowchart TD
     W --> Z
     X --> Z
     Y --> Z
-
+    
     style A fill:#e1f5ff
     style Z fill:#c8e6c9
 ```
 
 ### Key Configuration Files
 
-**Formatting:**
+#### Formatting
 
 - `.prettierrc.json` - Code formatting rules (80 char width, single quotes, LF endings)
 - `.prettierignore` - Files to skip formatting
 
-**Linting:**
+#### Linting
 
 - `.eslintrc.json` - JavaScript/TypeScript linting rules
 - `.markdownlint.json` - Markdown linting rules (relaxed for docs)
@@ -393,22 +388,26 @@ flowchart TD
 - `.yamllint.yml` - YAML syntax validation
 - `commitlint.config.js` - Commit message format validation
 
-**Link Checking:**
+#### Link Checking
 
 - `.lycheeignore` - URLs to exclude from link checking (bot-protected, etc.)
 
-**Python Configuration** (via command-line args in CI):
+#### Python Configuration
 
-- Black: Line length 88, Python 3.13+
-- isort: Profile `black` (compatible formatting)
-- flake8: Max line 88, ignore E203/W503 (Black-compatible)
+Via command-line args in CI:
 
-**SQL Configuration** (`.sqlfluff`):
+- **Black:** Line length 88, Python 3.13+
+- **isort:** Profile `black` (compatible formatting)
+- **flake8:** Max line 88, ignore E203/W503 (Black-compatible)
 
-- Dialect: PostgreSQL (change to `duckdb` if needed)
-- Keywords: UPPERCASE (SELECT, FROM, WHERE)
-- Identifiers: lowercase (table_name, column_name)
-- Max line: 200 characters
+#### SQL Configuration
+
+Via `.sqlfluff`:
+
+- **Dialect:** PostgreSQL (change to `duckdb` if needed)
+- **Keywords:** UPPERCASE (SELECT, FROM, WHERE)
+- **Identifiers:** lowercase (table_name, column_name)
+- **Max line:** 200 characters
 
 ---
 
@@ -420,7 +419,7 @@ When using Perplexity's Git MCP tool:
 
 1. **Use Conventional Commit format** - CI will validate your message
 
-   ```
+   ```text
    feat: add new feature
    fix: resolve bug
    docs: update documentation
@@ -428,32 +427,33 @@ When using Perplexity's Git MCP tool:
    ```
 
 2. **Check CI status** - Wait for CI to complete before making another commit
+
 3. **Review bot commits** - If the bot commits formatting fixes, those will be included in your PR
+
 4. **Fix CI failures** - If CI fails, review logs, fix issues, and commit again
 
 ### Best Practices
 
-✅ **Commit frequently** - Smaller commits are easier to debug if CI fails
-
-✅ **Use descriptive messages** - Helps with PR reviews and history
-
-✅ **Wait for CI** - Let CI complete before merging
-
-✅ **Review summaries** - CI provides detailed job summaries in GitHub Actions
+- ✅ **Commit frequently** - Smaller commits are easier to debug if CI fails
+- ✅ **Use descriptive messages** - Helps with PR reviews and history
+- ✅ **Wait for CI** - Let CI complete before merging
+- ✅ **Review summaries** - CI provides detailed job summaries in GitHub Actions
 
 ### Understanding the Flow
 
-**When you commit via Perplexity:**
+When you commit via Perplexity:
 
-```
+```text
 Your Commit → Format & Lint (capture SHA) → Bot Commit (if needed) → Output SHA → Link Check (exact SHA) → ✅ Done
 ```
 
-- **Format & Lint**: Captures initial SHA, runs all 15 tools, may commit fixes, outputs correct SHA
-- **Bot Commit**: Only if formatting changes needed, new SHA captured
-- **SHA Output**: Job outputs either initial SHA (no changes) or bot SHA (changes applied)
-- **Link Check**: Receives SHA via `needs.format-and-lint.outputs.commit-sha`, checks out exact commit
-- **No re-runs**: Single linear process per push, no race conditions
+**What happens at each step:**
+
+- **Format & Lint:** Captures initial SHA, runs all 15 tools, may commit fixes, outputs correct SHA
+- **Bot Commit:** Only if formatting changes needed, new SHA captured
+- **SHA Output:** Job outputs either initial SHA (no changes) or bot SHA (changes applied)
+- **Link Check:** Receives SHA via `needs.format-and-lint.outputs.commit-sha`, checks out exact commit
+- **No re-runs:** Single linear process per push, no race conditions
 
 ---
 
@@ -471,6 +471,6 @@ If you encounter issues with the CI/CD pipeline:
 
 ---
 
-**Last updated:** 2026-01-17
-**Maintainer:** @borealBytes
+**Last updated:** 2026-01-17  
+**Maintainer:** @borealBytes  
 **Workflow:** Optimized for Perplexity Spaces with race-condition safety
