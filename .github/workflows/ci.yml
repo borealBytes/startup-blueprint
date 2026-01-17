@@ -235,7 +235,8 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️ Skipped (no stylelint config)" >> $GITHUB_OUTPUT
+            echo "⏭️ No .stylelintrc.json found, skipping stylelint"
           fi
 
       - name: Run markdownlint (auto-fix Markdown)
@@ -269,7 +270,8 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️ Skipped (yamllint not installed)" >> $GITHUB_OUTPUT
+            echo "⏭️ yamllint not found, skipping YAML validation"
           fi
 
       - name: Run shellcheck (check bash scripts)
@@ -277,15 +279,22 @@ jobs:
         continue-on-error: true
         run: |
           if command -v shellcheck &> /dev/null; then
-            find . -type f -name "*.sh" -not -path "./node_modules/*" -exec shellcheck {} +
-            if [ $? -eq 0 ]; then
-              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            # Check if any .sh files exist
+            if find . -type f -name "*.sh" -not -path "./node_modules/*" | grep -q .; then
+              find . -type f -name "*.sh" -not -path "./node_modules/*" -exec shellcheck {} +
+              if [ $? -eq 0 ]; then
+                echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              else
+                echo "status=❌ Failed" >> $GITHUB_OUTPUT
+                exit 1
+              fi
             else
-              echo "status=❌ Failed" >> $GITHUB_OUTPUT
-              exit 1
+              echo "status=⏭️ Skipped (no shell scripts)" >> $GITHUB_OUTPUT
+              echo "⏭️ No .sh files found, skipping shellcheck"
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️ Skipped (shellcheck not installed)" >> $GITHUB_OUTPUT
+            echo "⏭️ shellcheck not found, skipping shell script validation"
           fi
 
       - name: Run flake8 (lint Python files)
@@ -324,24 +333,31 @@ jobs:
             gofmt -w apps/credibility-markets/
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️ Skipped (no Go projects)" >> $GITHUB_OUTPUT
+            echo "⏭️ No Go projects found, skipping gofmt"
           fi
 
       - name: Run golangci-lint (lint Go files)
         id: golangci
         continue-on-error: true
         run: |
-          if [ -d "apps/credibility-markets" ] && command -v golangci-lint &> /dev/null; then
-            cd apps/credibility-markets
-            golangci-lint run --fix
-            if [ $? -eq 0 ]; then
-              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          if [ -d "apps/credibility-markets" ]; then
+            if command -v golangci-lint &> /dev/null; then
+              cd apps/credibility-markets
+              golangci-lint run --fix
+              if [ $? -eq 0 ]; then
+                echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              else
+                echo "status=❌ Failed" >> $GITHUB_OUTPUT
+                exit 1
+              fi
             else
-              echo "status=❌ Failed" >> $GITHUB_OUTPUT
-              exit 1
+              echo "status=⏭️ Skipped (golangci-lint not installed)" >> $GITHUB_OUTPUT
+              echo "⏭️ golangci-lint not found, skipping Go linting"
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
+            echo "status=⏭️ Skipped (no Go projects)" >> $GITHUB_OUTPUT
+            echo "⏭️ No Go projects found, skipping golangci-lint"
           fi
 
       - name: Lint commit messages
@@ -436,8 +452,8 @@ jobs:
               exit 1
             fi
           else
-            echo "status=⏭️ Skipped" >> $GITHUB_OUTPUT
-            echo "⏭️ No TypeScript projects found"
+            echo "status=⏭️ Skipped (no TypeScript config)" >> $GITHUB_OUTPUT
+            echo "⏭️ No tsconfig.json found, skipping TypeScript type checking"
           fi
 
       - name: Unstage workflow files (security safeguard)
