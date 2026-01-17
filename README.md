@@ -30,15 +30,15 @@ graph LR
 
 ## 📚 Guide Structure
 
-| Guide                                                            | Duration  | What You'll Set Up                                  |
-| ---------------------------------------------------------------- | --------- | --------------------------------------------------- |
-| **[1. Legal Foundation](./docs/01-legal-foundation.md)**         | 2-3 hours | LLC registration, business license, naming          |
-| **[2. Domain & DNS](./docs/02-domain-dns.md)**                   | 30 min    | Custom domain via Cloudflare, professional branding |
-| **[3. Email Infrastructure](./docs/03-email-infrastructure.md)** | 1 hour    | Professional email routing, multi-user setup        |
-| **[4. Git & Repository](./docs/04-git-repository.md)**           | 45 min    | GitHub repo, Perplexity Spaces, AI workflow         |
-| **[5. Financial Tools](./docs/05-financial-tools.md)**           | 1 hour    | Accounting, tax planning, payment processing        |
-| **[6. Deployment & CI/CD](./docs/06-deployment-cicd.md)**        | 1.5 hours | Automated deployment, website hosting               |
-| **[7. Operations Manual](./docs/07-operations-manual.md)**       | 2 hours   | Repeatable processes, checklists, handoff docs      |
+| Guide                                                                          | Duration  | What You'll Set Up                                  |
+| ------------------------------------------------------------------------------ | --------- | --------------------------------------------------- |
+| **[1. Legal Foundation](./docs/guides/01-legal-foundation.md)**                | 2-3 hours | LLC registration, business license, naming          |
+| **[2. Domain & DNS](./docs/guides/02-domain-dns.md)**                          | 30 min    | Custom domain via Cloudflare, professional branding |
+| **[3. Email Infrastructure](./docs/guides/03-email-infrastructure.md)**        | 1 hour    | Professional email routing, multi-user setup        |
+| **[4. Git & Repository](./docs/guides/04-git-repository.md)**                  | 45 min    | GitHub repo, Perplexity Spaces, AI workflow         |
+| **[5. Financial Tools](./docs/guides/05-financial-tools.md)**                  | 1 hour    | Accounting, tax planning, payment processing        |
+| **[6. Deployment & CI/CD](./docs/guides/06-deployment-cicd.md)**               | 1.5 hours | Automated deployment, website hosting               |
+| **[7. Operations Manual](./docs/guides/07-operations-manual.md)**              | 2 hours   | Repeatable processes, checklists, handoff docs      |
 
 **Total setup time: ~8-10 hours**
 
@@ -50,7 +50,7 @@ graph LR
 
 Start here if you want the **fastest path to a working business**:
 
-1. [Quick Start Checklist](./docs/QUICKSTART.md) — 30-minute overview
+1. [Quick Start Checklist](./docs/guides/QUICKSTART.md) — 30-minute overview
 2. Follow guides 1-3 for the essentials
 3. Come back to 4-7 as you scale
 
@@ -60,10 +60,10 @@ Work through all guides in order. Each builds on the previous.
 
 ### By Role
 
-- **Founder/CEO**: Start with [Legal Foundation](./docs/01-legal-foundation.md) and [Domain & DNS](./docs/02-domain-dns.md)
-- **CTO/Technical Lead**: Focus on [Git & Repository](./docs/04-git-repository.md) and [Deployment & CI/CD](./docs/06-deployment-cicd.md)
+- **Founder/CEO**: Start with [Legal Foundation](./docs/guides/01-legal-foundation.md) and [Domain & DNS](./docs/guides/02-domain-dns.md)
+- **CTO/Technical Lead**: Focus on [Git & Repository](./docs/guides/04-git-repository.md) and [Deployment & CI/CD](./docs/guides/06-deployment-cicd.md)
 - **Solo Founder**: Do all of it (you're wearing all the hats)
-- **Operations Person**: Prioritize [Email Infrastructure](./docs/03-email-infrastructure.md) and [Operations Manual](./docs/07-operations-manual.md)
+- **Operations Person**: Prioritize [Email Infrastructure](./docs/guides/03-email-infrastructure.md) and [Operations Manual](./docs/guides/07-operations-manual.md)
 
 ---
 
@@ -89,11 +89,11 @@ Repetitive tasks are automated. Deployment is automatic. Email forwarding is aut
 
 ### 5. **Low Cost, High ROI**
 
-Most tools are free or extremely low cost (free Gmail, GitHub, Perplexity Spaces; domain registrar cost-only pricing from Cloudflare). Your primary recurring expense is your domain (about ~$10.50/year at Cloudflare’s cost-based pricing).
+Most tools are free or extremely low cost (free Gmail, GitHub, Perplexity Spaces; domain registrar cost-only pricing from Cloudflare). Your primary recurring expense is your domain (about ~$10.50/year at Cloudflare's cost-based pricing).
 
 > **Strategy:** Buy 10 years of domain registration up front (~$140). Forgetting to renew once and paying recovery premiums (or losing the domain) is more expensive than prepaying.
 
-The ROI comes from saved time, avoided mistakes, and a professional foundation that doesn’t need to be rebuilt later.
+The ROI comes from saved time, avoided mistakes, and a professional foundation that doesn't need to be rebuilt later.
 
 ---
 
@@ -165,7 +165,7 @@ After completing this blueprint, you'll have:
 ### Option 1: Jump to the Action (Fastest)
 
 ```
-1. Read the Quickstart: ./docs/QUICKSTART.md
+1. Read the Quickstart: ./docs/guides/QUICKSTART.md
 2. Follow the checklist
 3. Come back to detailed guides as needed
 ```
@@ -264,4 +264,4 @@ Once you finish the blueprint:
 
 ---
 
-**Ready to start?** → [Go to Quickstart](./docs/QUICKSTART.md) or [Jump to Guide #1](./docs/01-legal-foundation.md)
+**Ready to start?** → [Go to Quickstart](./docs/guides/QUICKSTART.md) or [Jump to Guide #1](./docs/guides/01-legal-foundation.md)
