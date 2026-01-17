@@ -17,8 +17,8 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 ### Key Features
 
 ✅ **Auto-fixes issues** - Bot commits fixes automatically
-✅ **Comprehensive tooling** - Prettier, ESLint, Black, markdownlint, stylelint, commitlint, TypeScript
-✅ **Multi-language** - JavaScript/TypeScript, Python, Go, CSS/SCSS, Markdown, YAML, Bash
+✅ **Comprehensive tooling** - Prettier, ESLint, Black, SQLFluff, markdownlint, stylelint, commitlint, TypeScript
+✅ **Multi-language** - JavaScript/TypeScript, Python, SQL, Go, CSS/SCSS, Markdown, YAML, Bash
 ✅ **Works for all** - Humans, AI agents, web UI commits
 ✅ **Link checking** - Validates all Markdown links
 
@@ -45,23 +45,25 @@ Push Commit → Format & Lint Job → Link Check Job
 1. **Prettier** - Format JS/TS/JSON/MD/YAML/CSS/SCSS
 2. **Black** - Format Python code (PEP 8 compliant)
 3. **isort** - Sort Python imports
-4. **gofmt** - Format Go code (when Go projects exist)
+4. **SQLFluff** - Format SQL files (PostgreSQL/DuckDB)
+5. **gofmt** - Format Go code (when Go projects exist)
 
 **Linting:**
 
-5. **ESLint** - Lint JavaScript/TypeScript with auto-fix
-6. **flake8** - Lint Python code (PEP 8 style guide)
-7. **stylelint** - Lint CSS/SCSS with auto-fix
-8. **markdownlint** - Lint Markdown files
-9. **yamllint** - Check YAML syntax
-10. **shellcheck** - Lint Bash scripts
-11. **golangci-lint** - Lint Go code (when Go projects exist)
-12. **commitlint** - Validate commit message format
-13. **TypeScript** - Check types (no emit)
+6. **ESLint** - Lint JavaScript/TypeScript with auto-fix
+7. **flake8** - Lint Python code (PEP 8 style guide)
+8. **SQLFluff** - Lint SQL syntax and style (PostgreSQL/DuckDB)
+9. **stylelint** - Lint CSS/SCSS with auto-fix
+10. **markdownlint** - Lint Markdown files
+11. **yamllint** - Check YAML syntax
+12. **shellcheck** - Lint Bash scripts
+13. **golangci-lint** - Lint Go code (when Go projects exist)
+14. **commitlint** - Validate commit message format
+15. **TypeScript** - Check types (no emit)
 
 **Link Validation:**
 
-14. **Lychee** - Check Markdown links
+16. **Lychee** - Check Markdown links
 
 ---
 
@@ -79,7 +81,7 @@ npm install -g pnpm@8
 pnpm install
 ```
 
-**Python (optional, for Python projects):**
+**Python (optional, for Python/SQL projects):**
 
 ```bash
 # Install Python 3.13+ (if not already installed)
@@ -91,6 +93,9 @@ sudo apt-get install python3.13 python3-pip
 
 # Install Python formatting/linting tools
 pip install black isort flake8
+
+# Install SQL formatting/linting tools (optional)
+pip install sqlfluff
 ```
 
 ### Running Format/Lint Locally
@@ -123,6 +128,20 @@ isort .
 flake8 . --max-line-length=88 --extend-ignore=E203,W503
 ```
 
+**For SQL projects:**
+
+```bash
+# Format SQL files (auto-fix)
+sqlfluff fix --dialect postgres .
+
+# Lint SQL files
+sqlfluff lint --dialect postgres .
+
+# For DuckDB projects:
+sqlfluff fix --dialect duckdb .
+sqlfluff lint --dialect duckdb .
+```
+
 ### Editor Integration
 
 #### VS Code (Recommended)
@@ -136,6 +155,7 @@ flake8 . --max-line-length=88 --extend-ignore=E203,W503
 - [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (for Python projects)
 - [Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) (for Python projects)
 - [isort](https://marketplace.visualstudio.com/items?itemName=ms-python.isort) (for Python projects)
+- [SQLFluff](https://marketplace.visualstudio.com/items?itemName=dorzey.vscode-sqlfluff) (for SQL projects)
 
 **Enable Format on Save:**
 
@@ -165,8 +185,12 @@ Add to `.vscode/settings.json`:
       "source.organizeImports": true
     }
   },
+  "[sql]": {
+    "editor.defaultFormatter": "dorzey.vscode-sqlfluff"
+  },
   "black-formatter.args": ["--line-length=88"],
-  "isort.args": ["--profile", "black"]
+  "isort.args": ["--profile", "black"],
+  "sqlfluff.dialect": "postgres"
 }
 ```
 
@@ -197,6 +221,10 @@ Add to `.vscode/settings.json`:
    black .
    isort .
    flake8 . --max-line-length=88 --extend-ignore=E203,W503
+
+   # For SQL (if applicable):
+   sqlfluff fix --dialect postgres .
+   sqlfluff lint --dialect postgres .
    ```
 
 3. **Check what changed:**
@@ -297,6 +325,48 @@ git commit -m "docs: update CI guide"
 - `E402`: Module level import not at top (move imports to top)
 - `W503`: Line break before binary operator (ignored by our config)
 
+### Problem: SQL linting errors
+
+**Error:** "SQLFluff" check failed
+
+**Fix:**
+
+1. **Format SQL files:**
+
+   ```bash
+   sqlfluff fix --dialect postgres .
+   ```
+
+2. **Check for remaining issues:**
+
+   ```bash
+   sqlfluff lint --dialect postgres .
+   ```
+
+3. **Fix any remaining issues manually**
+
+4. **Push fixes:**
+   ```bash
+   git add -A
+   git commit -m "style: fix SQL formatting"
+   git push
+   ```
+
+**Common SQLFluff issues:**
+
+- `L001`: Unnecessary trailing whitespace
+- `L003`: Indentation not consistent
+- `L010`: Keywords must be uppercase (SELECT, FROM, WHERE)
+- `L014`: Unquoted identifiers must be lowercase (table/column names)
+- `L016`: Line too long (relaxed to 200 chars in our config)
+
+**Tip:** If you need to use DuckDB dialect instead of PostgreSQL, update `.sqlfluff`:
+
+```ini
+[sqlfluff]
+dialect = duckdb
+```
+
 ### Problem: Broken Markdown links
 
 **Error:** "Check Documentation Links" job failed
@@ -357,6 +427,19 @@ git commit -m "docs: update CI guide"
 - Extends `stylelint-config-standard`
 - Extends `stylelint-config-prettier`
 - `selector-class-pattern: null` (allow any class naming)
+
+### `.sqlfluff`
+
+**Key settings:**
+
+- `dialect: postgres` (PostgreSQL by default, change to `duckdb` if needed)
+- `templater: raw` (plain SQL, no templating)
+- `max_line_length: 200` (relaxed for complex queries)
+- `indent_unit: space`, `tab_space_size: 2` (2-space indentation)
+- **Keywords:** UPPERCASE (SELECT, FROM, WHERE)
+- **Identifiers:** lowercase (table_name, column_name)
+- **Functions:** UPPERCASE (COUNT, SUM, AVG)
+- **Types:** UPPERCASE (INTEGER, VARCHAR)
 
 ### Python Configuration
 
