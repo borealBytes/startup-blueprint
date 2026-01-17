@@ -661,43 +661,36 @@ jobs:
         if: steps.check_changes.outputs.changes == 'true'
         id: build_message
         run: |
-          FILE_COUNT=${{ steps.check_changes.outputs.file_count }}
-          
-          # Start building the message
-          MSG="chore: auto-format and lint fixes
+          cat > /tmp/commit_message.txt << 'COMMIT_MSG_EOF'
+          chore: auto-format and lint fixes
 
-Applied automatic formatting and linting fixes.
+          Applied automatic formatting and linting fixes.
 
-📝 Changed Files ($FILE_COUNT)
-"
+          📝 Changed Files (${{ steps.check_changes.outputs.file_count }})
+          COMMIT_MSG_EOF
 
-          # Function to add tool section if it has changes
-          add_tool_section() {
-            local TOOL_NAME="$1"
-            local TOOL_FILE="$2"
-            
-            if [ -f "$TOOL_FILE" ] && [ -s "$TOOL_FILE" ]; then
-              MSG="${MSG}"$'\n'"${TOOL_NAME}:"
+          # Add tool sections for each tool that made changes
+          for tool_name in "Prettier" "Black" "isort" "SQLFluff" "ESLint" "stylelint" "markdownlint" "gofmt" "golangci-lint"; do
+            case "$tool_name" in
+              "Prettier") tool_file="/tmp/prettier_changes.txt" ;;
+              "Black") tool_file="/tmp/black_changes.txt" ;;
+              "isort") tool_file="/tmp/isort_changes.txt" ;;
+              "SQLFluff") tool_file="/tmp/sqlfluff_changes.txt" ;;
+              "ESLint") tool_file="/tmp/eslint_changes.txt" ;;
+              "stylelint") tool_file="/tmp/stylelint_changes.txt" ;;
+              "markdownlint") tool_file="/tmp/markdownlint_changes.txt" ;;
+              "gofmt") tool_file="/tmp/gofmt_changes.txt" ;;
+              "golangci-lint") tool_file="/tmp/golangci_changes.txt" ;;
+            esac
+
+            if [ -f "$tool_file" ] && [ -s "$tool_file" ]; then
+              echo "" >> /tmp/commit_message.txt
+              echo "$tool_name:" >> /tmp/commit_message.txt
               while IFS= read -r file; do
-                MSG="${MSG}"$'\n'"- ${file}"
-              done < "$TOOL_FILE"
-              MSG="${MSG}"$'\n'
+                echo "- $file" >> /tmp/commit_message.txt
+              done < "$tool_file"
             fi
-          }
-
-          # Add sections for each tool that made changes
-          add_tool_section "Prettier" "/tmp/prettier_changes.txt"
-          add_tool_section "Black" "/tmp/black_changes.txt"
-          add_tool_section "isort" "/tmp/isort_changes.txt"
-          add_tool_section "SQLFluff" "/tmp/sqlfluff_changes.txt"
-          add_tool_section "ESLint" "/tmp/eslint_changes.txt"
-          add_tool_section "stylelint" "/tmp/stylelint_changes.txt"
-          add_tool_section "markdownlint" "/tmp/markdownlint_changes.txt"
-          add_tool_section "gofmt" "/tmp/gofmt_changes.txt"
-          add_tool_section "golangci-lint" "/tmp/golangci_changes.txt"
-
-          # Save to file for commit step
-          printf "%s" "$MSG" > /tmp/commit_message.txt
+          done
 
       - name: Commit and push changes
         if: steps.check_changes.outputs.changes == 'true'
