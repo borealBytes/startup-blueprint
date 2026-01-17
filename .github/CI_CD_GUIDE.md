@@ -30,74 +30,77 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 
 ```mermaid
 flowchart TD
-    A[Push Commit] --> B[Format & Lint Job]
+    A[Push Commit] --> B[Format & Lint Job Runs]
     B --> C{Has Changes?}
     C -->|Yes| D[Bot Commits Fixes]
-    C -->|No| E[Link Check Job]
-    D --> F[CI Re-runs on New Commit]
-    F --> B
-    E --> G[Validate Markdown Links]
-    G --> H{Links Valid?}
-    H -->|Yes| I[✅ All Checks Pass]
-    H -->|No| J[❌ Job Fails]
-
+    C -->|No| E[Job Completes]
+    D --> F[Job Completes]
+    E --> G[Link Check Job Starts]
+    F --> G
+    G --> H[Checkout Latest Commit]
+    H --> I[Validate Markdown Links]
+    I --> J{Links Valid?}
+    J -->|Yes| K[✅ All Checks Pass]
+    J -->|No| L[❌ Job Fails]
+    
     style A fill:#e1f5ff
-    style I fill:#c8e6c9
-    style J fill:#ffcdd2
+    style K fill:#c8e6c9
+    style L fill:#ffcdd2
     style D fill:#fff9c4
-    style F fill:#fff9c4
+    style H fill:#e1f5ff
 ```
 
 **Key Points:**
-
-- If formatting changes are needed, the bot commits them and the entire CI re-runs
-- Link check only runs when format & lint pass with no changes
-- This ensures link check always validates the final, formatted code
+- Format & Lint job commits fixes if needed, then completes
+- Link Check job waits for Format & Lint to complete (`needs: [format-and-lint]`)
+- Link Check always checks out the **latest commit** on the branch (bot's fix or original)
+- Bot commits do NOT trigger CI to re-run (GitHub Actions bot is ignored)
+- This ensures link check validates the final, formatted code
 
 ### Tool Execution Flow by Language
 
 ```mermaid
 flowchart LR
     A[Code Push] --> B{Detect Languages}
-
+    
     B --> C[JavaScript/TypeScript]
     B --> D[Python]
     B --> E[SQL]
     B --> F[Go]
     B --> G[CSS/SCSS]
     B --> H[Other]
-
+    
     C --> C1[Prettier]
     C1 --> C2[ESLint]
     C2 --> C3[TypeScript]
-
+    
     D --> D1[Black]
     D1 --> D2[isort]
     D2 --> D3[flake8]
-
+    
     E --> E1[SQLFluff Format]
     E1 --> E2[SQLFluff Lint]
-
+    
     F --> F1[gofmt]
     F1 --> F2[golangci-lint]
-
+    
     G --> G1[Prettier]
     G1 --> G2[stylelint]
-
+    
     H --> H1[markdownlint]
     H1 --> H2[yamllint]
     H2 --> H3[shellcheck]
-
+    
     C3 --> I[Commit Check]
     D3 --> I
     E2 --> I
     F2 --> I
     G2 --> I
     H3 --> I
-
+    
     I --> J[commitlint]
     J --> K[✅ Complete]
-
+    
     style A fill:#e1f5ff
     style K fill:#c8e6c9
 ```
@@ -141,31 +144,31 @@ flowchart TD
     B -->|No| C[Install Node.js & pnpm]
     B -->|Yes| D[Write Code]
     C --> D
-
+    
     D --> E[Before Commit]
     E --> F[Run pnpm format]
     F --> G[Run pnpm lint:all]
     G --> H{Errors?}
-
+    
     H -->|Yes| I[Fix Issues]
     I --> F
     H -->|No| J[git add & commit]
-
+    
     J --> K{Using Python?}
     K -->|Yes| L[Run black & isort]
     K -->|No| M{Using SQL?}
     L --> M
-
+    
     M -->|Yes| N[Run sqlfluff fix]
     M -->|No| O[Push to GitHub]
     N --> O
-
+    
     O --> P[CI Runs Automatically]
     P --> Q{✅ CI Pass?}
     Q -->|Yes| R[Ready for Review]
     Q -->|No| S[Check CI Logs]
     S --> I
-
+    
     style A fill:#e1f5ff
     style R fill:#c8e6c9
     style I fill:#fff9c4
@@ -254,17 +257,17 @@ flowchart LR
     B --> E[Black Formatter]
     B --> F[SQLFluff]
     B --> G[markdownlint]
-
+    
     C --> H[Configure settings.json]
     D --> H
     E --> H
     F --> H
     G --> H
-
+    
     H --> I[Enable Format on Save]
     I --> J[Enable Auto-fix on Save]
     J --> K[✅ Automatic Formatting]
-
+    
     style A fill:#007acc
     style K fill:#c8e6c9
 ```
@@ -328,33 +331,33 @@ Add to `.vscode/settings.json`:
 ```mermaid
 flowchart TD
     A[CI Failed ❌] --> B{Which Job Failed?}
-
+    
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
     B -->|commitlint| E[Bad Commit Message]
-
+    
     C -->|Prettier/ESLint| F[Run pnpm format]
     C -->|Black/isort| G[Run black & isort]
     C -->|SQLFluff| H[Run sqlfluff fix]
     C -->|TypeScript| I[Run pnpm typecheck]
-
+    
     F --> J[git add & commit]
     G --> J
     H --> J
     I --> K[Fix Type Errors]
     K --> J
-
+    
     D --> L[Check CI Logs]
     L --> M[Fix Broken URLs]
     M --> J
-
+    
     E --> N[Use Conventional Format]
     N --> O[feat/fix/docs/etc]
     O --> J
-
+    
     J --> P[git push]
     P --> Q[✅ CI Passes]
-
+    
     style A fill:#ffcdd2
     style Q fill:#c8e6c9
     style J fill:#fff9c4
@@ -567,7 +570,7 @@ flowchart TD
     A --> F[.sqlfluff]
     A --> G[.yamllint.yml]
     A --> H[commitlint.config.js]
-
+    
     B --> I[Prettier Engine]
     C --> J[ESLint Engine]
     D --> K[markdownlint Engine]
@@ -575,7 +578,7 @@ flowchart TD
     F --> M[SQLFluff Engine]
     G --> N[yamllint Engine]
     H --> O[commitlint Engine]
-
+    
     I --> P[Format JS/TS/JSON/MD/YAML/CSS]
     J --> Q[Lint JS/TS]
     K --> R[Lint Markdown]
@@ -583,7 +586,7 @@ flowchart TD
     M --> T[Format & Lint SQL]
     N --> U[Validate YAML]
     O --> V[Validate Commits]
-
+    
     P --> W[✅ Consistent Code]
     Q --> W
     R --> W
@@ -591,7 +594,7 @@ flowchart TD
     T --> W
     U --> W
     V --> W
-
+    
     style A fill:#e1f5ff
     style W fill:#c8e6c9
 ```
