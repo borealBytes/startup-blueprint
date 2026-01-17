@@ -25,6 +25,7 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 ### Single Linear Process
 
 Every commit follows this flow:
+
 1. 📝 **Perplexity commits code** via Git MCP tool
 2. ⚙️ **Format & Lint runs**, bot may commit fixes
 3. 🔗 **Link Check validates** the final formatted code
@@ -49,7 +50,7 @@ flowchart TD
     I --> J{Links Valid?}
     J -->|Yes| K[✅ All Checks Pass]
     J -->|No| L[❌ Job Fails]
-    
+
     style A fill:#e1f5ff
     style K fill:#c8e6c9
     style L fill:#ffcdd2
@@ -68,6 +69,7 @@ flowchart TD
 7. **Links validated** - All Markdown links are checked
 
 **Key Points:**
+
 - ✅ Single linear workflow - no CI re-runs
 - ✅ Bot commits don't trigger new CI runs (GitHub Actions bot is ignored)
 - ✅ Link Check always validates the final, formatted code
@@ -78,45 +80,45 @@ flowchart TD
 ```mermaid
 flowchart LR
     A[Code Push] --> B{Detect Languages}
-    
+
     B --> C[JavaScript/TypeScript]
     B --> D[Python]
     B --> E[SQL]
     B --> F[Go]
     B --> G[CSS/SCSS]
     B --> H[Other]
-    
+
     C --> C1[Prettier]
     C1 --> C2[ESLint]
     C2 --> C3[TypeScript]
-    
+
     D --> D1[Black]
     D1 --> D2[isort]
     D2 --> D3[flake8]
-    
+
     E --> E1[SQLFluff Format]
     E1 --> E2[SQLFluff Lint]
-    
+
     F --> F1[gofmt]
     F1 --> F2[golangci-lint]
-    
+
     G --> G1[Prettier]
     G1 --> G2[stylelint]
-    
+
     H --> H1[markdownlint]
     H1 --> H2[yamllint]
     H2 --> H3[shellcheck]
-    
+
     C3 --> I[Commit Check]
     D3 --> I
     E2 --> I
     F2 --> I
     G2 --> I
     H3 --> I
-    
+
     I --> J[commitlint]
     J --> K[✅ Complete]
-    
+
     style A fill:#e1f5ff
     style K fill:#c8e6c9
 ```
@@ -157,32 +159,32 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[CI Failed ❌] --> B{Which Job Failed?}
-    
+
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
     B -->|commitlint| E[Bad Commit Message]
-    
+
     C -->|Prettier/ESLint| F[Check File Syntax]
     C -->|Black/isort| G[Check Python Code]
     C -->|SQLFluff| H[Check SQL Syntax]
     C -->|TypeScript| I[Check Type Errors]
-    
+
     F --> J[Fix in Perplexity]
     G --> J
     H --> J
     I --> J
-    
+
     D --> K[Check CI Logs]
     K --> L[Fix Broken URLs]
     L --> J
-    
+
     E --> M[Use Conventional Format]
     M --> N[feat/fix/docs/etc]
     N --> J
-    
+
     J --> O[Commit via Perplexity]
     O --> P[✅ CI Re-runs & Passes]
-    
+
     style A fill:#ffcdd2
     style P fill:#c8e6c9
     style J fill:#fff9c4
@@ -250,6 +252,7 @@ chore: update dependencies
 ```
 
 **When using Perplexity Git tool:**
+
 - Ensure your commit message follows the format above
 - The tool will validate the format before committing
 
@@ -327,7 +330,7 @@ flowchart TD
     A --> G[.yamllint.yml]
     A --> H[commitlint.config.js]
     A --> I[.lycheeignore]
-    
+
     B --> J[Prettier Engine]
     C --> K[ESLint Engine]
     D --> L[markdownlint Engine]
@@ -336,7 +339,7 @@ flowchart TD
     G --> O[yamllint Engine]
     H --> P[commitlint Engine]
     I --> Q[Lychee Engine]
-    
+
     J --> R[Format JS/TS/JSON/MD/YAML/CSS]
     K --> S[Lint JS/TS]
     L --> T[Lint Markdown]
@@ -345,7 +348,7 @@ flowchart TD
     O --> W[Validate YAML]
     P --> X[Validate Commits]
     Q --> Y[Validate Links]
-    
+
     R --> Z[✅ Consistent Code]
     S --> Z
     T --> Z
@@ -354,7 +357,7 @@ flowchart TD
     W --> Z
     X --> Z
     Y --> Z
-    
+
     style A fill:#e1f5ff
     style Z fill:#c8e6c9
 ```
@@ -362,10 +365,12 @@ flowchart TD
 ### Key Configuration Files
 
 **Formatting:**
+
 - `.prettierrc.json` - Code formatting rules (80 char width, single quotes, LF endings)
 - `.prettierignore` - Files to skip formatting
 
 **Linting:**
+
 - `.eslintrc.json` - JavaScript/TypeScript linting rules
 - `.markdownlint.json` - Markdown linting rules (relaxed for docs)
 - `.stylelintrc.json` - CSS/SCSS linting rules
@@ -374,14 +379,17 @@ flowchart TD
 - `commitlint.config.js` - Commit message format validation
 
 **Link Checking:**
+
 - `.lycheeignore` - URLs to exclude from link checking (bot-protected, etc.)
 
 **Python Configuration** (via command-line args in CI):
+
 - Black: Line length 88, Python 3.13+
 - isort: Profile `black` (compatible formatting)
 - flake8: Max line 88, ignore E203/W503 (Black-compatible)
 
 **SQL Configuration** (`.sqlfluff`):
+
 - Dialect: PostgreSQL (change to `duckdb` if needed)
 - Keywords: UPPERCASE (SELECT, FROM, WHERE)
 - Identifiers: lowercase (table_name, column_name)
@@ -396,6 +404,7 @@ flowchart TD
 When using Perplexity's Git MCP tool:
 
 1. **Use Conventional Commit format** - CI will validate your message
+
    ```
    feat: add new feature
    fix: resolve bug
