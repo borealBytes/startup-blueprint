@@ -69,12 +69,11 @@ Most states require:
 ### Availability Check
 
 1. Go to your state's business registry:
-   - **Michigan** (LLC/PLLC): [LARA Business Entity Search](https://cofs.lara.state.mi.us/SearchApi/Search/Search)
+   - **Michigan** (LLC/PLLC): [LARA Business Entity Search](https://mibusinessregistry.lara.state.mi.us/)
    - **Florida** (LLC/PLLC): [Sunbiz (Division of Corporations)](https://search.sunbiz.org/Inquiry/CorporationSearch/ByName)
-   - **California**: [Secretary of State](https://bpd.sos.ca.gov/)
-   - **New York**: [Department of State](https://www.dos.ny.gov/business-services/)
+   - **California**: [Secretary of State](https://www.sos.ca.gov/business-programs/bizfile)
+   - **New York**: [Department of State](https://dos.ny.gov/)
    - **Other**: Google `[YOUR STATE] LLC registration online`
-
 2. Search existing businesses
 3. If name is available, proceed. If taken, try variations.
 
@@ -121,7 +120,6 @@ Most states require:
    - **Managers**: You
    - **Duration**: Perpetual (or "as allowed by law")
    - **Professional purpose / license**: If PLLC, state the professional service and license details exactly as your state requires
-
 4. Upload or mail the form
 5. Pay filing fee ($50–$150 depending on state)
 6. Receive confirmation and Certificate of Organization
@@ -129,6 +127,7 @@ Most states require:
 ### State-Specific Notes (Examples)
 
 - **Michigan (LARA)**
+
   - Online filing via LARA is straightforward for LLCs and PLLCs
   - Pay fee online, get confirmation and entity ID
 
@@ -171,7 +170,6 @@ Employer Identification Number—your business's tax ID. Similar to a SSN but fo
    - Type of entity: LLC
    - Reason: Started new business
    - Expected payroll: "No employees" (for now)
-
 4. Submit
 5. Receive EIN immediately (you'll see it on screen)
 6. **SAVE IT** — you'll need this for everything
@@ -353,8 +351,7 @@ Maintain:
 - **Michigan LARA (LLC/PLLC)**: <https://www.michigan.gov/lara>
 - **Florida Sunbiz (LLC/PLLC)**: <https://dos.myflorida.com/sunbiz/>
 - **State Business Registries**: Google `[STATE] LLC PLLC registration`
-- **SBA Guide**: <https://www.sba.gov/business-guide/launch/choose-business-structure>
-- **NerdWallet LLC Guide**: <https://www.nerdwallet.com/article/small-business/start-an-llc>
+- **SBA Guide**: <https://www.sba.gov/business-guide/launch-your-business/choose-business-structure>
 
 ---
 

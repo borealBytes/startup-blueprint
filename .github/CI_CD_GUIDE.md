@@ -16,9 +16,9 @@ Our CI/CD pipeline uses a **format-lint loop** that automatically fixes code for
 
 ### Key Features
 
-✅ **Auto-fixes issues** - Bot commits fixes automatically  
-✅ **Comprehensive tooling** - Prettier, ESLint, markdownlint, stylelint, commitlint, TypeScript  
-✅ **Works for all** - Humans, AI agents, web UI commits  
+✅ **Auto-fixes issues** - Bot commits fixes automatically
+✅ **Comprehensive tooling** - Prettier, ESLint, markdownlint, stylelint, commitlint, TypeScript
+✅ **Works for all** - Humans, AI agents, web UI commits
 ✅ **Link checking** - Validates all Markdown links
 
 ---
@@ -262,7 +262,7 @@ git commit -m "docs: update CI guide"
 If you encounter issues with the CI/CD pipeline:
 
 1. **Check this guide first** for common issues
-2. **Check the [workflow file](.github/workflows/ci.yml)** for details
+2. **Check the [workflow file](../.github/workflows/ci.yml)** for details
 3. **Open an issue** with:
    - Workflow run link
    - Error message
@@ -270,5 +270,5 @@ If you encounter issues with the CI/CD pipeline:
 
 ---
 
-**Last updated:** 2026-01-16  
+**Last updated:** 2026-01-17
 **Maintainer:** @borealBytes

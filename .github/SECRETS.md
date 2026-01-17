@@ -64,7 +64,7 @@ As we add more features, we may need:
 
 1. **Generate the secret** (token, API key, etc.)
 2. **Add to repository:**
-   - Go to [Repo Settings → Secrets](https://github.com/borealBytes/startup-blueprint/settings/secrets/actions)
+   - Go to **Settings > Secrets and variables > Actions** in your repository
    - Click "New repository secret"
    - Enter name and value
    - Click "Add secret"
@@ -96,5 +96,5 @@ If you need access to secrets or have questions:
 
 ---
 
-**Last updated:** 2026-01-16  
+**Last updated:** 2026-01-17
 **Maintainer:** @borealBytes
