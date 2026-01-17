@@ -1,39 +1,18 @@
 ---
-# Yamllint configuration
-# https://yamllint.readthedocs.io/en/stable/configuration.html
-
 extends: default
 
 rules:
-  # Allow longer lines in YAML (lockfiles, etc.)
+  document-start: disable
   line-length:
-    max: 120
+    max: 200
+    level: warning
+  comments:
+    min-spaces-from-content: 1
+  trailing-spaces:
     level: warning
 
-  # Allow document start to be omitted
-  document-start:
-    present: false
-
-  # Allow truthy values like "on" in GitHub Actions
-  truthy:
-    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
-    check-keys: false
-
 ignore: |
-  # Ignore all dependencies
   node_modules/
-  .pnpm/
-
-  # Ignore lockfiles (they're generated)
-  pnpm-lock.yaml
-  package-lock.json
-  yarn.lock
-
-  # Ignore build outputs
+  .git/
   dist/
   build/
-  .next/
-  .nuxt/
-
-  # Ignore vendored dependencies
-  vendor/

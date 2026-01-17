@@ -1,17 +1,12 @@
 {
   "default": true,
   "MD013": false,
-  "MD033": {
-    "allowed_elements": ["br", "details", "summary", "sub", "sup"]
+  "MD033": false,
+  "MD040": {
+    "level": "warning"
   },
-  "MD041": false,
-  "MD024": {
-    "siblings_only": true
-  },
-  "MD025": {
-    "front_matter_title": ""
-  },
-  "no-hard-tabs": {
-    "spaces_per_tab": 2
+  "MD029": false,
+  "MD036": {
+    "level": "warning"
   }
 }
