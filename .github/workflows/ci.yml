@@ -145,6 +145,8 @@ jobs:
 
           if [ $? -eq 0 ]; then
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            # Track changes made by Prettier
+            git diff --name-only > /tmp/prettier_changes.txt
           else
             echo "status=❌ Failed" >> $GITHUB_OUTPUT
             exit 1
@@ -168,6 +170,8 @@ jobs:
 
             if [ $? -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              # Track changes made by Black
+              git diff --name-only > /tmp/black_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
               exit 1
@@ -175,6 +179,7 @@ jobs:
           else
             echo "status=⏭️ Skipped (no Python files)" >> $GITHUB_OUTPUT
             echo "⏭️ No Python files found, skipping Black"
+            touch /tmp/black_changes.txt
           fi
 
       - name: Run isort (sort Python imports)
@@ -195,6 +200,8 @@ jobs:
 
             if [ $? -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              # Track changes made by isort
+              git diff --name-only > /tmp/isort_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
               exit 1
@@ -202,6 +209,7 @@ jobs:
           else
             echo "status=⏭️ Skipped (no Python files)" >> $GITHUB_OUTPUT
             echo "⏭️ No Python files found, skipping isort"
+            touch /tmp/isort_changes.txt
           fi
 
       - name: Run SQLFluff (format & lint SQL files)
@@ -219,6 +227,8 @@ jobs:
             if sqlfluff lint --dialect postgres . \
               --exclude-rules ambiguous.column_count; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              # Track changes made by SQLFluff
+              git diff --name-only > /tmp/sqlfluff_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
               exit 1
@@ -226,6 +236,7 @@ jobs:
           else
             echo "status=⏭️ Skipped (no SQL files)" >> $GITHUB_OUTPUT
             echo "⏭️ No SQL files found, skipping SQLFluff"
+            touch /tmp/sqlfluff_changes.txt
           fi
 
       - name: Run ESLint (auto-fix JS/TS)
@@ -249,8 +260,11 @@ jobs:
             if [ $EXIT_CODE -eq 2 ] && grep -q "all of the files matching the glob pattern" /tmp/eslint.log; then
               echo "📝 All JS/TS files are config files (intentionally ignored)"
               echo "status=⏭️ Skipped (only config files)" >> $GITHUB_OUTPUT
+              touch /tmp/eslint_changes.txt
             elif [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              # Track changes made by ESLint
+              git diff --name-only > /tmp/eslint_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
               exit 1
@@ -258,6 +272,7 @@ jobs:
           else
             echo "status=⏭️ Skipped (no JS/TS files)" >> $GITHUB_OUTPUT
             echo "⏭️ No JavaScript/TypeScript files found, skipping ESLint"
+            touch /tmp/eslint_changes.txt
           fi
 
       - name: Run stylelint (auto-fix CSS/SCSS)
@@ -272,6 +287,8 @@ jobs:
 
             if [ $? -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              # Track changes made by stylelint
+              git diff --name-only > /tmp/stylelint_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
               exit 1
@@ -279,6 +296,7 @@ jobs:
           else
             echo "status=⏭️ Skipped (no stylelint config)" >> $GITHUB_OUTPUT
             echo "⏭️ No .stylelintrc.json found, skipping stylelint"
+            touch /tmp/stylelint_changes.txt
           fi
 
       - name: Run markdownlint (auto-fix Markdown)
@@ -294,6 +312,8 @@ jobs:
 
           if [ $? -eq 0 ]; then
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            # Track changes made by markdownlint
+            git diff --name-only > /tmp/markdownlint_changes.txt
           else
             echo "status=❌ Failed" >> $GITHUB_OUTPUT
             exit 1
@@ -372,9 +392,12 @@ jobs:
           if [ -d "apps/credibility-markets" ]; then
             gofmt -w apps/credibility-markets/
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            # Track changes made by gofmt
+            git diff --name-only > /tmp/gofmt_changes.txt
           else
             echo "status=⏭️ Skipped (no Go projects)" >> $GITHUB_OUTPUT
             echo "⏭️ No Go projects found, skipping gofmt"
+            touch /tmp/gofmt_changes.txt
           fi
 
       - name: Run golangci-lint (lint Go files)
@@ -387,6 +410,8 @@ jobs:
               golangci-lint run --fix
               if [ $? -eq 0 ]; then
                 echo "status=✅ Passed" >> $GITHUB_OUTPUT
+                # Track changes made by golangci-lint
+                git diff --name-only > /tmp/golangci_changes.txt
               else
                 echo "status=❌ Failed" >> $GITHUB_OUTPUT
                 exit 1
@@ -394,10 +419,12 @@ jobs:
             else
               echo "status=⏭️ Skipped (golangci-lint not installed)" >> $GITHUB_OUTPUT
               echo "⏭️ golangci-lint not found, skipping Go linting"
+              touch /tmp/golangci_changes.txt
             fi
           else
             echo "status=⏭️ Skipped (no Go projects)" >> $GITHUB_OUTPUT
             echo "⏭️ No Go projects found, skipping golangci-lint"
+            touch /tmp/golangci_changes.txt
           fi
 
       - name: Lint commit messages
@@ -630,6 +657,51 @@ jobs:
             exit 1
           fi
 
+      - name: Build commit message with per-tool breakdown
+        if: steps.check_changes.outputs.changes == 'true'
+        id: build_message
+        run: |
+          FILE_COUNT=${{ steps.check_changes.outputs.file_count }}
+          
+          # Start building the message
+          MSG="chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files ($FILE_COUNT)
+"
+
+          # Function to add tool section if it has changes
+          add_tool_section() {
+            TOOL_NAME="$1"
+            TOOL_FILE="$2"
+            
+            if [ -f "$TOOL_FILE" ] && [ -s "$TOOL_FILE" ]; then
+              MSG="$MSG
+$TOOL_NAME:"
+              while IFS= read -r file; do
+                MSG="$MSG
+- $file"
+              done < "$TOOL_FILE"
+              MSG="$MSG
+"
+            fi
+          }
+
+          # Add sections for each tool that made changes
+          add_tool_section "Prettier" "/tmp/prettier_changes.txt"
+          add_tool_section "Black" "/tmp/black_changes.txt"
+          add_tool_section "isort" "/tmp/isort_changes.txt"
+          add_tool_section "SQLFluff" "/tmp/sqlfluff_changes.txt"
+          add_tool_section "ESLint" "/tmp/eslint_changes.txt"
+          add_tool_section "stylelint" "/tmp/stylelint_changes.txt"
+          add_tool_section "markdownlint" "/tmp/markdownlint_changes.txt"
+          add_tool_section "gofmt" "/tmp/gofmt_changes.txt"
+          add_tool_section "golangci-lint" "/tmp/golangci_changes.txt"
+
+          # Save to file for commit step
+          echo "$MSG" > /tmp/commit_message.txt
+
       - name: Commit and push changes
         if: steps.check_changes.outputs.changes == 'true'
         id: commit
@@ -637,22 +709,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Build commit message with file list
-          FILE_COUNT=${{ steps.check_changes.outputs.file_count }}
-          COMMIT_MSG="chore: auto-format and lint fixes
-
-Applied automatic formatting and linting fixes.
-
-📝 Changed Files ($FILE_COUNT)"
-
-          # Add each file as a bullet point
-          while IFS= read -r file; do
-            COMMIT_MSG="$COMMIT_MSG
-- $file"
-          done < /tmp/changed_files.txt
-
-          # Commit with the formatted message
-          git commit -m "$COMMIT_MSG"
+          # Commit with the pre-built message
+          git commit -F /tmp/commit_message.txt
 
           BOT_COMMIT_SHA=$(git rev-parse HEAD)
           echo "sha=$BOT_COMMIT_SHA" >> $GITHUB_OUTPUT
