@@ -637,7 +637,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git commit -m "chore: auto-format and lint fixes" -m "Applied automatic formatting and linting fixes."
+          # Build commit message with file list
+          FILE_COUNT=${{ steps.check_changes.outputs.file_count }}
+          COMMIT_MSG="chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files ($FILE_COUNT)"
+
+          # Add each file as a bullet point
+          while IFS= read -r file; do
+            COMMIT_MSG="$COMMIT_MSG
+- $file"
+          done < /tmp/changed_files.txt
+
+          # Commit with the formatted message
+          git commit -m "$COMMIT_MSG"
 
           BOT_COMMIT_SHA=$(git rev-parse HEAD)
           echo "sha=$BOT_COMMIT_SHA" >> $GITHUB_OUTPUT
