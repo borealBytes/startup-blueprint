@@ -14,8 +14,6 @@ This document lists all GitHub Secrets required for CI/CD workflows in the start
 
 The current CI workflow uses `GITHUB_TOKEN` which is automatically provided by GitHub Actions.
 
-**Note:** The CredibilityMarkets workflow uses `GH_PAT` for retry loops, but we've simplified our workflow to not need that yet.
-
 ---
 
 ## Future Secrets
