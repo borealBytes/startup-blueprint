@@ -25,9 +25,7 @@
 ```mermaid
 flowchart TB
     accTitle: Example Diagram
-    accDescr: {
-        This diagram demonstrates proper structure.
-    }
+    accDescr: This diagram demonstrates proper structure with start and end nodes
 
     start([Start]) --> process[Do Something]
     process --> end_node([End])
@@ -41,9 +39,7 @@ flowchart TB
 %%{init: {'theme':'neutral'}}%%
 flowchart TB
     accTitle: Example Diagram
-    accDescr: {
-        Description here.
-    }
+    accDescr: Simple flow with neutral theme configuration
 
     start([Start]) --> end_node([End])
 ```
@@ -53,11 +49,12 @@ flowchart TB
 **Breaks dark mode detection:**
 
 ```mermaid
-# ❌ DON'T DO THIS
+%%{init: {'theme':'base'}}%%
 flowchart TB
+    %% DON'T DO THIS - custom colors break dark mode
     A[Node] --> B[Another]
-    style A fill:#e8f5e9  # Breaks in dark mode!
-    style B fill:#ffcdd2  # Hard to read!
+    style A fill:#e8f5e9
+    style B fill:#ffcdd2
 ```
 
 **Why it fails:**
@@ -79,6 +76,8 @@ Short, descriptive title for screen readers:
 ```mermaid
 flowchart TB
     accTitle: CI/CD Pipeline Workflow
+
+    start([Start]) --> end_node([End])
 ```
 
 **Rules:**
@@ -94,30 +93,25 @@ Detailed explanation of diagram purpose:
 ```mermaid
 flowchart TB
     accTitle: Error Recovery Process
-    accDescr: {
-        This flowchart shows the step-by-step decision tree
-        for diagnosing and recovering from CI/CD failures,
-        including common error types and their solutions.
-    }
+    accDescr: Step-by-step decision tree for diagnosing and recovering from CI/CD failures including common error types and solutions
+
+    start([Start]) --> diagnose{Identify Error}
+    diagnose --> fix[Apply Fix]
 ```
 
 **Rules:**
 
-- 2-4 sentences
+- Single line (GitHub limitation)
+- 1-2 sentences
 - Explains purpose and what user learns
-- Use curly braces `{ }` for multi-line
 - Describes flow direction and key decision points
 
 ### 3. Complete Template
 
 ```mermaid
 flowchart TB
-    accTitle: [Diagram Title 3-8 words]
-    accDescr: {
-        [Purpose statement. What this shows.]
-        [Key insights or flow description.]
-        [2-4 sentences total.]
-    }
+    accTitle: Diagram Title 3-8 words
+    accDescr: Purpose statement explaining what this diagram shows and key insights
 
     %% Your diagram content here
     start([Start]) --> end_node([End])
@@ -133,6 +127,9 @@ flowchart TB
 
 ```mermaid
 flowchart TB
+    accTitle: Deployment Flow
+    accDescr: Code deployment process from commit to production
+
     commit_code[Commit Code] --> run_ci[Run CI]
     run_ci --> check_tests{Tests Pass?}
     check_tests -->|Yes| deploy[Deploy]
@@ -150,8 +147,9 @@ flowchart TB
 **Single letters lack context:**
 
 ```mermaid
-# ❌ DON'T DO THIS
+%%{init: {'theme':'base'}}%%
 flowchart TB
+    %% BAD: Generic single-letter IDs
     A[Commit Code] --> B[Run CI]
     B --> C{Tests Pass?}
     C -->|Yes| D[Deploy]
@@ -183,10 +181,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     accTitle: Node Shape Reference
-    accDescr: {
-        Visual reference for standard node shapes and their
-        semantic meanings in flowcharts.
-    }
+    accDescr: Visual reference showing standard node shapes and their semantic meanings in flowcharts
 
     start_end([Start/End]) --> process[Process/Action]
     process --> decision{Decision Point}
@@ -210,10 +205,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     accTitle: CI Pipeline Stages
-    accDescr: {
-        Demonstrates using different shapes to indicate
-        different types of operations in a CI pipeline.
-    }
+    accDescr: Different node shapes indicate different types of operations in a CI pipeline from commit through deployment
 
     start([Commit Pushed]) --> prepare{{Setup Environment}}
     prepare --> lint[Run Linters]
@@ -257,21 +249,13 @@ flowchart TB
 
 ### Example: Complex Diagram Split
 
-**❌ Too Complex (16 nodes, 5 decisions):**
-
-```mermaid
-flowchart TB
-    A --> B --> C --> D{?} --> E --> F{?} --> G --> H{?} --> I
-    D --> J --> K{?} --> L
-    F --> M --> N{?} --> O --> P
-```
-
-**✅ Split into Two Focused Diagrams:**
-
 **Diagram 1: Request Processing (8 nodes)**
 
 ```mermaid
 flowchart TB
+    accTitle: Request Processing Stage
+    accDescr: First stage of pipeline handling request validation and initial processing
+
     receive[Receive Request] --> validate{Valid?}
     validate -->|Yes| process[Process Data]
     validate -->|No| reject([Reject])
@@ -280,16 +264,20 @@ flowchart TB
     check -->|No| retry[Retry]
 ```
 
-**Diagram 2: Deployment (8 nodes)**
+**Diagram 2: Deployment Stage (8 nodes)**
 
 ```mermaid
 flowchart TB
+    accTitle: Deployment Stage
+    accDescr: Second stage handling build testing and deployment to production
+
     from_stage1[From Stage 1] --> build[Build]
     build --> test{Tests Pass?}
     test -->|Yes| deploy[Deploy]
     test -->|No| fail([Failed])
     deploy --> verify{Verified?}
     verify -->|Yes| complete([Success])
+    verify -->|No| rollback[Rollback]
 ```
 
 ---
@@ -300,26 +288,45 @@ flowchart TB
 
 **Length: 3-6 words maximum**
 
-```mermaid
-# ✅ GOOD
-flowchart TB
-    commit[Commit Code] --> push[Push to Remote]
+**✅ Good:**
 
-# ❌ TOO LONG
+```mermaid
 flowchart TB
+    accTitle: Code Workflow
+    accDescr: Simple two-step workflow showing commit and push actions
+
+    commit[Commit Code] --> push[Push to Remote]
+```
+
+**❌ Too Long:**
+
+```mermaid
+%%{init: {'theme':'base'}}%%
+flowchart TB
+    %% Labels are too verbose
     commit[Developer commits code changes to local repository]
     push[Code is pushed to the remote GitHub repository]
+    commit --> push
 ```
 
 **Voice: Active, imperative**
 
-```mermaid
-# ✅ GOOD (Active)
-flowchart TB
-    run_tests[Run Tests] --> deploy[Deploy App]
+**✅ Good (Active):**
 
-# ❌ PASSIVE
+```mermaid
 flowchart TB
+    accTitle: Testing and Deployment
+    accDescr: Active voice workflow from testing to deployment
+
+    run_tests[Run Tests] --> deploy[Deploy App]
+```
+
+**❌ Passive:**
+
+```mermaid
+%%{init: {'theme':'base'}}%%
+flowchart TB
+    %% Using passive voice reduces clarity
     tests_run[Tests Are Run] --> app_deployed[App Is Deployed]
 ```
 
@@ -329,27 +336,38 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    check{Status?}
-    check -->|Success| next
-    check -->|Failed| retry
-    check -->|Pending| wait
+    accTitle: Status Check Flow
+    accDescr: Branching logic based on operation status
 
-    # Not: "The operation was successful"
-    # Not: "An error occurred during processing"
+    check{Status?}
+    check -->|Success| next[Continue]
+    check -->|Failed| retry[Retry]
+    check -->|Pending| wait[Wait]
 ```
 
 ### Capitalization
 
 **Use sentence case for labels:**
 
-```mermaid
-# ✅ GOOD
-flowchart TB
-    start[Start pipeline] --> check{Tests pass?}
+**✅ Good:**
 
-# ❌ TITLE CASE
+```mermaid
 flowchart TB
+    accTitle: Pipeline Execution
+    accDescr: Standard pipeline flow with sentence case labels
+
+    start[Start pipeline] --> check{Tests pass?}
+    check -->|Yes| deploy[Deploy to prod]
+```
+
+**❌ Title Case:**
+
+```mermaid
+%%{init: {'theme':'base'}}%%
+flowchart TB
+    %% Title Case is harder to read
     start[Start Pipeline] --> check{Tests Pass?}
+    check -->|Yes| deploy[Deploy To Prod]
 ```
 
 ---
@@ -361,10 +379,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     accTitle: Multi-Stage Pipeline
-    accDescr: {
-        Shows a pipeline with distinct stages grouped
-        by responsibility using subgraphs.
-    }
+    accDescr: Pipeline with distinct stages grouped by responsibility using subgraphs
 
     start([Start])
 
@@ -401,13 +416,23 @@ flowchart TB
 
 **Be consistent across related diagrams.**
 
-```mermaid
-# ✅ Top to Bottom (Process Flow)
-flowchart TB
-    start --> middle --> end_node
+**✅ Top to Bottom (Process Flow):**
 
-# ✅ Left to Right (Timeline)
+```mermaid
+flowchart TB
+    accTitle: Sequential Process
+    accDescr: Top to bottom flow for sequential process steps
+
+    start --> middle --> end_node
+```
+
+**✅ Left to Right (Timeline):**
+
+```mermaid
 flowchart LR
+    accTitle: Project Timeline
+    accDescr: Left to right timeline showing project phases
+
     jan[January] --> feb[February] --> mar[March]
 ```
 
@@ -422,10 +447,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     accTitle: Deployment Process
-    accDescr: {
-        Sequential steps for deploying application
-        from code commit to production.
-    }
+    accDescr: Sequential steps for deploying application from code commit to production
 
     commit([Commit]) --> build[Build]
     build --> test[Test]
@@ -441,10 +463,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     accTitle: Error Diagnosis
-    accDescr: {
-        Decision tree for diagnosing common CI errors
-        and identifying appropriate solutions.
-    }
+    accDescr: Decision tree for diagnosing common CI errors and identifying appropriate solutions
 
     error{Error Type?}
     error -->|Build| build_fix[Fix Build Script]
@@ -459,10 +478,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     accTitle: PR Lifecycle States
-    accDescr: {
-        State transitions for a pull request from
-        draft creation through merge or closure.
-    }
+    accDescr: State transitions for a pull request from draft creation through merge or closure
 
     draft[(Draft)] --> open[(Open)]
     open --> review[(In Review)]
@@ -479,10 +495,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     accTitle: Workflow Comparison
-    accDescr: {
-        Compares traditional local linting workflow
-        with automated CI-based linting approach.
-    }
+    accDescr: Compares traditional local linting workflow with automated CI-based linting approach
 
     subgraph traditional ["Traditional"]
         t1[Edit] --> t2[Lint Locally] --> t3[Commit]
@@ -501,11 +514,8 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    accTitle: [Your Title Here]
-    accDescr: {
-        [Explain what this diagram shows and its purpose.]
-        [Add context about the flow and key decisions.]
-    }
+    accTitle: Your Title Here
+    accDescr: Explain what this diagram shows and its purpose in one or two sentences
 
     start([Start]) --> step1[First Step]
     step1 --> decision{Check Something?}
@@ -519,10 +529,8 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    accTitle: [Decision Tree Title]
-    accDescr: {
-        [Describe the decision process and outcomes.]
-    }
+    accTitle: Decision Tree Title
+    accDescr: Describe the decision process and possible outcomes
 
     root{Main Question?}
     root -->|Option 1| branch1{Sub-question 1?}
@@ -537,10 +545,8 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    accTitle: [Multi-Stage Process]
-    accDescr: {
-        [Describe the stages and their relationships.]
-    }
+    accTitle: Multi-Stage Process
+    accDescr: Describe the stages and their relationships in this multi-phase workflow
 
     start([Start])
 
@@ -613,78 +619,91 @@ flowchart TB
 
 ### ❌ Mistake: Over-styling
 
+**Problem:** Custom colors break in dark mode
+
 ```mermaid
+%%{init: {'theme':'base'}}%%
 flowchart TB
     A[Node 1]
     B[Node 2]
-    style A fill:#ff0000,stroke:#333,stroke-width:4px,color:#fff
-    style B fill:#00ff00,stroke:#333,stroke-width:4px,color:#000
+    style A fill:#ff0000,stroke:#333,stroke-width:4px
+    style B fill:#00ff00,stroke:#333,stroke-width:4px
 ```
-
-**Problem:** Breaks in dark mode, reduces accessibility
 
 **✅ Fix:** Remove all styling, use shapes
 
 ```mermaid
 flowchart TB
+    accTitle: Status Nodes
+    accDescr: Using shapes instead of colors to distinguish node types
+
     error_node{Error Node}
     success_node([Success Node])
+    error_node -->|Fixed| success_node
 ```
 
 ### ❌ Mistake: Generic IDs
 
+**Problem:** No semantic meaning
+
 ```mermaid
+%%{init: {'theme':'base'}}%%
 flowchart TB
     A --> B --> C --> D
 ```
-
-**Problem:** No semantic meaning, hard to maintain
 
 **✅ Fix:** Use descriptive IDs
 
 ```mermaid
 flowchart TB
+    accTitle: Request Flow
+    accDescr: API request flow from receipt to response
+
     receive_request --> validate_data --> process_data --> send_response
 ```
 
 ### ❌ Mistake: Too Complex
 
-```mermaid
-flowchart TB
-    A --> B --> C --> D --> E --> F --> G --> H --> I --> J --> K --> L --> M --> N --> O
-```
-
-**Problem:** Overwhelming, unclear purpose
+**Problem:** 15+ nodes overwhelming
 
 **✅ Fix:** Split into focused diagrams
 
-```mermaid
-# Diagram 1: Input Processing
-flowchart TB
-    receive --> validate --> process
+**Diagram 1: Input Processing**
 
-# Diagram 2: Output Generation
+```mermaid
 flowchart TB
+    accTitle: Input Processing
+    accDescr: First phase handling input validation and processing
+
+    receive --> validate --> process --> output
+```
+
+**Diagram 2: Output Generation**
+
+```mermaid
+flowchart TB
+    accTitle: Output Generation
+    accDescr: Second phase handling formatting and delivery
+
     format --> send --> complete
 ```
 
 ### ❌ Mistake: Missing Accessibility
 
+**Problem:** Not screen-reader friendly
+
 ```mermaid
+%%{init: {'theme':'base'}}%%
 flowchart TB
     start --> end_node
 ```
-
-**Problem:** Not accessible to screen readers
 
 **✅ Fix:** Add accessibility metadata
 
 ```mermaid
 flowchart TB
     accTitle: Simple Process Flow
-    accDescr: {
-        Basic two-step process from start to completion.
-    }
+    accDescr: Basic two-step process from start to completion
 
     start([Start]) --> end_node([Complete])
 ```
@@ -707,6 +726,7 @@ flowchart TB
   - Defined accessibility requirements
   - Created templates and examples
   - Added quality checklist
+  - Fixed Mermaid syntax for GitHub compatibility
 
 ---
 
