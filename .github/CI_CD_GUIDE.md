@@ -1,475 +1,463 @@
 # CI/CD Guide: Code Quality Pipeline
 
-## 📚 Table of Contents
+## 🔑 Understanding This Workflow
 
-- [Overview](#overview)
-- [How It Works](#how-it-works)
-- [Troubleshooting](#troubleshooting)
-- [Configuration Files Reference](#configuration-files-reference)
-- [Perplexity Workflow Tips](#perplexity-workflow-tips)
+**This CI/CD pipeline differs from traditional local development workflows.**
 
----
+### The Key Difference
 
-## Overview
-
-Our CI/CD pipeline automatically formats, lints, and validates links for every commit. This ensures consistent code quality for every commit made through Perplexity Spaces.
-
-### Key Features
-
-- ✅ **Auto-fixes issues** - Bot commits fixes automatically
-- ✅ **Comprehensive tooling** - Prettier, ESLint, Black, SQLFluff, markdownlint, stylelint, commitlint, TypeScript
-- ✅ **Multi-language** - JavaScript/TypeScript, Python, SQL, Go, CSS/SCSS, Markdown, YAML, Bash
-- ✅ **Works with Perplexity** - Designed for MCP/Git tool commits
-- ✅ **Link checking** - Validates all Markdown links
-- ✅ **Race-condition safe** - Exact commit SHA passed between jobs
-
-### Single Linear Process
-
-Every commit follows this flow:
-
-1. 📝 **Perplexity commits code** via Git MCP tool
-2. ⚙️ **Format & Lint runs**, bot may commit fixes
-3. 🔗 **Link Check validates** the exact commit SHA from format-lint
-
----
-
-## How It Works
-
-### Workflow Chain
+In most projects, developers format and lint code **locally before pushing**. This project does it **in CI after you commit**.
 
 ```mermaid
-flowchart TD
-    A[Perplexity Git Tool Commits] --> B[Capture Initial SHA]
-    B --> C[Format & Lint Job Runs]
-    C --> D{Has Changes?}
-    D -->|Yes| E[Bot Commits Fixes]
-    D -->|No| F[Output Initial SHA]
-    E --> G[Output Bot SHA]
-    F --> H[Link Check Receives SHA]
-    G --> H
-    H --> I[Checkout Exact Commit]
-    I --> J[Verify SHA Match]
-    J --> K[Validate Markdown Links]
-    K --> L{Links Valid?}
-    L -->|Yes| M[✅ All Checks Pass]
-    L -->|No| N[❌ Job Fails]
-
-    style A fill:#e1f5ff
-    style B fill:#fff9c4
-    style F fill:#c8e6c9
-    style G fill:#fff9c4
-    style H fill:#e1f5ff
-    style I fill:#e1f5ff
-    style J fill:#fff9c4
-    style M fill:#c8e6c9
-    style N fill:#ffcdd2
+graph TB
+    subgraph "Traditional Workflow"
+        A1[Edit Code] --> A2[Format/Lint Locally]
+        A2 --> A3[Commit]
+        A3 --> A4[Push]
+        A4 --> A5[CI Runs Tests Only]
+    end
+    
+    subgraph "This Project's Workflow"
+        B1[Edit Code] --> B2[Commit]
+        B2 --> B3[Push]
+        B3 --> B4[CI Format/Lint + Auto-Commit]
+        B4 --> B5[Pull to Get Formatted Code]
+    end
+    
+    style A2 fill:#fff3e0
+    style B4 fill:#e1f5ff
+    style B5 fill:#c8e6c9
 ```
 
-#### How This Works
+### Why This Approach?
 
-1. **You commit via Perplexity** - Using the Git MCP tool, your changes are committed to the branch
-2. **Capture initial SHA** - Format & Lint job captures the commit SHA at the start (`git rev-parse HEAD`)
-3. **Format & Lint job runs** - All formatting and linting tools execute
-4. **Bot commits fixes (if needed)** - If formatting changes are detected, bot commits and captures new SHA
-5. **Output correct SHA** - Job outputs either the initial SHA (no changes) or bot's SHA (changes applied)
-6. **Link Check receives SHA** - Via `needs: [format-and-lint]` and `outputs.commit-sha`
-7. **Checkout exact commit** - Link Check checks out the specific SHA using `ref: ${{ needs.format-and-lint.outputs.commit-sha }}`
-8. **Verify SHA match** - Confirms checked out commit matches expected SHA
-9. **Links validated** - All Markdown links are checked on the correct commit
+This enables **3 different development modes** with consistent results:
 
-#### Key Points
+1. **🤖 AI Agents (Perplexity MCP, Claude, Cursor)** — Agents commit directly via Git tools, CI handles all formatting
+2. **🌐 GitHub Web Editor** — Edit files in browser, commit, CI formats automatically  
+3. **💻 Local Development** — Edit locally, commit, push, **then pull after CI completes** to get formatted code
 
-- ✅ **Race-condition safe** - Exact SHA passed between jobs, no ambiguity
-- ✅ **No concurrent commit conflicts** - Each link-check validates its specific commit
-- ✅ **Single linear workflow** - No CI re-runs needed
-- ✅ **Bot commits don't trigger CI** - GitHub Actions bot is ignored
-- ✅ **Verification step** - Link Check fails if wrong commit is checked out
-
-### Tool Execution Flow by Language
+**The Universal Flow:**
 
 ```mermaid
 flowchart LR
-    A[Code Push] --> B{Detect Languages}
-
-    B --> C[JavaScript/TypeScript]
-    B --> D[Python]
-    B --> E[SQL]
-    B --> F[Go]
-    B --> G[CSS/SCSS]
-    B --> H[Other]
-
-    C --> C1[Prettier]
-    C1 --> C2[ESLint]
-    C2 --> C3[TypeScript]
-
-    D --> D1[Black]
-    D1 --> D2[isort]
-    D2 --> D3[flake8]
-
-    E --> E1[SQLFluff Format]
-    E1 --> E2[SQLFluff Lint]
-
-    F --> F1[gofmt]
-    F1 --> F2[golangci-lint]
-
-    G --> G1[Prettier]
-    G1 --> G2[stylelint]
-
-    H --> H1[markdownlint]
-    H1 --> H2[yamllint]
-    H2 --> H3[shellcheck]
-
-    C3 --> I[Commit Check]
-    D3 --> I
-    E2 --> I
-    F2 --> I
-    G2 --> I
-    H3 --> I
-
-    I --> J[commitlint]
-    J --> K[✅ Complete]
-
+    A[Any Dev Mode] --> B[Commit + Push]
+    B --> C[CI Format/Lint]
+    C --> D{Changes Made?}
+    D -->|Yes| E[Bot Commits Fixes]
+    D -->|No| F[No Additional Commit]
+    E --> G[Pull to Sync]
+    F --> H[Ready to Continue]
+    
     style A fill:#e1f5ff
-    style K fill:#c8e6c9
+    style C fill:#fff9c4
+    style E fill:#c8e6c9
+    style G fill:#c8e6c9
+    style H fill:#c8e6c9
 ```
 
-### Tools Run
+### If You're Developing Locally
 
-#### Formatting (Auto-fix)
+**Important:** After pushing, wait for GitHub Actions to complete, then:
 
-1. **Prettier** - Format JS/TS/JSON/MD/YAML/CSS/SCSS
-2. **Black** - Format Python code (PEP 8 compliant)
-3. **isort** - Sort Python imports
-4. **SQLFluff** - Format SQL files (PostgreSQL/DuckDB)
-5. **gofmt** - Format Go code (when Go projects exist)
+```bash
+git pull
+```
 
-#### Linting (Auto-fix where possible)
+This brings down any formatting/linting commits the CI bot made. Then continue your work.
 
-6. **ESLint** - Lint JavaScript/TypeScript with auto-fix
-7. **flake8** - Lint Python code (PEP 8 style guide)
-8. **SQLFluff** - Lint SQL syntax and style (PostgreSQL/DuckDB)
-9. **stylelint** - Lint CSS/SCSS with auto-fix
-10. **markdownlint** - Lint Markdown files
-11. **yamllint** - Check YAML syntax
-12. **shellcheck** - Lint Bash scripts
-13. **golangci-lint** - Lint Go code (when Go projects exist)
-14. **commitlint** - Validate commit message format
-15. **TypeScript** - Check type errors
+---
 
-#### Link Validation
+## 📚 Table of Contents
 
-16. **Lychee** - Check Markdown links
+- [Understanding This Workflow](#-understanding-this-workflow)
+- [How the Pipeline Works](#how-the-pipeline-works)
+- [Tools Reference](#tools-run)
+- [Troubleshooting](#troubleshooting)
+- [Configuration Files](#configuration-files-reference)
+- [Development Mode Tips](#development-mode-tips)
+
+---
+
+## How the Pipeline Works
+
+### The Complete Flow
+
+Every commit to a pull request triggers this workflow:
+
+```mermaid
+flowchart TD
+    A[Commit Pushed to PR] --> B[Capture Initial SHA]
+    B --> C[Run All Format/Lint Tools]
+    C --> D{Changes Detected?}
+    D -->|Yes| E[Stage Changes]
+    D -->|No| F[Output Initial SHA]
+    E --> G[Generate Commit Message]
+    G --> H[Bot Commits Fixes]
+    H --> I[Output Bot SHA]
+    F --> J[Link Check Job]
+    I --> J
+    J --> K[Checkout Exact SHA]
+    K --> L[Verify SHA Match]
+    L --> M[Validate Markdown Links]
+    M --> N{All Valid?}
+    N -->|Yes| O[✅ CI Passes]
+    N -->|No| P[❌ CI Fails]
+    
+    style A fill:#e1f5ff
+    style C fill:#fff9c4
+    style E fill:#ffecb3
+    style H fill:#c8e6c9
+    style O fill:#c8e6c9
+    style P fill:#ffcdd2
+```
+
+### Step-by-Step Breakdown
+
+1. **Commit Pushed** — You push a commit via Perplexity, GitHub web editor, or local Git
+2. **SHA Capture** — CI records the exact commit SHA at the start
+3. **Format & Lint** — 15 tools run automatically:
+   - Prettier (JS/TS/JSON/MD/YAML/CSS)
+   - ESLint (JS/TS)
+   - Black, isort, flake8 (Python)
+   - SQLFluff (SQL)
+   - markdownlint, yamllint (Docs)
+   - gofmt, golangci-lint (Go)
+   - TypeScript type checking
+   - commitlint (commit messages)
+4. **Changes Detected** — If any tool modified files, bot stages them
+5. **Bot Commits** — Automatic commit with detailed message listing changed files
+6. **SHA Output** — Job outputs either original SHA (no changes) or bot SHA (changes applied)
+7. **Link Check** — Receives exact SHA, checks out that specific commit
+8. **Verification** — Confirms correct commit is checked out
+9. **Link Validation** — All Markdown links checked for validity
+10. **Result** — ✅ Pass or ❌ Fail
+
+### Key Features
+
+✅ **Race-condition safe** — Exact SHA passed between jobs  
+✅ **No re-runs needed** — Single linear workflow per push  
+✅ **Bot commits excluded** — GitHub Actions bot doesn't trigger new runs  
+✅ **Multi-language** — JavaScript/TypeScript, Python, SQL, Go, CSS, Markdown, YAML, Bash  
+✅ **Auto-fixes** — Bot commits formatting/linting fixes automatically
+
+---
+
+## Tools Run
+
+### Tool Execution Order
+
+```mermaid
+flowchart TB
+    A[Commit] --> B{Detect Languages}
+    
+    B --> C[Prettier]
+    B --> D[Black]
+    B --> E[SQLFluff]
+    B --> F[gofmt]
+    
+    C --> G[ESLint]
+    D --> H[isort]
+    E --> I[SQLFluff Lint]
+    F --> J[golangci-lint]
+    
+    G --> K[TypeScript Check]
+    H --> L[flake8]
+    I --> M[Next Tool]
+    J --> M
+    K --> M
+    L --> M
+    
+    M --> N[markdownlint]
+    N --> O[stylelint]
+    O --> P[yamllint]
+    P --> Q[shellcheck]
+    Q --> R[commitlint]
+    
+    R --> S{Any Changes?}
+    S -->|Yes| T[Bot Commits]
+    S -->|No| U[Link Check]
+    T --> U
+    U --> V[✅ Complete]
+    
+    style A fill:#e1f5ff
+    style S fill:#fff9c4
+    style T fill:#c8e6c9
+    style V fill:#c8e6c9
+```
+
+### Formatting Tools (Auto-fix)
+
+| Tool | Languages | Purpose |
+|------|-----------|----------|
+| **Prettier** | JS, TS, JSON, MD, YAML, CSS, SCSS, HTML | Universal code formatter |
+| **Black** | Python | PEP 8 compliant formatting |
+| **isort** | Python | Sort and organize imports |
+| **SQLFluff** | SQL | Format SQL (PostgreSQL/DuckDB) |
+| **gofmt** | Go | Official Go formatter |
+
+### Linting Tools (Check + Auto-fix)
+
+| Tool | Languages | Purpose |
+|------|-----------|----------|
+| **ESLint** | JS, TS | Catch errors, enforce style |
+| **flake8** | Python | PEP 8 style guide enforcement |
+| **SQLFluff** | SQL | SQL syntax and style linting |
+| **stylelint** | CSS, SCSS | CSS/SCSS linting |
+| **markdownlint** | Markdown | Markdown style enforcement |
+| **yamllint** | YAML | YAML syntax validation |
+| **shellcheck** | Bash | Shell script linting |
+| **golangci-lint** | Go | Comprehensive Go linting |
+| **TypeScript** | TS | Type error checking |
+| **commitlint** | Commit messages | Conventional Commits validation |
+
+### Link Validation
+
+| Tool | Purpose |
+|------|----------|
+| **Lychee** | Validate all Markdown links (with caching) |
 
 ---
 
 ## Troubleshooting
 
-### Troubleshooting Decision Tree
+### Quick Diagnosis
 
 ```mermaid
 flowchart TD
-    A[CI Failed ❌] --> B{Which Job Failed?}
-
+    A[CI Failed ❌] --> B{Which Job?}
+    
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
-    B -->|commitlint| E[Bad Commit Message]
-
-    C -->|Prettier/ESLint| F[Check File Syntax]
-    C -->|Black/isort| G[Check Python Code]
-    C -->|SQLFluff| H[Check SQL Syntax]
-    C -->|TypeScript| I[Check Type Errors]
-
-    F --> J[Fix in Perplexity]
+    
+    C -->|Prettier/ESLint| E[Syntax Error]
+    C -->|Black/flake8| F[Python Error]
+    C -->|SQLFluff| G[SQL Error]
+    C -->|TypeScript| H[Type Error]
+    C -->|commitlint| I[Bad Commit Format]
+    
+    E --> J[Fix Syntax]
+    F --> J
     G --> J
     H --> J
-    I --> J
-
-    D --> K[Check CI Logs]
-    K --> L[Fix Broken URLs]
-    L --> J
-
-    E --> M[Use Conventional Format]
-    M --> N[feat/fix/docs/etc]
-    N --> J
-
-    J --> O[Commit via Perplexity]
-    O --> P[✅ CI Re-runs & Passes]
-
+    I --> K[Use Conventional Format]
+    D --> L[Fix URLs]
+    
+    J --> M[Commit Fix]
+    K --> M
+    L --> M
+    M --> N[✅ CI Re-runs]
+    
     style A fill:#ffcdd2
-    style P fill:#c8e6c9
-    style J fill:#fff9c4
+    style N fill:#c8e6c9
 ```
 
-### Problem: CI fails on format/lint checks
+### Common Issues
 
-**Symptoms:** Red X on PR, "Format & Lint" job failed
+#### 1. Format/Lint Tool Failed
 
-**Cause:** A tool detected an issue it cannot auto-fix, or a linting rule was violated
+**Problem:** Red X on "Format & Lint" job
 
 **Solution:**
 
-1. **Check the CI logs** to see which tool failed and what the error message is
+1. Click the failed job in GitHub Actions
+2. Find the tool that failed (e.g., "Run ESLint")
+3. Read the error message
+4. Fix the issue:
+   - **Syntax errors:** Missing brackets, quotes, semicolons
+   - **Type errors:** Add proper TypeScript types
+   - **Line too long:** Break into multiple lines
+   - **Unused imports:** Remove them
+5. Commit the fix
+6. CI re-runs automatically
 
-2. **Common issues by tool:**
-   - **Prettier/ESLint Syntax Errors:**
-     - Check for missing brackets, parentheses, or semicolons
-     - Look for invalid JavaScript/TypeScript syntax
-     - Fix in Perplexity and commit again
+#### 2. Commit Message Failed
 
-   - **Python Issues:**
-     - `E501`: Line too long (Black should auto-fix, but may fail on comments)
-     - `F401`: Imported but unused (remove unused imports)
-     - `E402`: Module level import not at top (move imports to top)
+**Problem:** "commitlint" check failed
 
-   - **SQL Issues:**
-     - Missing semicolons at end of statements
-     - Invalid PostgreSQL syntax
-     - Keywords not uppercase (SELECT, FROM, WHERE)
-
-   - **TypeScript Errors:**
-     - Type mismatches
-     - Missing type definitions
-     - Incompatible types
-
-3. **Fix the issue in Perplexity** and commit the corrected code
-
-4. **CI will re-run automatically** on your new commit
-
-### Problem: Commit message validation fails
-
-**Error:** "commitlint" check failed
-
-**Cause:** Commit message doesn't follow Conventional Commits format
-
-**Fix:** Use this format when committing:
+**Solution:** Use Conventional Commits format:
 
 ```text
 type(scope): description
 
 Valid types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
 Scope: optional, kebab-case
-Description: required, no period at end
+Description: no period at end, lowercase start
 ```
 
 **Examples:**
-
 ```bash
-feat: add new CI workflow
-fix(ci): correct prettier config
-docs: update CI guide
-chore: update dependencies
+feat: add new feature
+fix(ci): correct workflow
+docs: update guide
+chore: update deps
 ```
 
-**When using Perplexity Git tool:**
+#### 3. Link Check Failed
 
-- Ensure your commit message follows the format above
-- The tool will validate the format before committing
+**Problem:** "Check Documentation Links" job failed
 
-### Problem: TypeScript type errors
+**Solution:**
 
-**Error:** "TypeScript" check failed
+1. Check CI logs for broken URLs
+2. Common issues:
+   - `404`: Update to working URL
+   - `429`: Rate limited, add to `.lycheeignore`
+   - `Timeout`: Slow server, consider exclusion
+   - Relative path broken: Fix file path
+3. Fix or exclude URLs
+4. Commit and push
 
-**Cause:** Type mismatches, missing types, or invalid TypeScript code
+#### 4. Bot Committed Changes
 
-**Fix:**
-
-1. **Review the error in CI logs** - Look for the specific file and line number
-
-2. **Common type errors:**
-   - Using `any` type (not recommended)
-   - Missing return type annotations
-   - Property does not exist on type
-   - Type 'X' is not assignable to type 'Y'
-
-3. **Fix the types in Perplexity** - Add proper type annotations or fix type mismatches
-
-4. **Commit the fix** - CI will re-run and validate types again
-
-### Problem: Broken Markdown links
-
-**Error:** "Check Documentation Links" job failed
-
-**Cause:** Links in Markdown files are broken, unreachable, or return errors
-
-**Fix:**
-
-1. **Check the CI logs** - Lychee will list all broken links with status codes
-
-2. **Common link issues:**
-   - `404 Not Found` - Page doesn't exist, update URL
-   - `429 Too Many Requests` - Add URL to `.lycheeignore` if it's a false positive
-   - `Timeout` - Server is slow, may need exclusion
-   - Relative link broken - Check file path is correct
-
-3. **Fix the links in Perplexity:**
-   - Update broken URLs to working ones
-   - Fix relative paths to correct locations
-   - Remove links to deleted pages
-   - Add persistent bot-protected URLs to `.lycheeignore`
-
-4. **Commit the fixes** - Link Check will re-run on your new commit
-
-### Problem: Bot committed formatting fixes, what now?
-
-**Situation:** CI shows bot committed formatting changes to your PR
-
-**This is normal!** The bot automatically fixes formatting issues.
+**This is normal!** The bot auto-fixed formatting issues.
 
 **What to do:**
-
-1. **Nothing** - The CI will complete and Link Check will run on the bot's commit
-2. **Continue working** - Make your next commit via Perplexity as usual
-3. **The bot commit will be included** in the PR when merged
-
-**Note:** You don't need to pull the bot's changes since you're working entirely through Perplexity.
+- **Web/agent users:** Nothing, continue as usual
+- **Local developers:** Run `git pull` to get bot's changes
 
 ---
 
 ## Configuration Files Reference
 
-### Configuration Architecture
+### Config File Architecture
 
 ```mermaid
-flowchart TD
-    A[Root Config Files] --> B[.prettierrc.json]
-    A --> C[.eslintrc.json]
-    A --> D[.markdownlint.json]
-    A --> E[.stylelintrc.json]
-    A --> F[.sqlfluff]
-    A --> G[.yamllint.yml]
-    A --> H[commitlint.config.js]
-    A --> I[.lycheeignore]
-
-    B --> J[Prettier Engine]
-    C --> K[ESLint Engine]
-    D --> L[markdownlint Engine]
-    E --> M[stylelint Engine]
-    F --> N[SQLFluff Engine]
-    G --> O[yamllint Engine]
-    H --> P[commitlint Engine]
-    I --> Q[Lychee Engine]
-
-    J --> R[Format JS/TS/JSON/MD/YAML/CSS]
-    K --> S[Lint JS/TS]
-    L --> T[Lint Markdown]
-    M --> U[Lint CSS/SCSS]
-    N --> V[Format & Lint SQL]
-    O --> W[Validate YAML]
-    P --> X[Validate Commits]
-    Q --> Y[Validate Links]
-
-    R --> Z[✅ Consistent Code]
-    S --> Z
-    T --> Z
-    U --> Z
-    V --> Z
-    W --> Z
-    X --> Z
-    Y --> Z
-
-    style A fill:#e1f5ff
-    style Z fill:#c8e6c9
+graph TB
+    subgraph "Root Directory"
+        A[.prettierrc.json]
+        B[.eslintrc.json]
+        C[.markdownlint.json]
+        D[.stylelintrc.json]
+        E[.sqlfluff]
+        F[.yamllint.yml]
+        G[commitlint.config.js]
+        H[.lycheeignore]
+    end
+    
+    A --> I[Prettier]
+    B --> J[ESLint]
+    C --> K[markdownlint]
+    D --> L[stylelint]
+    E --> M[SQLFluff]
+    F --> N[yamllint]
+    G --> O[commitlint]
+    H --> P[Lychee]
+    
+    I --> Q[Consistent Format]
+    J --> Q
+    K --> Q
+    L --> Q
+    M --> Q
+    N --> Q
+    O --> Q
+    P --> Q
+    
+    style Q fill:#c8e6c9
 ```
 
 ### Key Configuration Files
 
 #### Formatting
-
-- `.prettierrc.json` - Code formatting rules (80 char width, single quotes, LF endings)
-- `.prettierignore` - Files to skip formatting
+- `.prettierrc.json` — 80 char width, single quotes, trailing commas
+- `.prettierignore` — Exclude patterns
 
 #### Linting
-
-- `.eslintrc.json` - JavaScript/TypeScript linting rules
-- `.markdownlint.json` - Markdown linting rules (relaxed for docs)
-- `.stylelintrc.json` - CSS/SCSS linting rules
-- `.sqlfluff` - SQL formatting/linting (PostgreSQL dialect)
-- `.yamllint.yml` - YAML syntax validation
-- `commitlint.config.js` - Commit message format validation
+- `.eslintrc.json` — JS/TS rules
+- `.markdownlint.json` — Markdown rules (relaxed for docs)
+- `.stylelintrc.json` — CSS/SCSS rules
+- `.sqlfluff` — SQL rules (PostgreSQL dialect)
+- `.yamllint.yml` — YAML validation
+- `commitlint.config.js` — Commit format validation
 
 #### Link Checking
+- `.lycheeignore` — URLs to exclude (bot-protected, known issues)
 
-- `.lycheeignore` - URLs to exclude from link checking (bot-protected, etc.)
-
-#### Python Configuration
-
-Via command-line args in CI:
-
-- **Black:** Line length 88, Python 3.13+
-- **isort:** Profile `black` (compatible formatting)
-- **flake8:** Max line 88, ignore E203/W503 (Black-compatible)
-
-#### SQL Configuration
-
-Via `.sqlfluff`:
-
-- **Dialect:** PostgreSQL (change to `duckdb` if needed)
-- **Keywords:** UPPERCASE (SELECT, FROM, WHERE)
-- **Identifiers:** lowercase (table_name, column_name)
-- **Max line:** 200 characters
+#### Python (via CLI args)
+- **Black:** Line length 88
+- **isort:** Profile `black`
+- **flake8:** Max line 88, ignore E203/W503
 
 ---
 
-## Perplexity Workflow Tips
+## Development Mode Tips
 
-### Making Commits
+### 🤖 AI Agent Development (Perplexity, Claude, Cursor)
 
-When using Perplexity's Git MCP tool:
+**How it works:**
+1. Agent commits via Git MCP/CLI tool
+2. CI formats and lints automatically
+3. Agent sees results in PR checks
+4. Agent makes fixes if needed
 
-1. **Use Conventional Commit format** - CI will validate your message
+**Best practices:**
+- Use Conventional Commit format
+- Wait for CI before next commit
+- Review bot commits (they're part of your PR)
 
-   ```text
-   feat: add new feature
-   fix: resolve bug
-   docs: update documentation
-   chore: routine task
-   ```
+### 🌐 GitHub Web Editor
 
-2. **Check CI status** - Wait for CI to complete before making another commit
+**How it works:**
+1. Edit files directly in GitHub UI
+2. Commit with proper message format
+3. CI formats automatically
+4. Continue editing as needed
 
-3. **Review bot commits** - If the bot commits formatting fixes, those will be included in your PR
+**Best practices:**
+- Use "feat:", "fix:", "docs:" prefixes
+- Wait for green checkmark before merging
 
-4. **Fix CI failures** - If CI fails, review logs, fix issues, and commit again
+### 💻 Local Development
 
-### Best Practices
+**How it works:**
+1. Edit files locally
+2. Commit and push
+3. CI runs format/lint
+4. **Pull to get bot's formatting commits**
+5. Continue working
 
-- ✅ **Commit frequently** - Smaller commits are easier to debug if CI fails
-- ✅ **Use descriptive messages** - Helps with PR reviews and history
-- ✅ **Wait for CI** - Let CI complete before merging
-- ✅ **Review summaries** - CI provides detailed job summaries in GitHub Actions
+**Best practices:**
 
-### Understanding the Flow
+```bash
+# Your normal workflow
+git checkout -b feat/my-feature
+vim some-file.ts
+git add some-file.ts
+git commit -m "feat: add new feature"
+git push
 
-When you commit via Perplexity:
+# Wait for GitHub Actions to complete (30-60 seconds)
+# Check https://github.com/your-repo/actions
 
-```text
-Your Commit → Format & Lint (capture SHA) → Bot Commit (if needed) → Output SHA → Link Check (exact SHA) → ✅ Done
+# Pull bot's formatting changes
+git pull
+
+# Now continue working
+vim another-file.ts
+# ...
 ```
 
-**What happens at each step:**
-
-- **Format & Lint:** Captures initial SHA, runs all 15 tools, may commit fixes, outputs correct SHA
-- **Bot Commit:** Only if formatting changes needed, new SHA captured
-- **SHA Output:** Job outputs either initial SHA (no changes) or bot SHA (changes applied)
-- **Link Check:** Receives SHA via `needs.format-and-lint.outputs.commit-sha`, checks out exact commit
-- **No re-runs:** Single linear process per push, no race conditions
+**Why pull after CI?**
+- Bot may have reformatted your code
+- Keeps your local branch in sync
+- Prevents merge conflicts
 
 ---
 
 ## Support
 
-If you encounter issues with the CI/CD pipeline:
+If you encounter issues:
 
-1. **Check CI logs** - Click on the failed job in GitHub Actions
-2. **Review this guide** - Common issues are documented above
-3. **Check the [workflow file](.github/workflows/ci.yml)** - See exact tool configuration
-4. **Open an issue** - If you find a bug or need help:
-   - Include workflow run link
-   - Copy error message
-   - Describe what you were trying to do
+1. **Check CI logs** — Click failed job in GitHub Actions
+2. **Review this guide** — Common issues documented above
+3. **Check workflow** — [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+4. **Open an issue** — Include:
+   - Workflow run link
+   - Error message
+   - What you were trying to do
 
 ---
 
-**Last updated:** 2026-01-17  
+**Last updated:** 2026-01-18  
 **Maintainer:** @borealBytes  
-**Workflow:** Optimized for Perplexity Spaces with race-condition safety
+**Workflow:** Universal CI-first format/lint for web agents, GitHub editor, and local dev
