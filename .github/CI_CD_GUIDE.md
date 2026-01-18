@@ -11,11 +11,7 @@ In most projects, developers format and lint code **locally before pushing**. Th
 ```mermaid
 flowchart TB
     accTitle: CI Workflow Comparison
-    accDescr: {
-        Compares this project's CI-first format/lint approach with
-        traditional local formatting. Shows how agents, web editors,
-        and local developers all benefit from automated CI formatting.
-    }
+    accDescr: Compares this project's CI-first format/lint approach with traditional local formatting showing how agents, web editors, and local developers all benefit from automated CI formatting
 
     subgraph this_project ["✅ THIS PROJECT: CI Does Format/Lint"]
         direction TB
@@ -40,7 +36,7 @@ flowchart TB
     end
 ```
 
-**Key difference:** Format/Lint happens in CI with automatic bot commits, not on your machine. ✅ = our approach, ⚠️ = traditional.
+**Key difference:** Format/Lint happens in CI with automatic bot commits (subroutine shape `[[Bot Auto-Commit]]`), not on your machine. ✅ = our approach, ⚠️ = traditional.
 
 ### Why This Approach?
 
@@ -55,11 +51,7 @@ This enables **3 different development modes** with consistent results:
 ```mermaid
 flowchart LR
     accTitle: Universal Development Workflow
-    accDescr: {
-        Shows the common workflow for all development modes,
-        where CI automatically formats code and developers
-        pull changes to stay synchronized.
-    }
+    accDescr: Common workflow for all development modes where CI automatically formats code and developers pull changes to stay synchronized
 
     any_mode([Any Dev Mode]) --> commit_push[Commit + Push]
     commit_push --> ci_format[CI Format/Lint]
@@ -104,14 +96,10 @@ Every commit to a pull request triggers this workflow in two phases:
 ```mermaid
 flowchart TB
     accTitle: CI Pipeline Format and Lint Phase
-    accDescr: {
-        First phase of CI pipeline that captures commit SHA,
-        runs formatting and linting tools, and creates bot
-        commits if any code changes are needed.
-    }
+    accDescr: First phase of CI pipeline that captures commit SHA, runs formatting and linting tools, and creates bot commits if any code changes are needed
 
     commit_pushed([Commit Pushed to PR]) --> capture_sha[Capture Initial SHA]
-    capture_sha --> run_tools[Run All Format/Lint Tools]
+    capture_sha --> run_tools{{Run All Format/Lint Tools}}
     run_tools --> detect_changes{Changes Detected?}
     detect_changes -->|Yes| stage_changes[Stage Changes]
     detect_changes -->|No| output_original[Output Initial SHA]
@@ -125,19 +113,15 @@ flowchart TB
 ```mermaid
 flowchart TB
     accTitle: CI Pipeline Validation Phase
-    accDescr: {
-        Second phase that validates all markdown links using
-        the exact SHA from phase 1 to ensure race-condition
-        safe checking of the correct commit.
-    }
+    accDescr: Second phase that validates all markdown links using the exact SHA from phase 1 to ensure race-condition safe checking of the correct commit
 
     from_phase1([From Phase 1]) --> receive_sha[Receive Exact SHA]
     receive_sha --> checkout_sha[Checkout Specific SHA]
     checkout_sha --> verify_sha[Verify SHA Match]
     verify_sha --> validate_links[Validate Markdown Links]
     validate_links --> all_valid{All Valid?}
-    all_valid -->|Yes| ci_pass([✅ CI Passes])
-    all_valid -->|No| ci_fail([❌ CI Fails])
+    all_valid -->|Yes| ci_pass([CI Passes])
+    all_valid -->|No| ci_fail([CI Fails])
 ```
 
 ### Step-by-Step Breakdown
@@ -178,55 +162,31 @@ flowchart TB
 ```mermaid
 flowchart TB
     accTitle: Code Quality Tool Execution Pipeline
-    accDescr: {
-        Shows the sequential execution of formatting and linting
-        tools across multiple languages, from initial commit through
-        final link validation.
-    }
+    accDescr: Sequential execution of formatting and linting tools across multiple languages from initial commit through final link validation
 
     commit([Commit]) --> detect_lang{{Detect Languages}}
 
-    detect_lang --> format_stage["Format Stage"]
-    format_stage --> prettier[Prettier]
-    format_stage --> black[Black]
-    format_stage --> sqlfluff_fmt[SQLFluff Format]
-    format_stage --> gofmt[gofmt]
+    detect_lang --> prettier[Prettier]
+    detect_lang --> black[Black]
+    detect_lang --> sqlfluff_fmt[SQLFluff Format]
+    detect_lang --> gofmt[gofmt]
 
-    prettier --> lint_stage["Lint Stage"]
-    black --> lint_stage
-    sqlfluff_fmt --> lint_stage
-    gofmt --> lint_stage
+    prettier --> eslint[ESLint]
+    black --> isort[isort]
+    isort --> flake8[flake8]
+    sqlfluff_fmt --> sqlfluff_lint[SQLFluff Lint]
+    gofmt --> golangci[golangci-lint]
 
-    lint_stage --> eslint[ESLint]
-    lint_stage --> isort[isort]
-    lint_stage --> flake8[flake8]
-    lint_stage --> sqlfluff_lint[SQLFluff Lint]
-    lint_stage --> golangci[golangci-lint]
-    lint_stage --> typescript[TypeScript Check]
+    eslint --> final_checks{{Final Checks}}
+    flake8 --> final_checks
+    sqlfluff_lint --> final_checks
+    golangci --> final_checks
 
-    eslint --> doc_stage["Doc/Config Stage"]
-    isort --> doc_stage
-    flake8 --> doc_stage
-    sqlfluff_lint --> doc_stage
-    golangci --> doc_stage
-    typescript --> doc_stage
-
-    doc_stage --> mdlint[markdownlint]
-    doc_stage --> stylelint[stylelint]
-    doc_stage --> yamllint[yamllint]
-    doc_stage --> shellcheck[shellcheck]
-    doc_stage --> commitlint[commitlint]
-
-    mdlint --> check_changes{Any Changes?}
-    stylelint --> check_changes
-    yamllint --> check_changes
-    shellcheck --> check_changes
-    commitlint --> check_changes
-
+    final_checks --> check_changes{Any Changes?}
     check_changes -->|Yes| bot_commit[[Bot Commits]]
     check_changes -->|No| link_check[Link Check]
     bot_commit --> link_check
-    link_check --> complete([✅ Complete])
+    link_check --> complete([Complete])
 ```
 
 ### Formatting Tools (Auto-fix)
@@ -269,11 +229,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     accTitle: CI Failure Troubleshooting Decision Tree
-    accDescr: {
-        Decision tree for diagnosing and fixing common CI failures,
-        including build errors, test failures, linting issues, and
-        broken documentation links.
-    }
+    accDescr: Decision tree for diagnosing and fixing common CI failures including build errors, test failures, linting issues, and broken documentation links
 
     ci_failed{CI Failed?} --> identify_job{Which Job?}
 
@@ -293,7 +249,7 @@ flowchart TB
     commit_format --> commit_fix
     broken_links --> commit_fix
 
-    commit_fix --> ci_reruns([✅ CI Re-runs])
+    commit_fix --> ci_reruns([CI Re-runs])
 ```
 
 ### Common Issues
@@ -371,11 +327,7 @@ chore: update deps
 ```mermaid
 flowchart TB
     accTitle: Configuration File Dependencies
-    accDescr: {
-        Shows how configuration files in the root directory
-        map to their respective tools and contribute to
-        consistent code formatting across the project.
-    }
+    accDescr: How configuration files in the root directory map to their respective tools and contribute to consistent code formatting across the project
 
     subgraph config_files ["Root Directory Configs"]
         prettierrc[".prettierrc.json"]
