@@ -9,6 +9,7 @@
 ### 1. Theme Compatibility
 
 **DO**: Let GitHub auto-detect theme (omit theme specification)
+
 ```mermaid
 flowchart TB
     accTitle: Example Diagram
@@ -17,6 +18,7 @@ flowchart TB
 ```
 
 **DO**: Use neutral theme when explicit theme needed
+
 ```mermaid
 %%{init: {'theme':'neutral'}}%%
 flowchart TB
@@ -24,6 +26,7 @@ flowchart TB
 ```
 
 **DON'T**: Use custom fill colors that break in dark mode
+
 ```mermaid
 # ❌ Avoid this
 flowchart TB
@@ -45,6 +48,7 @@ flowchart TB
 ```
 
 **Benefits**:
+
 - Screen reader compatibility
 - Better SEO and documentation indexing
 - Clear diagram purpose for all users
@@ -52,6 +56,7 @@ flowchart TB
 ### 3. Semantic Node IDs
 
 **DO**: Use descriptive snake_case IDs
+
 ```mermaid
 flowchart TB
     commit_code[Commit Code]
@@ -60,6 +65,7 @@ flowchart TB
 ```
 
 **DON'T**: Use single-letter or numbered IDs
+
 ```mermaid
 # ❌ Avoid this
 flowchart TB
@@ -78,7 +84,7 @@ flowchart TB
     process[Process/Action]
     decision{Decision Point}
     group[/Grouped Concept/]
-    
+
     start --> process
     process --> decision
     decision -->|Yes| group
@@ -86,6 +92,7 @@ flowchart TB
 ```
 
 **Shape Guide**:
+
 - `([...])` — Start/End points
 - `[...]` — Process/Action
 - `{...}` — Decision point
@@ -104,6 +111,7 @@ flowchart TB
 ### 6. Text Guidelines
 
 **Node labels**: 3-6 words maximum
+
 ```mermaid
 flowchart TB
     good[Run All Tests]  # ✅ Clear and concise
@@ -111,6 +119,7 @@ flowchart TB
 ```
 
 **Edge labels**: 1-4 words
+
 ```mermaid
 flowchart TB
     A{Check} -->|Success| B[Continue]
@@ -118,6 +127,7 @@ flowchart TB
 ```
 
 **Voice**: Use active voice
+
 - ✅ "Format Code"
 - ❌ "Code is Formatted"
 
@@ -130,6 +140,7 @@ flowchart TB
 **Use for**: Processes, workflows, decision trees
 
 **Template**:
+
 ```mermaid
 flowchart TB
     accTitle: Workflow Name
@@ -137,7 +148,7 @@ flowchart TB
         Description of what this workflow accomplishes
         and when it runs.
     }
-    
+
     start([Start]) --> first_step[First Action]
     first_step --> decision{Check Condition}
     decision -->|Yes| success_path[Success Action]
@@ -153,11 +164,12 @@ flowchart TB
 **Use for**: API calls, inter-service communication
 
 **Template**:
+
 ```mermaid
 sequenceDiagram
     accTitle: API Request Flow
     accDescr: { Shows the interaction between client and server }
-    
+
     Client->>Server: POST /api/auth
     Server->>Database: Query user
     Database-->>Server: User data
@@ -169,16 +181,17 @@ sequenceDiagram
 **Use for**: System components, dependencies
 
 **Template**:
+
 ```mermaid
 flowchart LR
     accTitle: System Architecture
     accDescr: { Shows main components and their relationships }
-    
+
     client[Client App]
     api[API Server]
     db[(Database)]
     cache[(Cache)]
-    
+
     client --> api
     api --> db
     api --> cache
@@ -191,17 +204,18 @@ flowchart LR
 ### Pattern: Before/After Comparison
 
 **Split into subgraphs**:
+
 ```mermaid
 flowchart TB
     accTitle: Workflow Comparison
     accDescr: { Compares traditional vs new approach }
-    
+
     subgraph new ["New Approach"]
         direction TB
         new_start[Edit] --> new_commit[Commit]
         new_commit --> new_ci[CI Formats]
     end
-    
+
     subgraph traditional ["Traditional Approach"]
         direction TB
         old_start[Edit] --> old_format[Format Locally]
@@ -212,11 +226,12 @@ flowchart TB
 ### Pattern: Error Handling
 
 **Use decision diamonds**:
+
 ```mermaid
 flowchart TB
     accTitle: Error Recovery Flow
     accDescr: { Shows how the system handles and recovers from errors }
-    
+
     action[Perform Action] --> check{Success?}
     check -->|Yes| continue[Continue]
     check -->|No| diagnose{Recoverable?}
@@ -228,11 +243,12 @@ flowchart TB
 ### Pattern: Pipeline Stages
 
 **Show sequential stages**:
+
 ```mermaid
 flowchart LR
     accTitle: CI Pipeline Stages
     accDescr: { Shows the sequential stages of the CI pipeline }
-    
+
     stage1[Format] --> stage2[Lint]
     stage2 --> stage3[Test]
     stage3 --> stage4[Build]
@@ -253,6 +269,7 @@ flowchart LR
 ### Linting
 
 Your diagrams will be validated by:
+
 - `markdownlint` (Markdown syntax)
 - Manual review (accessibility and clarity)
 
@@ -285,12 +302,13 @@ flowchart TB
     B --> C[Do Another Thing]
     C --> D[Check]
     D --> E[End]
-    
+
     style A fill:#ff0000
     style E fill:#00ff00
 ```
 
 **Problems**:
+
 - No accessibility attributes
 - Generic node IDs (A, B, C...)
 - Custom colors break dark mode
@@ -305,7 +323,7 @@ flowchart TB
         Shows the steps a user takes to authenticate,
         from entering credentials to receiving a token.
     }
-    
+
     start([User Visits Login]) --> enter_creds[Enter Credentials]
     enter_creds --> validate{Valid?}
     validate -->|Yes| generate_token[Generate JWT Token]
@@ -315,6 +333,7 @@ flowchart TB
 ```
 
 **Strengths**:
+
 - Accessibility metadata
 - Semantic IDs
 - No custom colors
@@ -328,6 +347,7 @@ flowchart TB
 ### Q: When should I use subgraphs?
 
 **A**: When you need to group related nodes logically. Common uses:
+
 - Before/after comparisons
 - Different system components
 - Parallel workflows
@@ -337,6 +357,7 @@ Keep subgraph labels concise (3-4 words max).
 ### Q: Can I use emojis in diagrams?
 
 **A**: Use sparingly. Emojis can:
+
 - Break in some renderers
 - Confuse screen readers
 - Look unprofessional in technical docs
@@ -346,6 +367,7 @@ Prefer clear text labels.
 ### Q: What if my process has 15+ steps?
 
 **A**: Split into multiple diagrams:
+
 1. High-level overview (5-7 main stages)
 2. Detailed diagrams per stage (5-10 nodes each)
 
@@ -354,6 +376,7 @@ Link between diagrams in documentation.
 ### Q: Should I use colors for status (red=error, green=success)?
 
 **A**: No. Use shapes instead:
+
 - Decision diamond + edge labels: `{Check?} -->|Error| retry`
 - Node shapes: Rectangle for process, circle for endpoints
 
@@ -362,6 +385,7 @@ Colors break accessibility and dark mode.
 ### Q: How do I show optional steps?
 
 **A**: Use dashed lines:
+
 ```mermaid
 flowchart TB
     required[Required Step] --> optional[Optional Step]
@@ -374,15 +398,18 @@ flowchart TB
 ## Resources
 
 ### Official Documentation
+
 - [Mermaid Official Docs](https://mermaid.js.org/)
 - [Mermaid Flowchart Syntax](https://mermaid.js.org/syntax/flowchart.html)
 - [GitHub Mermaid Support](https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/)
 
 ### Accessibility
+
 - [Mermaid Accessibility Options](https://mermaid.js.org/config/accessibility.html)
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 
 ### Tools
+
 - [Mermaid Live Editor](https://mermaid.live) — Test and preview diagrams
 - [Mermaid CLI](https://github.com/mermaid-js/mermaid-cli) — Generate images locally
 
