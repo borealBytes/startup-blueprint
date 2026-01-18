@@ -27,15 +27,15 @@ Clear procedures reduce mistakes and firefighting.
 ## Architecture
 
 ```mermaid
-graph TD
-    A["Vision & Strategy"] --> B["Processes"]
-    B --> C["Checklists"]
-    C --> D["Execution"]
-    D --> E["Review & Improve"]
-    E --> B
+flowchart TD
+    accTitle: Operations Continuous Improvement Cycle
+    accDescr: Cyclical process showing how vision and strategy flows through processes, checklists, execution, and review for continuous improvement
 
-    style B fill:#e1f5ff
-    style C fill:#c8e6c9
+    vision[Vision & Strategy] --> processes[Processes]
+    processes --> checklists[Checklists]
+    checklists --> execution[Execution]
+    execution --> review[Review & Improve]
+    review --> processes
 ```
 
 ---
