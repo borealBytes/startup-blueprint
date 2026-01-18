@@ -7,15 +7,19 @@
 ## Why This Matters
 
 ### Visibility
+
 You need to know:
+
 - How much you're earning
 - How much you're spending
 - How much you owe in taxes
 
 ### Compliance
+
 Clean books = easier tax filing and fewer surprises.
 
 ### Professionalism
+
 Clients expect proper invoices, receipts, and payment flows.
 
 ---
@@ -29,7 +33,7 @@ graph TD
     C --> D["Business Bank Account"]
     D --> E["Accounting System"]
     E --> F["Tax Filing"]
-    
+
     style C fill:#e1f5ff
     style D fill:#c8e6c9
     style E fill:#fff3e0
@@ -41,11 +45,11 @@ graph TD
 
 ### Recommended Options
 
-| Tool | Cost | Use Case |
-|---|---|---|
-| **Wave** | Free | Solo founders, basic accounting |
-| **QuickBooks Online** | $25-70/month | More complex businesses |
-| **Xero** | $13-70/month | International-friendly |
+| Tool                  | Cost         | Use Case                        |
+| --------------------- | ------------ | ------------------------------- |
+| **Wave**              | Free         | Solo founders, basic accounting |
+| **QuickBooks Online** | $25-70/month | More complex businesses         |
+| **Xero**              | $13-70/month | International-friendly          |
 
 **Recommendation**: Start with **Wave** (free) unless you already use something else.
 
@@ -73,11 +77,13 @@ graph TD
 **Recommended**: Stripe
 
 Why:
+
 - Easy invoicing
 - One-time and recurring payments
 - Works globally
 
 **Stripe Setup**:
+
 1. Go to [stripe.com](https://stripe.com)
 2. Create account with business email
 3. Add business details (from legal docs)
@@ -134,6 +140,7 @@ Now you have a URL to collect payments without writing code.
 ### Categories to Use
 
 Create categories like:
+
 - Income: Consulting, Product Sales, Other
 - Expenses: Software, Hosting, Advertising, Travel, Meals
 

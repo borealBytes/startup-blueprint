@@ -17,7 +17,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   - Relevant to your business
   - Room to expand (not too narrow)
   - Professional (no slang or inside jokes)
-  
+
   **Examples**: `AlertShield`, `PeakCapital`, `StreamSync`
 
 - [ ] **Check availability** (use [this tool](https://instantdomainsearch.com)):
@@ -114,6 +114,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   - Click "Add file" → "Create new file"
   - Name: `.gitignore`
   - Paste:
+
     ```
     .env
     .env.local
@@ -124,6 +125,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
     *.swp
     .secrets/
     ```
+
   - Commit
 
 ---
@@ -142,6 +144,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 **Estimated time**: 1-2 hours (including waiting for confirmations)
 
 **Next step**: Move to the full guides for deeper setup:
+
 1. [Legal Foundation](./01-legal-foundation.md) — More legal details
 2. [Domain & DNS](./02-domain-dns.md) — Advanced domain setup
 3. [Email Infrastructure](./03-email-infrastructure.md) — Multi-user email

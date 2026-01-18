@@ -19,7 +19,7 @@ graph LR
     C --> D["📝 Every Decision in Git"]
     C --> E["🤖 AI Agent Ready"]
     C --> F["🚀 Deploy to Production"]
-    
+
     style A fill:#e1f5ff
     style B fill:#f3e5f5
     style C fill:#c8e6c9
@@ -40,15 +40,15 @@ graph LR
 
 ### 📚 Startup Setup Guides
 
-| Guide | Duration | What You'll Set Up |
-|-------|----------|-------------------|
-| **[1. Legal Foundation](./docs/guides/01-legal-foundation.md)** | 2-3 hours | LLC registration, EIN, business license |
-| **[2. Domain & DNS](./docs/guides/02-domain-dns.md)** | 30 min | Custom domain via Cloudflare |
-| **[3. Email Infrastructure](./docs/guides/03-email-infrastructure.md)** | 1 hour | Professional email routing (free) |
-| **[4. Git & Repository](./docs/guides/04-git-repository.md)** | 45 min | GitHub repo, AI workflow setup |
-| **[5. Financial Tools](./docs/guides/05-financial-tools.md)** | 1 hour | Accounting, payments, tax planning |
-| **[6. Deployment & CI/CD](./docs/guides/06-deployment-cicd.md)** | 1.5 hours | Cloudflare Pages deployment |
-| **[7. Operations Manual](./docs/guides/07-operations-manual.md)** | 2 hours | Repeatable processes & checklists |
+| Guide                                                                   | Duration  | What You'll Set Up                      |
+| ----------------------------------------------------------------------- | --------- | --------------------------------------- |
+| **[1. Legal Foundation](./docs/guides/01-legal-foundation.md)**         | 2-3 hours | LLC registration, EIN, business license |
+| **[2. Domain & DNS](./docs/guides/02-domain-dns.md)**                   | 30 min    | Custom domain via Cloudflare            |
+| **[3. Email Infrastructure](./docs/guides/03-email-infrastructure.md)** | 1 hour    | Professional email routing (free)       |
+| **[4. Git & Repository](./docs/guides/04-git-repository.md)**           | 45 min    | GitHub repo, AI workflow setup          |
+| **[5. Financial Tools](./docs/guides/05-financial-tools.md)**           | 1 hour    | Accounting, payments, tax planning      |
+| **[6. Deployment & CI/CD](./docs/guides/06-deployment-cicd.md)**        | 1.5 hours | Cloudflare Pages deployment             |
+| **[7. Operations Manual](./docs/guides/07-operations-manual.md)**       | 2 hours   | Repeatable processes & checklists       |
 
 **Total setup time: ~8-10 hours**
 
@@ -73,7 +73,7 @@ Pre-configured for professional code quality:
 ```
 Root configs:
 ├── .prettierrc.json       # Code formatting
-├── .eslintrc.json         # JS/TS linting  
+├── .eslintrc.json         # JS/TS linting
 ├── .markdownlint.json     # Docs linting
 ├── .stylelintrc.json      # CSS linting
 ├── .sqlfluff              # SQL formatting
@@ -97,7 +97,7 @@ graph TD
     F --> G["Merge to YOUR main"]
     D -->|No| H["Continue building"]
     G --> H
-    
+
     style A fill:#e1f5ff
     style B fill:#fff3e0
     style G fill:#c8e6c9
@@ -117,6 +117,7 @@ graph TD
 ### Contributing Improvements (Public PR)
 
 ### 5. **Low Cost, High ROI**
+
 Most tools are free or extremely low cost (free Gmail, GitHub, Perplexity Spaces; domain registrar cost-only pricing from Cloudflare). Your primary recurring expense is your domain (about ~$10.50/year at Cloudflare's cost-based pricing).
 
 **Steps:**
@@ -165,7 +166,7 @@ graph TD
     D --> E["✅ Website Deployed"]
     E --> F["✅ Operations Documented"]
     F --> G["🎉 Professional Business Foundation"]
-    
+
     style A fill:#ffe0b2
     style G fill:#c8e6c9
 ```
@@ -198,18 +199,23 @@ After completing this blueprint:
 ## 💡 Core Principles
 
 ### 1. **Professionalism First** 💼
+
 Look like a 100-person company from day one. Custom domain, proper legal structure, professional tools.
 
 ### 2. **Scalability** 📈
+
 Add team members without rebuilding. Start solo, scale to 5+ with same processes.
 
 ### 3. **Automation** 🤖
+
 Repetitive tasks are automated. Deployment is automatic. Quality checks are automatic.
 
 ### 4. **Security & Compliance** 🔒
+
 2FA everywhere. Secrets in environment variables. GDPR-ready from start.
 
 ### 5. **Low Cost, High ROI** 💰
+
 Most tools are free. Primary cost: domain (~$10/year). Time saved is worth thousands.
 
 ---
@@ -218,15 +224,15 @@ Most tools are free. Primary cost: domain (~$10/year). Time saved is worth thous
 
 To reduce decision fatigue, we made opinionated choices:
 
-| What | Choice | Why |
-|------|--------|-----|
-| **Legal** | LLC | Liability protection + simple taxes |
-| **Domain** | Cloudflare | Free email routing + DNS + DDoS |
-| **Email** | Gmail + routing | Free, reliable, AI-friendly labels |
-| **Repo** | GitHub | Industry standard + free CI/CD |
-| **CI/CD** | GitHub Actions | Native, free, powerful |
-| **Deploy** | Cloudflare Pages | Free, fast, global CDN |
-| **AI Workflow** | Perplexity + MCP | Git-native, transparent agent |
+| What            | Choice           | Why                                 |
+| --------------- | ---------------- | ----------------------------------- |
+| **Legal**       | LLC              | Liability protection + simple taxes |
+| **Domain**      | Cloudflare       | Free email routing + DNS + DDoS     |
+| **Email**       | Gmail + routing  | Free, reliable, AI-friendly labels  |
+| **Repo**        | GitHub           | Industry standard + free CI/CD      |
+| **CI/CD**       | GitHub Actions   | Native, free, powerful              |
+| **Deploy**      | Cloudflare Pages | Free, fast, global CDN              |
+| **AI Workflow** | Perplexity + MCP | Git-native, transparent agent       |
 
 **Prefer different tools?** Fork and adapt. The processes are tool-agnostic.
 
@@ -245,7 +251,7 @@ graph LR
     G --> H["You review"]
     H --> I["Merge to main"]
     I --> J["Auto-deploy"]
-    
+
     style B fill:#e1f5ff
     style G fill:#fff3e0
     style I fill:#c8e6c9

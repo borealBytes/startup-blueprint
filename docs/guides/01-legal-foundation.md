@@ -7,15 +7,19 @@
 ## Why This Matters
 
 ### Liability Protection
+
 Your LLC separates your personal assets from business liabilities. If BUSINESS NAME gets sued, your personal bank account is protected.
 
 ### Tax Efficiency
+
 LLCs offer pass-through taxation (no double taxation) and flexibility. You pay taxes on personal return.
 
 ### Professionalism
+
 Banks, investors, and partners take you more seriously with a registered entity.
 
 ### Compliance
+
 Certain activities require a registered business (licensing, contracts, hiring).
 
 ---
@@ -33,7 +37,7 @@ graph TD
     E --> G["Recommended: C-Corp"]
     F --> H["Pass-through taxation, simple, flexible"]
     G --> H1["More complex, but investor-friendly"]
-    
+
     style F fill:#c8e6c9
     style H fill:#e8f5e9
 ```
@@ -41,6 +45,7 @@ graph TD
 **This guide recommends: LLC (or PLLC if required)**
 
 Why?
+
 - Simple to set up
 - Automatic liability protection
 - Pass-through taxation (no double tax)
@@ -56,6 +61,7 @@ Why?
 ### Requirements
 
 Most states require:
+
 - Must end in "LLC", "L.L.C.", or the PLLC equivalent where required
 - Cannot be identical to existing registered businesses
 - Cannot contain prohibited words (usually "bank", "insurance", etc.)
@@ -75,11 +81,13 @@ Most states require:
 ### Naming Strategy
 
 ✅ **Good names**:
+
 - `AlertShield, LLC`
 - `PeakCapital, LLC`
 - `StreamSync, LLC`
 
 ❌ **Avoid**:
+
 - Too trendy (dates quickly)
 - Impossible to spell
 - Generic (won't stand out)
@@ -92,6 +100,7 @@ Most states require:
 ### Filing Articles of Organization
 
 **What to prepare**:
+
 - Entity type (LLC or PLLC, depending on your profession and state rules)
 - BUSINESS NAME (from Step 1)
 - Principal address (your address)
@@ -146,6 +155,7 @@ Most states require:
 Employer Identification Number—your business's tax ID. Similar to a SSN but for the LLC/PLLC.
 
 **Why you need it**:
+
 - Open business bank account
 - Hire employees
 - File business taxes
@@ -171,6 +181,7 @@ Employer Identification Number—your business's tax ID. Similar to a SSN but fo
 **Instant** (online application)
 
 Alternatives if online doesn't work:
+
 - Phone: 1-800-829-4933
 - Fax to IRS
 - Mail Form SS-4
@@ -182,11 +193,13 @@ Alternatives if online doesn't work:
 ### Sales Tax (if applicable)
 
 **Do you need it?**
+
 - Selling physical products: YES
 - Selling services only: Usually NO (but check your state)
 - Selling services in multiple states: Check each state
 
 **How to register**:
+
 1. Go to your state's Department of Revenue
 2. Register for sales tax permit
 3. You'll get a sales tax ID
@@ -203,6 +216,7 @@ Most states require registration if you're doing business in-state. Usually done
 ### Why Separate?
 
 Keeping business and personal finances separate:
+
 - Simplifies taxes (IRS loves this)
 - Proves liability protection
 - Easier accounting
@@ -210,18 +224,21 @@ Keeping business and personal finances separate:
 ### Opening an Account
 
 **What you'll need**:
+
 - Articles of Organization (from Step 2)
 - EIN Letter (from Step 3)
 - Your ID
 - Initial deposit ($0–$100 depending on bank)
 
 **Recommended banks** (low fees, online):
+
 - **Mercury**: Startup-friendly, no minimum balance
 - **Brex**: Great if you'll use business credit
 - **Chase**: Good local option if you have existing account
 - **Your local bank**: Simple and familiar
 
 **Process**:
+
 1. Choose bank
 2. Apply online or visit branch
 3. Provide documents above
@@ -241,6 +258,7 @@ Document that outlines how your LLC/PLLC operates—internal rules for yourself 
 ### What to Include
 
 For solo founder:
+
 - Operating procedures
 - Member rights
 - Profit/loss distribution (100% to you)
@@ -260,6 +278,7 @@ Download from your state's SBA office or use a template. For solo LLC/PLLC, this
 ### Annual Filings
 
 Most states require annual reports:
+
 - **Cost**: $0–$150/year depending on state/entity type
 - **Deadline**: Usually anniversary of incorporation or a fixed date (e.g., Florida uses a fixed window)
 - **What**: Confirm registered agent, address, members
@@ -268,6 +287,7 @@ Most states require annual reports:
 ### Record Keeping
 
 Maintain:
+
 - Articles of Organization
 - Operating Agreement
 - EIN Letter
@@ -278,15 +298,18 @@ Maintain:
 ### Taxes
 
 **Federal**:
+
 - File Schedule C on personal 1040 (pass-through)
 - Estimated quarterly payments if income >$400
 - Due: April 15 each year
 
 **State**:
+
 - File state income tax return
 - Varies by state
 
 **Payroll** (if you hire employees):
+
 - File quarterly 941 forms
 - Deposit payroll taxes
 
@@ -326,12 +349,12 @@ Maintain:
 
 ## Resources
 
-- **IRS EIN**: https://www.irs.gov/ein
-- **Michigan LARA (LLC/PLLC)**: https://www.michigan.gov/lara
-- **Florida Sunbiz (LLC/PLLC)**: https://dos.myflorida.com/sunbiz/
+- **IRS EIN**: <https://www.irs.gov/ein>
+- **Michigan LARA (LLC/PLLC)**: <https://www.michigan.gov/lara>
+- **Florida Sunbiz (LLC/PLLC)**: <https://dos.myflorida.com/sunbiz/>
 - **State Business Registries**: Google `[STATE] LLC PLLC registration`
-- **SBA Guide**: https://www.sba.gov/business-guide/launch/choose-business-structure
-- **NerdWallet LLC Guide**: https://www.nerdwallet.com/article/small-business/start-an-llc
+- **SBA Guide**: <https://www.sba.gov/business-guide/launch/choose-business-structure>
+- **NerdWallet LLC Guide**: <https://www.nerdwallet.com/article/small-business/start-an-llc>
 
 ---
 
