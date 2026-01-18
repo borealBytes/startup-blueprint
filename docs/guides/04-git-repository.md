@@ -38,18 +38,17 @@ Your GitHub repo becomes your source of truth for:
 ## Architecture
 
 ```mermaid
-graph LR
-    A["Your Business"] --> B["GitHub Repo"]
-    B --> C["Branches & PRs"]
-    B --> D["Perplexity Spaces"]
-    D --> E["AI Agent"]
-    E --> F["Review PR"]
-    F --> G["You Merge"]
-    G --> H["Automated Deploy"]
+flowchart LR
+    accTitle: AI-Assisted Git Workflow Architecture
+    accDescr: How your business repo integrates with GitHub, Perplexity Spaces, and AI agents for automated PR workflows
 
-    style B fill:#f3e5f5
-    style D fill:#e1f5ff
-    style E fill:#c8e6c9
+    your_business[Your Business] --> github_repo[GitHub Repo]
+    github_repo --> branches_prs[Branches & PRs]
+    github_repo --> perplexity_spaces[Perplexity Spaces]
+    perplexity_spaces --> ai_agent{{AI Agent}}
+    ai_agent --> review_pr[Review PR]
+    review_pr --> you_merge[You Merge]
+    you_merge --> auto_deploy([Automated Deploy])
 ```
 
 ---
