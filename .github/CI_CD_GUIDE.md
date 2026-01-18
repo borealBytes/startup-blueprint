@@ -10,49 +10,37 @@ In most projects, developers format and lint code **locally before pushing**. Th
 
 ```mermaid
 flowchart TB
-    subgraph new ["✅ THIS PROJECT: CI Does Format/Lint"]
+    accTitle: CI Workflow Comparison
+    accDescr: {
+        Compares this project's CI-first format/lint approach with
+        traditional local formatting. Shows how agents, web editors,
+        and local developers all benefit from automated CI formatting.
+    }
+    
+    subgraph this_project ["✅ THIS PROJECT: CI Does Format/Lint"]
         direction TB
-        subgraph agent ["Agent/Local/Web"]
-            B1[Edit Code] --> B2[Commit] --> B3[Push]
+        subgraph agent_flow ["Agent/Local/Web"]
+            edit_code[Edit Code] --> commit_changes[Commit] --> push_code[Push]
         end
-        subgraph ci_new ["CI Pipeline"]
-            B4[Format/Lint] --> B5[Bot Auto-Commit] --> B6[Test] --> B7[Build] --> B8[Deploy]
+        subgraph ci_pipeline ["CI Pipeline"]
+            format_lint[Format/Lint] --> bot_commit[[Bot Auto-Commit]] --> test_code[Test] --> build_app[Build] --> deploy_app[Deploy]
         end
-        agent --> ci_new
+        agent_flow --> ci_pipeline
     end
 
-    subgraph old ["⚠️ TRADITIONAL: Local Format/Lint"]
+    subgraph traditional ["⚠️ TRADITIONAL: Local Format/Lint"]
         direction TB
-        subgraph local ["Local Machine"]
-            A1[Edit Code] --> A2[Format/Lint] --> A3[Commit] --> A4[Push]
+        subgraph local_dev ["Local Machine"]
+            edit_local[Edit Code] --> format_local[Format/Lint] --> commit_local[Commit] --> push_local[Push]
         end
-        subgraph ci_old ["CI Pipeline"]
-            A5[Test] --> A6[Build] --> A7[Deploy]
+        subgraph ci_traditional ["CI Pipeline"]
+            test_trad[Test] --> build_trad[Build] --> deploy_trad[Deploy]
         end
-        local --> ci_old
+        local_dev --> ci_traditional
     end
-
-    new ~~~ old
-
-    style B1 fill:#e8f5e9
-    style B2 fill:#e8f5e9
-    style B3 fill:#e8f5e9
-    style B4 fill:#a5d6a7
-    style B5 fill:#81c784,stroke:#2e7d32,stroke-width:4px
-    style B6 fill:#c8e6c9
-    style B7 fill:#c8e6c9
-    style B8 fill:#66bb6a
-
-    style A1 fill:#f5f5f5
-    style A2 fill:#e0e0e0
-    style A3 fill:#f5f5f5
-    style A4 fill:#f5f5f5
-    style A5 fill:#e0e0e0
-    style A6 fill:#e0e0e0
-    style A7 fill:#e0e0e0
 ```
 
-**Key difference:** Format/Lint happens in CI (green) with automatic bot commits, not on your machine. ✅ = our approach, ⚠️ = traditional.
+**Key difference:** Format/Lint happens in CI with automatic bot commits, not on your machine. ✅ = our approach, ⚠️ = traditional.
 
 ### Why This Approach?
 
@@ -66,19 +54,20 @@ This enables **3 different development modes** with consistent results:
 
 ```mermaid
 flowchart LR
-    A[Any Dev Mode] --> B[Commit + Push]
-    B --> C[CI Format/Lint]
-    C --> D{Changes Made?}
-    D -->|Yes| E[Bot Commits Fixes]
-    D -->|No| F[Ready to Continue]
-    E --> G[Pull to Sync]
-    G --> F
-
-    style A fill:#e1f5ff
-    style C fill:#fff9c4
-    style E fill:#ffecb3
-    style G fill:#c8e6c9
-    style F fill:#c8e6c9
+    accTitle: Universal Development Workflow
+    accDescr: {
+        Shows the common workflow for all development modes,
+        where CI automatically formats code and developers
+        pull changes to stay synchronized.
+    }
+    
+    any_mode([Any Dev Mode]) --> commit_push[Commit + Push]
+    commit_push --> ci_format[CI Format/Lint]
+    ci_format --> changes_check{Changes Made?}
+    changes_check -->|Yes| bot_commits[[Bot Commits Fixes]]
+    changes_check -->|No| ready([Ready to Continue])
+    bot_commits --> pull_sync[Pull to Sync]
+    pull_sync --> ready
 ```
 
 ### If You're Developing Locally
@@ -108,33 +97,47 @@ This brings down any formatting/linting commits the CI bot made. Then continue y
 
 ### The Complete Flow
 
-Every commit to a pull request triggers this workflow:
+Every commit to a pull request triggers this workflow in two phases:
+
+#### Phase 1: Format & Lint
 
 ```mermaid
-flowchart TD
-    A[Commit Pushed to PR] --> B[Capture Initial SHA]
-    B --> C[Run All Format/Lint Tools]
-    C --> D{Changes Detected?}
-    D -->|Yes| E[Stage Changes]
-    D -->|No| F[Output Initial SHA]
-    E --> G[Generate Commit Message]
-    G --> H[Bot Commits Fixes]
-    H --> I[Output Bot SHA]
-    F --> J[Link Check Job]
-    I --> J
-    J --> K[Checkout Exact SHA]
-    K --> L[Verify SHA Match]
-    L --> M[Validate Markdown Links]
-    M --> N{All Valid?}
-    N -->|Yes| O[✅ CI Passes]
-    N -->|No| P[❌ CI Fails]
+flowchart TB
+    accTitle: CI Pipeline Format and Lint Phase
+    accDescr: {
+        First phase of CI pipeline that captures commit SHA,
+        runs formatting and linting tools, and creates bot
+        commits if any code changes are needed.
+    }
+    
+    commit_pushed([Commit Pushed to PR]) --> capture_sha[Capture Initial SHA]
+    capture_sha --> run_tools[Run All Format/Lint Tools]
+    run_tools --> detect_changes{Changes Detected?}
+    detect_changes -->|Yes| stage_changes[Stage Changes]
+    detect_changes -->|No| output_original[Output Initial SHA]
+    stage_changes --> generate_msg[Generate Commit Message]
+    generate_msg --> bot_commits[[Bot Commits Fixes]]
+    bot_commits --> output_bot_sha[Output Bot SHA]
+```
 
-    style A fill:#e1f5ff
-    style C fill:#fff9c4
-    style E fill:#ffecb3
-    style H fill:#c8e6c9
-    style O fill:#c8e6c9
-    style P fill:#ffcdd2
+#### Phase 2: Validation
+
+```mermaid
+flowchart TB
+    accTitle: CI Pipeline Validation Phase
+    accDescr: {
+        Second phase that validates all markdown links using
+        the exact SHA from phase 1 to ensure race-condition
+        safe checking of the correct commit.
+    }
+    
+    from_phase1([From Phase 1]) --> receive_sha[Receive Exact SHA]
+    receive_sha --> checkout_sha[Checkout Specific SHA]
+    checkout_sha --> verify_sha[Verify SHA Match]
+    verify_sha --> validate_links[Validate Markdown Links]
+    validate_links --> all_valid{All Valid?}
+    all_valid -->|Yes| ci_pass([✅ CI Passes])
+    all_valid -->|No| ci_fail([❌ CI Fails])
 ```
 
 ### Step-by-Step Breakdown
@@ -174,41 +177,56 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    A[Commit] --> B{Detect Languages}
+    accTitle: Code Quality Tool Execution Pipeline
+    accDescr: {
+        Shows the sequential execution of formatting and linting
+        tools across multiple languages, from initial commit through
+        final link validation.
+    }
+    
+    commit([Commit]) --> detect_lang{{Detect Languages}}
 
-    B --> C[Prettier]
-    B --> D[Black]
-    B --> E[SQLFluff]
-    B --> F[gofmt]
+    detect_lang --> format_stage["Format Stage"]
+    format_stage --> prettier[Prettier]
+    format_stage --> black[Black]
+    format_stage --> sqlfluff_fmt[SQLFluff Format]
+    format_stage --> gofmt[gofmt]
 
-    C --> G[ESLint]
-    D --> H[isort]
-    E --> I[SQLFluff Lint]
-    F --> J[golangci-lint]
+    prettier --> lint_stage["Lint Stage"]
+    black --> lint_stage
+    sqlfluff_fmt --> lint_stage
+    gofmt --> lint_stage
+    
+    lint_stage --> eslint[ESLint]
+    lint_stage --> isort[isort]
+    lint_stage --> flake8[flake8]
+    lint_stage --> sqlfluff_lint[SQLFluff Lint]
+    lint_stage --> golangci[golangci-lint]
+    lint_stage --> typescript[TypeScript Check]
 
-    G --> K[TypeScript Check]
-    H --> L[flake8]
-    I --> M[Next Tool]
-    J --> M
-    K --> M
-    L --> M
+    eslint --> doc_stage["Doc/Config Stage"]
+    isort --> doc_stage
+    flake8 --> doc_stage
+    sqlfluff_lint --> doc_stage
+    golangci --> doc_stage
+    typescript --> doc_stage
+    
+    doc_stage --> mdlint[markdownlint]
+    doc_stage --> stylelint[stylelint]
+    doc_stage --> yamllint[yamllint]
+    doc_stage --> shellcheck[shellcheck]
+    doc_stage --> commitlint[commitlint]
 
-    M --> N[markdownlint]
-    N --> O[stylelint]
-    O --> P[yamllint]
-    P --> Q[shellcheck]
-    Q --> R[commitlint]
-
-    R --> S{Any Changes?}
-    S -->|Yes| T[Bot Commits]
-    S -->|No| U[Link Check]
-    T --> U
-    U --> V[✅ Complete]
-
-    style A fill:#e1f5ff
-    style S fill:#fff9c4
-    style T fill:#c8e6c9
-    style V fill:#c8e6c9
+    mdlint --> check_changes{Any Changes?}
+    stylelint --> check_changes
+    yamllint --> check_changes
+    shellcheck --> check_changes
+    commitlint --> check_changes
+    
+    check_changes -->|Yes| bot_commit[[Bot Commits]]
+    check_changes -->|No| link_check[Link Check]
+    bot_commit --> link_check
+    link_check --> complete([✅ Complete])
 ```
 
 ### Formatting Tools (Auto-fix)
@@ -249,32 +267,33 @@ flowchart TB
 ### Quick Diagnosis
 
 ```mermaid
-flowchart TD
-    A[CI Failed ❌] --> B{Which Job?}
+flowchart TB
+    accTitle: CI Failure Troubleshooting Decision Tree
+    accDescr: {
+        Decision tree for diagnosing and fixing common CI failures,
+        including build errors, test failures, linting issues, and
+        broken documentation links.
+    }
+    
+    ci_failed{CI Failed?} --> identify_job{Which Job?}
 
-    B -->|Format & Lint| C{Which Tool?}
-    B -->|Link Check| D[Broken Links]
+    identify_job -->|Format & Lint| identify_tool{Which Tool?}
+    identify_job -->|Link Check| broken_links[Fix Broken Links]
 
-    C -->|Prettier/ESLint| E[Syntax Error]
-    C -->|Black/flake8| F[Python Error]
-    C -->|SQLFluff| G[SQL Error]
-    C -->|TypeScript| H[Type Error]
-    C -->|commitlint| I[Bad Commit Format]
+    identify_tool -->|Prettier/ESLint| syntax_error[Fix Syntax Error]
+    identify_tool -->|Black/flake8| python_error[Fix Python Error]
+    identify_tool -->|SQLFluff| sql_error[Fix SQL Error]
+    identify_tool -->|TypeScript| type_error[Fix Type Error]
+    identify_tool -->|commitlint| commit_format[Use Conventional Format]
 
-    E --> J[Fix Syntax]
-    F --> J
-    G --> J
-    H --> J
-    I --> K[Use Conventional Format]
-    D --> L[Fix URLs]
-
-    J --> M[Commit Fix]
-    K --> M
-    L --> M
-    M --> N[✅ CI Re-runs]
-
-    style A fill:#ffcdd2
-    style N fill:#c8e6c9
+    syntax_error --> commit_fix[Commit Fix]
+    python_error --> commit_fix
+    sql_error --> commit_fix
+    type_error --> commit_fix
+    commit_format --> commit_fix
+    broken_links --> commit_fix
+    
+    commit_fix --> ci_reruns([✅ CI Re-runs])
 ```
 
 ### Common Issues
@@ -350,37 +369,53 @@ chore: update deps
 ### Config File Architecture
 
 ```mermaid
-graph TB
-    subgraph "Root Directory"
-        A[.prettierrc.json]
-        B[.eslintrc.json]
-        C[.markdownlint.json]
-        D[.stylelintrc.json]
-        E[.sqlfluff]
-        F[.yamllint.yml]
-        G[commitlint.config.js]
-        H[.lycheeignore]
+flowchart TB
+    accTitle: Configuration File Dependencies
+    accDescr: {
+        Shows how configuration files in the root directory
+        map to their respective tools and contribute to
+        consistent code formatting across the project.
+    }
+    
+    subgraph config_files ["Root Directory Configs"]
+        prettierrc[".prettierrc.json"]
+        eslintrc[".eslintrc.json"]
+        mdlint[".markdownlint.json"]
+        stylelintrc[".stylelintrc.json"]
+        sqlfluff[".sqlfluff"]
+        yamllint[".yamllint.yml"]
+        commitlintrc["commitlint.config.js"]
+        lycheeignore[".lycheeignore"]
     end
 
-    A --> I[Prettier]
-    B --> J[ESLint]
-    C --> K[markdownlint]
-    D --> L[stylelint]
-    E --> M[SQLFluff]
-    F --> N[yamllint]
-    G --> O[commitlint]
-    H --> P[Lychee]
+    subgraph tools ["Quality Tools"]
+        prettier_tool[Prettier]
+        eslint_tool[ESLint]
+        mdlint_tool[markdownlint]
+        stylelint_tool[stylelint]
+        sqlfluff_tool[SQLFluff]
+        yamllint_tool[yamllint]
+        commitlint_tool[commitlint]
+        lychee_tool[Lychee]
+    end
 
-    I --> Q[Consistent Format]
-    J --> Q
-    K --> Q
-    L --> Q
-    M --> Q
-    N --> Q
-    O --> Q
-    P --> Q
+    prettierrc --> prettier_tool
+    eslintrc --> eslint_tool
+    mdlint --> mdlint_tool
+    stylelintrc --> stylelint_tool
+    sqlfluff --> sqlfluff_tool
+    yamllint --> yamllint_tool
+    commitlintrc --> commitlint_tool
+    lycheeignore --> lychee_tool
 
-    style Q fill:#c8e6c9
+    prettier_tool --> consistent[Consistent Quality]
+    eslint_tool --> consistent
+    mdlint_tool --> consistent
+    stylelint_tool --> consistent
+    sqlfluff_tool --> consistent
+    yamllint_tool --> consistent
+    commitlint_tool --> consistent
+    lychee_tool --> consistent
 ```
 
 ### Key Configuration Files
