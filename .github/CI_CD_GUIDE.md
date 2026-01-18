@@ -16,7 +16,7 @@ flowchart TB
         traditional local formatting. Shows how agents, web editors,
         and local developers all benefit from automated CI formatting.
     }
-    
+
     subgraph this_project ["✅ THIS PROJECT: CI Does Format/Lint"]
         direction TB
         subgraph agent_flow ["Agent/Local/Web"]
@@ -60,7 +60,7 @@ flowchart LR
         where CI automatically formats code and developers
         pull changes to stay synchronized.
     }
-    
+
     any_mode([Any Dev Mode]) --> commit_push[Commit + Push]
     commit_push --> ci_format[CI Format/Lint]
     ci_format --> changes_check{Changes Made?}
@@ -109,7 +109,7 @@ flowchart TB
         runs formatting and linting tools, and creates bot
         commits if any code changes are needed.
     }
-    
+
     commit_pushed([Commit Pushed to PR]) --> capture_sha[Capture Initial SHA]
     capture_sha --> run_tools[Run All Format/Lint Tools]
     run_tools --> detect_changes{Changes Detected?}
@@ -130,7 +130,7 @@ flowchart TB
         the exact SHA from phase 1 to ensure race-condition
         safe checking of the correct commit.
     }
-    
+
     from_phase1([From Phase 1]) --> receive_sha[Receive Exact SHA]
     receive_sha --> checkout_sha[Checkout Specific SHA]
     checkout_sha --> verify_sha[Verify SHA Match]
@@ -183,7 +183,7 @@ flowchart TB
         tools across multiple languages, from initial commit through
         final link validation.
     }
-    
+
     commit([Commit]) --> detect_lang{{Detect Languages}}
 
     detect_lang --> format_stage["Format Stage"]
@@ -196,7 +196,7 @@ flowchart TB
     black --> lint_stage
     sqlfluff_fmt --> lint_stage
     gofmt --> lint_stage
-    
+
     lint_stage --> eslint[ESLint]
     lint_stage --> isort[isort]
     lint_stage --> flake8[flake8]
@@ -210,7 +210,7 @@ flowchart TB
     sqlfluff_lint --> doc_stage
     golangci --> doc_stage
     typescript --> doc_stage
-    
+
     doc_stage --> mdlint[markdownlint]
     doc_stage --> stylelint[stylelint]
     doc_stage --> yamllint[yamllint]
@@ -222,7 +222,7 @@ flowchart TB
     yamllint --> check_changes
     shellcheck --> check_changes
     commitlint --> check_changes
-    
+
     check_changes -->|Yes| bot_commit[[Bot Commits]]
     check_changes -->|No| link_check[Link Check]
     bot_commit --> link_check
@@ -274,7 +274,7 @@ flowchart TB
         including build errors, test failures, linting issues, and
         broken documentation links.
     }
-    
+
     ci_failed{CI Failed?} --> identify_job{Which Job?}
 
     identify_job -->|Format & Lint| identify_tool{Which Tool?}
@@ -292,7 +292,7 @@ flowchart TB
     type_error --> commit_fix
     commit_format --> commit_fix
     broken_links --> commit_fix
-    
+
     commit_fix --> ci_reruns([✅ CI Re-runs])
 ```
 
@@ -376,7 +376,7 @@ flowchart TB
         map to their respective tools and contribute to
         consistent code formatting across the project.
     }
-    
+
     subgraph config_files ["Root Directory Configs"]
         prettierrc[".prettierrc.json"]
         eslintrc[".eslintrc.json"]
