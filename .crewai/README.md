@@ -1,142 +1,343 @@
-# CrewAI Infrastructure
+# CrewAI Code Review System
 
-## Overview
-
-This directory contains the CrewAI multi-agent system for automated code review, business analysis, and decision-making support. CrewAI enables multiple AI agents to collaborate on complex tasks, each with specialized roles and expertise.
-
-## Directory Structure
-
-```
-.crewai/
-├── README.md                          # This file
-├── IMPLEMENTATION_PLAN.md             # Phased implementation roadmap
-├── config/
-│   ├── agents.yaml                    # Agent definitions (roles, goals, backstories)
-│   ├── tasks.yaml                     # Task definitions
-│   └── llm.yaml                       # LLM provider configuration (OpenRouter)
-├── crews/
-│   ├── code-review/                   # Code review crew (Phase 1)
-│   │   ├── spec.md                    # Detailed specification
-│   │   ├── crew.py                    # Crew definition
-│   │   ├── agents.py                  # Agent implementations
-│   │   ├── tasks.py                   # Task implementations
-│   │   └── tools.py                   # Custom tools for GitHub access
-│   ├── architecture-review/           # Future: Architecture analysis
-│   ├── security-audit/                # Future: Security scanning
-│   ├── performance-analysis/          # Future: Performance recommendations
-│   └── business-impact/               # Future: Business decision analysis
-├── tools/
-│   ├── github_tools.py                # GitHub API integration tools
-│   └── security_tools.py              # Security-scoped access helpers
-├── workflows/
-│   └── code_review_workflow.py        # Orchestration logic
-└── tests/
-    ├── test_crews.py                  # Unit tests for crews
-    └── test_tools.py                  # Unit tests for tools
-```
-
-## Phase 1: Code Review Crew (Current)
-
-The first crew implements automated multi-perspective code review:
-
-### Agents
-
-1. **Senior Developer** - Code quality, best practices, maintainability
-2. **Security Analyst** - Security vulnerabilities, sensitive data exposure
-3. **Performance Engineer** - Performance implications, optimization opportunities
-4. **Documentation Specialist** - Code clarity, documentation completeness
-5. **Test Engineer** - Test coverage, edge cases, testing strategy
-
-### Integration
-
-- **Trigger**: GitHub Actions on pull request
-- **Input**: Changed files, commit messages, PR description
-- **Output**: Comprehensive review report in GitHub Actions summary
-- **LLM**: OpenRouter API (supports multiple models)
-
-## Security Model
-
-### GitHub Token Scoping
-
-The crew requires read-only access to:
-
-- Repository contents
-- Pull request metadata
-- Commit history
-- File diffs
-
-**Token**: Uses GitHub Actions `GITHUB_TOKEN` with automatic read permissions
-
-- ✅ Read repository content
-- ✅ Read pull request data
-- ❌ No write access (cannot modify code)
-- ❌ No secrets access (scoped to public repo data)
-
-### OpenRouter API Key
-
-**Secret**: `OPENROUTER_API_KEY`
-
-- Stored in GitHub Secrets
-- Never logged or exposed
-- Used only for LLM API calls
-- Rate-limited and monitored
-
-## Best Practices
-
-### Agent Design
-
-- **Single Responsibility**: Each agent has one clear role
-- **Collaborative**: Agents can share insights and build on each other's work
-- **Contextual**: Agents consider project-specific standards
-- **Actionable**: Recommendations are specific and implementable
-
-### Tool Development
-
-- **Read-Only**: Tools cannot modify code or settings
-- **Error Handling**: Graceful degradation on API failures
-- **Rate Limiting**: Respect GitHub API limits
-- **Caching**: Minimize redundant API calls
-
-### Workflow Design
-
-- **Fast**: Complete reviews in under 5 minutes
-- **Informative**: Clear, structured output
-- **Non-Blocking**: Warnings/suggestions, not hard failures
-- **Expandable**: Easy to add new agents or tasks
-
-## Future Crews (Planned)
-
-### Architecture Review Crew
-
-Analyzes system design, scalability, and architectural patterns
-
-### Security Audit Crew
-
-Deep security scanning, dependency analysis, threat modeling
-
-### Performance Analysis Crew
-
-Load testing recommendations, optimization strategies, resource usage
-
-### Business Impact Crew
-
-Analyzes decisions for business impact, ROI, strategic alignment
-
-## Getting Started
-
-See [`IMPLEMENTATION_PLAN.md`](./IMPLEMENTATION_PLAN.md) for the phased rollout strategy.
-
-For the code review crew specification, see [`crews/code-review/spec.md`](./crews/code-review/spec.md).
-
-## Resources
-
-- [CrewAI Documentation](https://docs.crewai.com/)
-- [OpenRouter API](https://openrouter.ai/docs)
-- [GitHub Actions Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-- [GitHub REST API](https://docs.github.com/en/rest)
+> **Automated multi-agent code review for GitHub pull requests**
+>
+> Based on [official CrewAI patterns](https://github.com/crewAIInc/demo-pull-request-review) and best practices
 
 ---
 
-**Status**: 🏗️ In Development
-**Current Phase**: Phase 1 - Code Review Crew
-**Last Updated**: 2026-01-18
+## Overview
+
+This directory contains a CrewAI-powered code review system that analyzes pull requests using three specialized AI agents. The system provides comprehensive feedback on code quality, security, performance, and architecture - directly posted as PR comments.
+
+---
+
+## Project Structure
+
+```
+.crewai/
+├── README.md                    # This file
+├── IMPLEMENTATION_PLAN.md       # Detailed implementation roadmap
+├── crew.py                      # Main Crew definition
+├── main.py                      # Entry point for GitHub Actions
+├── __init__.py                  
+├── config/
+│   ├── agents.yaml              # 3 agent definitions
+│   └── tasks.yaml               # 6 task definitions
+├── tools/
+│   ├── __init__.py
+│   ├── github_tools.py          # GitHub API tools
+│   └── related_files_tool.py    # Related files analysis
+└── tests/
+    ├── test_tools.py
+    ├── test_agents.py
+    └── test_integration.py
+```
+
+**Key Design Decisions:**
+- ✅ Uses standard `Crew` class (not `Flow`) - simpler for sequential tasks
+- ✅ Follows official CrewAI project structure conventions
+- ✅ Uses UV package manager (modern Python tooling)
+- ✅ 3 specialized agents (not 5) - better cost/performance balance
+
+---
+
+## The Three Agents
+
+### 1. Code Quality Reviewer 📖
+**Role**: Senior code reviewer  
+**Focus**: 
+- Code style and readability
+- Best practices and maintainability
+- Test coverage and quality
+- Documentation completeness
+
+**Tools**: GitHubDiffTool, CommitInfoTool, PRCommentTool
+
+### 2. Security & Performance Analyst 🔒⚡
+**Role**: Security researcher + performance engineer  
+**Focus**:
+- Security vulnerabilities (SQL injection, XSS, auth issues)
+- Credential leaks and sensitive data exposure
+- Performance bottlenecks (N+1 queries, memory leaks)
+- Resource usage and optimization opportunities
+
+**Tools**: GitHubDiffTool, FileContentTool
+
+### 3. Architecture & Impact Analyst 🏛️
+**Role**: Software architect + impact assessor  
+**Focus**:
+- Design patterns and architectural decisions
+- **Related files analysis** (finds files NOT directly modified but affected)
+- Coupling, cohesion, and modularity
+- Scalability and long-term maintainability
+
+**Tools**: GitHubDiffTool, FileContentTool, RelatedFilesTool
+
+---
+
+## Task Workflow (6 Sequential Tasks)
+
+```
+1. Analyze Code Changes (Code Quality Reviewer)
+   ↓
+2. Security & Performance Review (Security & Performance Analyst)
+   ↓
+3. Find Related Files (Architecture & Impact Analyst) ← NEW! Inspired by official demo
+   ↓
+4. Analyze Related Files (Architecture & Impact Analyst)
+   ↓
+5. Architecture Review (Architecture & Impact Analyst)
+   ↓
+6. Generate Review Comment (Code Quality Reviewer) ← Posts to PR!
+```
+
+**Estimated time**: 3-5 minutes per review
+
+---
+
+## Key Features
+
+✅ **Related Files Analysis** - Finds files affected by changes (even if not directly modified)  
+✅ **PR Comment Posting** - Review appears directly in PR (not just Actions log)  
+✅ **Multi-Perspective Review** - Security, performance, architecture, quality  
+✅ **Cost Optimized** - 3 agents vs 5 = 60% cost reduction  
+✅ **Fast Execution** - Sequential processing with context sharing  
+✅ **OpenRouter Integration** - Model flexibility + cost optimization
+
+---
+
+## Setup & Installation
+
+### Prerequisites
+
+- Python 3.10-3.13
+- UV package manager
+- GitHub repository with Actions enabled
+- OpenRouter API key
+
+### Local Development
+
+```bash
+# 1. Install UV
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Navigate to .crewai directory
+cd .crewai
+
+# 3. Install dependencies
+crewai install
+
+# 4. Create .env file
+cp .env.example .env
+
+# 5. Add your API keys to .env
+OPENROUTER_API_KEY=your_key_here
+GITHUB_TOKEN=your_token_here
+
+# 6. Test locally (requires PR context)
+GITHUB_PR_NUMBER=1 GITHUB_REPOSITORY=owner/repo GITHUB_SHA=abc123 python main.py
+```
+
+### GitHub Actions Setup
+
+1. **Add OpenRouter API Key** to GitHub Secrets:
+   - Go to: Settings → Secrets and variables → Actions
+   - Add secret: `OPENROUTER_API_KEY`
+   - Value: Your OpenRouter API key from https://openrouter.ai/keys
+
+2. **Workflow is automatically triggered** on:
+   - Pull request opened
+   - Pull request synchronized (new commits)
+   - Pull request reopened
+
+3. **Review appears**:
+   - As PR comment (primary output)
+   - In GitHub Actions job summary (for debugging)
+
+---
+
+## Configuration
+
+### Customizing Agents
+
+Edit `.crewai/config/agents.yaml`:
+
+```yaml
+code_quality_reviewer:
+  role: Senior Code Reviewer
+  goal: Evaluate code changes for quality, style, testing...
+  backstory: You are a senior engineer with 15 years experience...
+  verbose: true
+  allow_delegation: false
+```
+
+### Customizing Tasks
+
+Edit `.crewai/config/tasks.yaml`:
+
+```yaml
+analyze_code_changes:
+  description: Analyze code changes focusing on...
+  expected_output: A structured report with...
+  agent: code_quality_reviewer
+```
+
+### Changing LLM Model
+
+By default uses `anthropic/claude-3.5-sonnet` via OpenRouter.
+
+To change, edit `crew.py` and modify the agent LLM configuration:
+
+```python
+Agent(
+    config=self.agents_config['code_quality_reviewer'],
+    llm="openai/gpt-4o",  # or any OpenRouter model
+    tools=[...],
+)
+```
+
+---
+
+## Cost Estimates
+
+### Per Review (with Claude 3.5 Sonnet)
+
+- **3 agents** × ~$0.08 per agent = **~$0.24 per review**
+- Input tokens: ~50K (diff + context)
+- Output tokens: ~2K (review comments)
+
+### Monthly (100 PRs)
+
+- **$24/month** for code review automation
+- Compare to: ~5 hours of human review time
+
+**Cost optimization:**
+- Use cheaper models for simple PRs (detect via file count/lines changed)
+- Cache responses for identical commits
+- Skip review for bot-generated PRs (Dependabot, etc.)
+
+---
+
+## Security Model
+
+### GitHub Token (`GITHUB_TOKEN`)
+
+- Automatically provided by GitHub Actions
+- Read-only permissions:
+  - ✅ Read repository content
+  - ✅ Read PR metadata
+  - ✅ Write PR comments
+- ❌ Cannot modify code or settings
+- ❌ Cannot access secrets
+
+### OpenRouter API Key
+
+- Stored in GitHub Secrets (encrypted)
+- Never logged or exposed in output
+- Used only for LLM API calls
+- Rotation recommended every 90 days
+
+**Secret management documented in**: `.github/SECRETS.md`
+
+---
+
+## Testing
+
+### Run Tests
+
+```bash
+cd .crewai
+
+# Unit tests
+pytest tests/test_tools.py -v
+pytest tests/test_agents.py -v
+
+# Integration test (requires mocked PR data)
+pytest tests/test_integration.py -v
+
+# All tests with coverage
+pytest --cov=. --cov-report=html
+```
+
+### Manual Testing
+
+1. Create test PR with known issues:
+   - Add hardcoded credentials
+   - Write inefficient loop
+   - Missing tests
+   - Undocumented function
+
+2. Trigger workflow manually:
+   - Go to Actions tab
+   - Select "CrewAI Code Review" workflow
+   - Click "Run workflow"
+
+3. Verify review catches all issues
+
+---
+
+## Troubleshooting
+
+### "OPENROUTER_API_KEY not found"
+
+- Ensure secret is added in GitHub Settings → Secrets
+- Secret name must be exactly `OPENROUTER_API_KEY`
+- Re-run workflow after adding secret
+
+### "Rate limit exceeded"
+
+- GitHub API: Max 5000 requests/hour (usually enough)
+- OpenRouter: Check your plan limits
+- Implement caching (future enhancement)
+
+### "Review not posted to PR"
+
+- Check GitHub Actions logs for errors
+- Verify `pull-requests: write` permission in workflow
+- Ensure `GITHUB_TOKEN` has correct scopes
+
+### "Timeout after 15 minutes"
+
+- Large PRs may hit timeout
+- Reduce diff size (chunk files)
+- Use faster LLM model
+- Increase timeout in workflow YAML
+
+---
+
+## Future Enhancements (Phase 2)
+
+- [ ] **Historical PR Analysis** - Learn from past reviews
+- [ ] **Custom Rules Engine** - Project-specific checks
+- [ ] **Auto-Fix Suggestions** - Generate code patches
+- [ ] **Cost Dashboard** - Track API usage and costs
+- [ ] **False Positive Feedback** - Learn from dismissals
+- [ ] **Multi-Language Support** - Beyond Python/JS/TS
+
+---
+
+## References
+
+- [Official CrewAI PR Review Demo](https://github.com/crewAIInc/demo-pull-request-review)
+- [CrewAI Documentation](https://docs.crewai.com/)
+- [UV Package Manager](https://docs.astral.sh/uv/)
+- [OpenRouter API](https://openrouter.ai/docs)
+- [GitHub Actions](https://docs.github.com/en/actions)
+
+---
+
+## Support
+
+**For issues or questions:**
+- Check `IMPLEMENTATION_PLAN.md` for detailed design decisions
+- Review GitHub Actions logs for errors
+- Open issue in repository
+
+---
+
+**Status**: 🏗️ Implementation Ready  
+**Current Phase**: Phase 1 - Core Code Review Crew  
+**Last Updated**: 2026-01-18  
+**Cost**: ~$0.24/review | ~$24/month (100 PRs)  
+**Speed**: 3-5 minutes average
