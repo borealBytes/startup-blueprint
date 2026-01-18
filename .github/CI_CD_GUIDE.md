@@ -9,24 +9,34 @@
 In most projects, developers format and lint code **locally before pushing**. This project does it **in CI after you commit**.
 
 ```mermaid
-graph TB
-    subgraph "This Project's Workflow"
+graph TD
+    subgraph new ["✅ This Project's Workflow (What We Do)"]
         B1[Edit Code] --> B2[Commit]
         B2 --> B3[Push]
         B3 --> B4[CI Format/Lint + Auto-Commit]
         B4 --> B5[Pull to Get Formatted Code]
     end
 
-    subgraph "Traditional Workflow"
+    subgraph old ["⚠️ Traditional Workflow (Old Way)"]
         A1[Edit Code] --> A2[Format/Lint Locally]
         A2 --> A3[Commit]
         A3 --> A4[Push]
         A4 --> A5[CI Runs Tests Only]
     end
 
-    style B4 fill:#e1f5ff
-    style B5 fill:#c8e6c9
-    style A2 fill:#fff3e0
+    new ~~~ old
+
+    style B1 fill:#e8f5e9
+    style B2 fill:#e8f5e9
+    style B3 fill:#e8f5e9
+    style B4 fill:#a5d6a7
+    style B5 fill:#66bb6a
+    
+    style A1 fill:#f5f5f5
+    style A2 fill:#e0e0e0
+    style A3 fill:#f5f5f5
+    style A4 fill:#f5f5f5
+    style A5 fill:#e0e0e0
 ```
 
 ### Why This Approach?
