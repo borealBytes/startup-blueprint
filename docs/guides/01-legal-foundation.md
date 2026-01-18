@@ -1,4 +1,4 @@
-# 1. Legal Foundation ⛜️
+# 1. Legal Foundation ⛖️
 
 **Executive Summary**: Register your business as an LLC, get your EIN, and establish legal compliance. Time: 2-3 hours. Cost: state filing fee + domain.
 
@@ -27,19 +27,19 @@ Certain activities require a registered business (licensing, contracts, hiring).
 ## Decision: Which Business Structure?
 
 ```mermaid
-graph TD
-    A["Choose Business Structure"] --> B{"Solo or team?"}
-    B -->|Solo| C["LLC"]
-    B -->|Co-founders| D{"Plan to raise capital?"}
-    D -->|No| C
-    D -->|Yes| E["C-Corp"]
-    C --> F["Recommended: LLC"]
-    E --> G["Recommended: C-Corp"]
-    F --> H["Pass-through taxation, simple, flexible"]
-    G --> H1["More complex, but investor-friendly"]
+flowchart TD
+    accTitle: Business Structure Decision Tree
+    accDescr: Decision tree for choosing between LLC and C-Corp based on whether you're solo or have co-founders and plan to raise capital
 
-    style F fill:#c8e6c9
-    style H fill:#e8f5e9
+    choose_structure["Choose Business Structure"] --> solo_or_team{Solo or team?}
+    solo_or_team -->|Solo| llc_choice[LLC]
+    solo_or_team -->|Co-founders| raise_capital{Plan to raise capital?}
+    raise_capital -->|No| llc_choice
+    raise_capital -->|Yes| ccorp_choice[C-Corp]
+    llc_choice --> llc_recommended([Recommended: LLC])
+    ccorp_choice --> ccorp_recommended([Recommended: C-Corp])
+    llc_recommended --> llc_benefits["Pass-through taxation, simple, flexible"]
+    ccorp_recommended --> ccorp_benefits["More complex, but investor-friendly"]
 ```
 
 **This guide recommends: LLC (or PLLC if required)**
