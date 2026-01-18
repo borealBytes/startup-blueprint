@@ -31,15 +31,15 @@ flowchart TD
     accTitle: Business Structure Decision Tree
     accDescr: Decision tree for choosing between LLC and C-Corp based on whether you're solo or have co-founders and plan to raise capital
 
-    choose_structure["Choose Business Structure"] --> solo_or_team{Solo or team?}
+    choose_structure[Choose Business Structure] --> solo_or_team{Solo or team?}
     solo_or_team -->|Solo| llc_choice[LLC]
     solo_or_team -->|Co-founders| raise_capital{Plan to raise capital?}
     raise_capital -->|No| llc_choice
     raise_capital -->|Yes| ccorp_choice[C-Corp]
     llc_choice --> llc_recommended([Recommended: LLC])
     ccorp_choice --> ccorp_recommended([Recommended: C-Corp])
-    llc_recommended --> llc_benefits["Pass-through taxation, simple, flexible"]
-    ccorp_recommended --> ccorp_benefits["More complex, but investor-friendly"]
+    llc_recommended --> llc_benefits[Pass-through taxation, simple, flexible]
+    ccorp_recommended --> ccorp_benefits[More complex, but investor-friendly]
 ```
 
 **This guide recommends: LLC (or PLLC if required)**
