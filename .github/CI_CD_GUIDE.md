@@ -9,19 +9,43 @@
 In most projects, developers format and lint code **locally before pushing**. This project does it **in CI after you commit**.
 
 ```mermaid
-graph TD
-    subgraph new ["✅ THIS PROJECT: CI Format/Lint"]
-        B1[Edit Code] --> B2[Commit]
-        B2 --> B3[Push]
-        B3 --> B4[CI Format/Lint + Auto-Commit]
-        B4 --> B5[Pull to Get Formatted Code]
+flowchart TB
+    subgraph new ["✅ THIS PROJECT: CI Does Format/Lint"]
+        subgraph agent ["Agent/Local"]
+            B1[Edit Code]
+            B2[Commit]
+            B3[Push]
+            B1 --> B2 --> B3
+        end
+        
+        subgraph ci_new ["CI Pipeline"]
+            B4[Format/Lint + Auto-Commit]
+            B5[Test]
+            B6[Build]
+            B7[Deploy]
+            B4 --> B5 --> B6 --> B7
+        end
+        
+        B3 --> B4
     end
 
     subgraph old ["⚠️ TRADITIONAL: Local Format/Lint"]
-        A1[Edit Code] --> A2[Format/Lint Locally]
-        A2 --> A3[Commit]
-        A3 --> A4[Push]
-        A4 --> A5[CI Runs Tests Only]
+        subgraph local ["Local"]
+            A1[Edit Code]
+            A2[Format/Lint]
+            A3[Commit]
+            A4[Push]
+            A1 --> A2 --> A3 --> A4
+        end
+        
+        subgraph ci_old ["CI Pipeline"]
+            A5[Test]
+            A6[Build]
+            A7[Deploy]
+            A5 --> A6 --> A7
+        end
+        
+        A4 --> A5
     end
 
     new ~~~ old
@@ -30,13 +54,17 @@ graph TD
     style B2 fill:#e8f5e9
     style B3 fill:#e8f5e9
     style B4 fill:#a5d6a7
-    style B5 fill:#66bb6a
-
+    style B5 fill:#c8e6c9
+    style B6 fill:#c8e6c9
+    style B7 fill:#66bb6a
+    
     style A1 fill:#f5f5f5
     style A2 fill:#e0e0e0
     style A3 fill:#f5f5f5
     style A4 fill:#f5f5f5
     style A5 fill:#e0e0e0
+    style A6 fill:#e0e0e0
+    style A7 fill:#e0e0e0
 ```
 
 ### Why This Approach?
