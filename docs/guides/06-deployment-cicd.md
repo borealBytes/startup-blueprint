@@ -23,14 +23,14 @@ No manual FTP uploads. No "What version is live?" confusion.
 ## Architecture
 
 ```mermaid
-graph LR
-    A["GitHub Repo"] --> B["GitHub Actions"]
-    B --> C["Build Website"]
-    C --> D["Cloudflare Pages"]
-    D --> E["https://BUSINESS-NAME.com"]
+flowchart LR
+    accTitle: Deployment Pipeline Architecture
+    accDescr: Automated deployment flow from GitHub repo through GitHub Actions and Cloudflare Pages to production website
 
-    style B fill:#e1f5ff
-    style D fill:#c8e6c9
+    github_repo[GitHub Repo] --> github_actions{{GitHub Actions}}
+    github_actions --> build_website[Build Website]
+    build_website --> cloudflare_pages[Cloudflare Pages]
+    cloudflare_pages --> production_site([https://BUSINESS-NAME.com])
 ```
 
 ---
