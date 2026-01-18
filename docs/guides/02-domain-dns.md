@@ -7,15 +7,19 @@
 ## Why This Matters
 
 ### Professionalism
+
 `founder@BUSINESS-NAME.com` looks infinitely more professional than `founder@gmail.com`.
 
 ### Brand Ownership
+
 Your domain is an asset. It's yours to keep, move, or sell.
 
 ### Email Routing
+
 Cloudflare integrates email forwarding, eliminating the need for separate email hosting.
 
 ### Future Flexibility
+
 Your domain can host websites, email, APIs, everything. It's the foundation.
 
 ---
@@ -30,7 +34,7 @@ graph TD
     B --> B1["Integrated email routing, DNS, Workers, DDoS protection"]
     C --> C1["Cheap, but basic. Email routing costs extra."]
     D --> D1["Good value, but fewer integrations"]
-    
+
     style B fill:#c8e6c9
     style B1 fill:#e8f5e9
 ```
@@ -44,6 +48,7 @@ graph TD
 ### Domain Name Strategy
 
 ✅ **Good domains**:
+
 - Short (1-2 words)
 - Easy to spell
 - Relevant to business
@@ -51,6 +56,7 @@ graph TD
 - Examples: `alertshield.com`, `peakcapital.com`, `streamsync.com`
 
 ❌ **Avoid**:
+
 - Hyphenated (`peak-capital.com`)
 - Numbers (`peak2capital.com`)
 - Trendy slang (dates quickly)
@@ -65,6 +71,7 @@ graph TD
 ### Choose Your TLD
 
 Most common (in order of preference):
+
 - `.com` (best, but might be taken)
 - `.co` (professional alternative)
 - `.io` (tech companies)
@@ -91,6 +98,7 @@ Most common (in order of preference):
 ### Cost
 
 Cloudflare charges registrar cost only (no markup):
+
 - `.com`: ~$8.85/year (pro-rated for 10 years = ~$88.50 upfront)
 - `.co`: ~$29/year
 - `.dev`: ~$15/year
@@ -113,6 +121,7 @@ Cloudflare automatically sets up nameservers for your domain. You might need to 
 ### Validate Propagation
 
 Check status at [DNS Propagation Checker](https://dnschecker.org):
+
 1. Enter your domain
 2. Select "NS" record type
 3. Wait for green checks
@@ -126,21 +135,23 @@ Check status at [DNS Propagation Checker](https://dnschecker.org):
 
 DNS records tell the internet where your domain points:
 
-| Record Type | Purpose | Example |
-|---|---|---|
-| **A** | Points to website IP | `example.com` → `1.2.3.4` |
-| **CNAME** | Points to another domain | `www.example.com` → `example.com` |
-| **MX** | Email routing | `example.com` → `mx.cloudflare.net` |
-| **TXT** | Verification, SPF, DKIM | Verification codes |
+| Record Type | Purpose                  | Example                             |
+| ----------- | ------------------------ | ----------------------------------- |
+| **A**       | Points to website IP     | `example.com` → `1.2.3.4`           |
+| **CNAME**   | Points to another domain | `www.example.com` → `example.com`   |
+| **MX**      | Email routing            | `example.com` → `mx.cloudflare.net` |
+| **TXT**     | Verification, SPF, DKIM  | Verification codes                  |
 
 ### Essential DNS Records
 
 **For Cloudflare Email Routing** (next step):
+
 - MX records: Auto-configured
 - TXT records: Auto-configured
 - No manual setup needed
 
 **For Website** (if applicable):
+
 - A record pointing to your host
 - Or CNAME to Cloudflare Pages
 
@@ -180,6 +191,7 @@ For now, just confirm Email Routing is enabled.
 **Recommended**: Enable
 
 **How**:
+
 1. Cloudflare dashboard → your domain
 2. "DNS" tab → "DNSSEC"
 3. Click "Enable DNSSEC"
@@ -191,6 +203,7 @@ For now, just confirm Email Routing is enabled.
 **Recommended**: Enable
 
 **How** (usually default):
+
 1. Cloudflare dashboard → domain settings
 2. "Registrant Information"
 3. Toggle privacy on
@@ -247,9 +260,9 @@ Cloudflare automatically provides a FREE SSL certificate. No action needed.
 
 ## Resources
 
-- **Cloudflare Registrar**: https://www.cloudflare.com/products/registrar/
-- **DNS Propagation Checker**: https://dnschecker.org
-- **DNS Basics**: https://www.cloudflare.com/learning/dns/what-is-dns/
+- **Cloudflare Registrar**: <https://www.cloudflare.com/products/registrar/>
+- **DNS Propagation Checker**: <https://dnschecker.org>
+- **DNS Basics**: <https://www.cloudflare.com/learning/dns/what-is-dns/>
 
 ---
 

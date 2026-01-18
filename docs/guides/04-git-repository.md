@@ -7,20 +7,26 @@
 ## Why This Matters
 
 ### Version Control
+
 Track all changes to code, docs, and configuration. Always able to revert if something breaks.
 
 ### Transparency
+
 Everything is documented in Git. Easy onboarding for team members.
 
 ### AI Workflow
+
 Perplexity Spaces connects to Git, allowing AI agents to:
+
 - Read your repo structure
 - Understand your business processes
 - Create PRs with proposed changes
 - Stay in sync with your codebase
 
 ### Business Operations
+
 Your GitHub repo becomes your source of truth for:
+
 - Website code
 - Documentation
 - Business processes
@@ -40,7 +46,7 @@ graph LR
     E --> F["Review PR"]
     F --> G["You Merge"]
     G --> H["Automated Deploy"]
-    
+
     style B fill:#f3e5f5
     style D fill:#e1f5ff
     style E fill:#c8e6c9
@@ -169,6 +175,7 @@ Thumbs.db
 ### README.md
 
 Your repo's homepage. Should explain:
+
 - What the business does
 - Key processes
 - Links to important docs
@@ -176,6 +183,7 @@ Your repo's homepage. Should explain:
 ### Operations.md
 
 Daily/weekly/monthly tasks:
+
 - How to handle customer inquiries
 - How to process payments
 - How to update the website
@@ -184,6 +192,7 @@ Daily/weekly/monthly tasks:
 ### Policies.md
 
 Business policies:
+
 - Privacy policy
 - Refund policy
 - Data retention
@@ -192,6 +201,7 @@ Business policies:
 ### Checklists/
 
 Repeatable checklists:
+
 - Monthly review checklist
 - Quarterly planning checklist
 - Launch day checklist
@@ -242,6 +252,7 @@ Protect `main` branch to prevent accidental pushes:
 ### What is Perplexity Spaces?
 
 AI-powered collaboration tool that:
+
 - Connects to your GitHub repo
 - Reads your codebase and documentation
 - Executes tasks (create branches, write code, make PRs)
@@ -275,17 +286,21 @@ Spaces need instructions on how to work with your repo.
 # BUSINESS-NAME Agent Instructions
 
 ## Repository
+
 - Private repository: BUSINESS-NAME
 - Default branch: main
 - Protected: main requires PRs before merge
 
 ## Code Style
+
 - Use camelCase for variables
 - Comment complex logic
 - Run tests before PR
 
 ## Commit Format
+
 Use Conventional Commits:
+
 - feat: new feature
 - fix: bug fix
 - docs: documentation
@@ -294,6 +309,7 @@ Use Conventional Commits:
 Example: "feat: add customer dashboard"
 
 ## PR Process
+
 1. Create feature branch
 2. Make changes
 3. Write tests
@@ -303,6 +319,7 @@ Example: "feat: add customer dashboard"
 7. Human merges
 
 ## Important
+
 - NEVER merge your own PRs
 - ALWAYS wait for human approval
 - Keep commits atomic (one idea per commit)
@@ -388,10 +405,10 @@ git push origin feat/your-feature-name
 
 ## Resources
 
-- **GitHub Docs**: https://docs.github.com
-- **Git Basics**: https://git-scm.com/book
-- **Conventional Commits**: https://www.conventionalcommits.org
-- **Perplexity Spaces**: https://perplexity.ai
+- **GitHub Docs**: <https://docs.github.com>
+- **Git Basics**: <https://git-scm.com/book>
+- **Conventional Commits**: <https://www.conventionalcommits.org>
+- **Perplexity Spaces**: <https://perplexity.ai>
 
 ---
 

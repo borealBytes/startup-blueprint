@@ -1,0 +1,25 @@
+---
+extends: default
+
+rules:
+  document-start: disable
+  line-length:
+    max: 200
+    level: warning
+  comments:
+    min-spaces-from-content: 1
+  trailing-spaces:
+    level: warning
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 0
+    level: warning
+
+ignore: |
+  node_modules/
+  .git/
+  dist/
+  build/
+  pnpm-lock.yaml
+  package-lock.json
+  yarn.lock
