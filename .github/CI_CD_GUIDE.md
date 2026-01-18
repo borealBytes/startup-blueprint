@@ -10,14 +10,14 @@ In most projects, developers format and lint code **locally before pushing**. Th
 
 ```mermaid
 graph TD
-    subgraph new ["✅ This Project's Workflow (What We Do)"]
+    subgraph new ["✅ THIS PROJECT: CI Format/Lint"]
         B1[Edit Code] --> B2[Commit]
         B2 --> B3[Push]
         B3 --> B4[CI Format/Lint + Auto-Commit]
         B4 --> B5[Pull to Get Formatted Code]
     end
 
-    subgraph old ["⚠️ Traditional Workflow (Old Way)"]
+    subgraph old ["⚠️ TRADITIONAL: Local Format/Lint"]
         A1[Edit Code] --> A2[Format/Lint Locally]
         A2 --> A3[Commit]
         A3 --> A4[Push]
@@ -31,7 +31,7 @@ graph TD
     style B3 fill:#e8f5e9
     style B4 fill:#a5d6a7
     style B5 fill:#66bb6a
-
+    
     style A1 fill:#f5f5f5
     style A2 fill:#e0e0e0
     style A3 fill:#f5f5f5
