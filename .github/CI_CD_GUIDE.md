@@ -10,7 +10,7 @@ In most projects, developers format and lint code **locally before pushing**. Th
 
 ```mermaid
 flowchart TB
-    subgraph new ["✅ THIS PROJECT:<br/>CI Does Format/Lint"]
+    subgraph new ["✅ THIS PROJECT: CI Does Format/Lint"]
         direction TB
         subgraph agent ["Agent/Local/Web"]
             B1[Edit Code] --> B2[Commit] --> B3[Push]
@@ -21,7 +21,7 @@ flowchart TB
         agent --> ci_new
     end
 
-    subgraph old ["⚠️ TRADITIONAL:<br/>Local Format/Lint"]
+    subgraph old ["⚠️ TRADITIONAL: Local Format/Lint"]
         direction TB
         subgraph local ["Local Machine"]
             A1[Edit Code] --> A2[Format/Lint] --> A3[Commit] --> A4[Push]
@@ -38,7 +38,7 @@ flowchart TB
     style B2 fill:#e8f5e9
     style B3 fill:#e8f5e9
     style B4 fill:#a5d6a7
-    style B5 fill:#81c784
+    style B5 fill:#81c784,stroke:#2e7d32,stroke-width:4px
     style B6 fill:#c8e6c9
     style B7 fill:#c8e6c9
     style B8 fill:#66bb6a
