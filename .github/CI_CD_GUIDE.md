@@ -16,14 +16,14 @@ graph TB
         A3 --> A4[Push]
         A4 --> A5[CI Runs Tests Only]
     end
-    
+
     subgraph "This Project's Workflow"
         B1[Edit Code] --> B2[Commit]
         B2 --> B3[Push]
         B3 --> B4[CI Format/Lint + Auto-Commit]
         B4 --> B5[Pull to Get Formatted Code]
     end
-    
+
     style A2 fill:#fff3e0
     style B4 fill:#e1f5ff
     style B5 fill:#c8e6c9
@@ -34,7 +34,7 @@ graph TB
 This enables **3 different development modes** with consistent results:
 
 1. **🤖 AI Agents (Perplexity MCP, Claude, Cursor)** — Agents commit directly via Git tools, CI handles all formatting
-2. **🌐 GitHub Web Editor** — Edit files in browser, commit, CI formats automatically  
+2. **🌐 GitHub Web Editor** — Edit files in browser, commit, CI formats automatically
 3. **💻 Local Development** — Edit locally, commit, push, **then pull after CI completes** to get formatted code
 
 **The Universal Flow:**
@@ -48,7 +48,7 @@ flowchart LR
     D -->|No| F[No Additional Commit]
     E --> G[Pull to Sync]
     F --> H[Ready to Continue]
-    
+
     style A fill:#e1f5ff
     style C fill:#fff9c4
     style E fill:#c8e6c9
@@ -103,7 +103,7 @@ flowchart TD
     M --> N{All Valid?}
     N -->|Yes| O[✅ CI Passes]
     N -->|No| P[❌ CI Fails]
-    
+
     style A fill:#e1f5ff
     style C fill:#fff9c4
     style E fill:#ffecb3
@@ -150,36 +150,36 @@ flowchart TD
 ```mermaid
 flowchart TB
     A[Commit] --> B{Detect Languages}
-    
+
     B --> C[Prettier]
     B --> D[Black]
     B --> E[SQLFluff]
     B --> F[gofmt]
-    
+
     C --> G[ESLint]
     D --> H[isort]
     E --> I[SQLFluff Lint]
     F --> J[golangci-lint]
-    
+
     G --> K[TypeScript Check]
     H --> L[flake8]
     I --> M[Next Tool]
     J --> M
     K --> M
     L --> M
-    
+
     M --> N[markdownlint]
     N --> O[stylelint]
     O --> P[yamllint]
     P --> Q[shellcheck]
     Q --> R[commitlint]
-    
+
     R --> S{Any Changes?}
     S -->|Yes| T[Bot Commits]
     S -->|No| U[Link Check]
     T --> U
     U --> V[✅ Complete]
-    
+
     style A fill:#e1f5ff
     style S fill:#fff9c4
     style T fill:#c8e6c9
@@ -188,33 +188,33 @@ flowchart TB
 
 ### Formatting Tools (Auto-fix)
 
-| Tool | Languages | Purpose |
-|------|-----------|----------|
-| **Prettier** | JS, TS, JSON, MD, YAML, CSS, SCSS, HTML | Universal code formatter |
-| **Black** | Python | PEP 8 compliant formatting |
-| **isort** | Python | Sort and organize imports |
-| **SQLFluff** | SQL | Format SQL (PostgreSQL/DuckDB) |
-| **gofmt** | Go | Official Go formatter |
+| Tool         | Languages                               | Purpose                        |
+| ------------ | --------------------------------------- | ------------------------------ |
+| **Prettier** | JS, TS, JSON, MD, YAML, CSS, SCSS, HTML | Universal code formatter       |
+| **Black**    | Python                                  | PEP 8 compliant formatting     |
+| **isort**    | Python                                  | Sort and organize imports      |
+| **SQLFluff** | SQL                                     | Format SQL (PostgreSQL/DuckDB) |
+| **gofmt**    | Go                                      | Official Go formatter          |
 
 ### Linting Tools (Check + Auto-fix)
 
-| Tool | Languages | Purpose |
-|------|-----------|----------|
-| **ESLint** | JS, TS | Catch errors, enforce style |
-| **flake8** | Python | PEP 8 style guide enforcement |
-| **SQLFluff** | SQL | SQL syntax and style linting |
-| **stylelint** | CSS, SCSS | CSS/SCSS linting |
-| **markdownlint** | Markdown | Markdown style enforcement |
-| **yamllint** | YAML | YAML syntax validation |
-| **shellcheck** | Bash | Shell script linting |
-| **golangci-lint** | Go | Comprehensive Go linting |
-| **TypeScript** | TS | Type error checking |
-| **commitlint** | Commit messages | Conventional Commits validation |
+| Tool              | Languages       | Purpose                         |
+| ----------------- | --------------- | ------------------------------- |
+| **ESLint**        | JS, TS          | Catch errors, enforce style     |
+| **flake8**        | Python          | PEP 8 style guide enforcement   |
+| **SQLFluff**      | SQL             | SQL syntax and style linting    |
+| **stylelint**     | CSS, SCSS       | CSS/SCSS linting                |
+| **markdownlint**  | Markdown        | Markdown style enforcement      |
+| **yamllint**      | YAML            | YAML syntax validation          |
+| **shellcheck**    | Bash            | Shell script linting            |
+| **golangci-lint** | Go              | Comprehensive Go linting        |
+| **TypeScript**    | TS              | Type error checking             |
+| **commitlint**    | Commit messages | Conventional Commits validation |
 
 ### Link Validation
 
-| Tool | Purpose |
-|------|----------|
+| Tool       | Purpose                                    |
+| ---------- | ------------------------------------------ |
 | **Lychee** | Validate all Markdown links (with caching) |
 
 ---
@@ -226,28 +226,28 @@ flowchart TB
 ```mermaid
 flowchart TD
     A[CI Failed ❌] --> B{Which Job?}
-    
+
     B -->|Format & Lint| C{Which Tool?}
     B -->|Link Check| D[Broken Links]
-    
+
     C -->|Prettier/ESLint| E[Syntax Error]
     C -->|Black/flake8| F[Python Error]
     C -->|SQLFluff| G[SQL Error]
     C -->|TypeScript| H[Type Error]
     C -->|commitlint| I[Bad Commit Format]
-    
+
     E --> J[Fix Syntax]
     F --> J
     G --> J
     H --> J
     I --> K[Use Conventional Format]
     D --> L[Fix URLs]
-    
+
     J --> M[Commit Fix]
     K --> M
     L --> M
     M --> N[✅ CI Re-runs]
-    
+
     style A fill:#ffcdd2
     style N fill:#c8e6c9
 ```
@@ -286,6 +286,7 @@ Description: no period at end, lowercase start
 ```
 
 **Examples:**
+
 ```bash
 feat: add new feature
 fix(ci): correct workflow
@@ -313,6 +314,7 @@ chore: update deps
 **This is normal!** The bot auto-fixed formatting issues.
 
 **What to do:**
+
 - **Web/agent users:** Nothing, continue as usual
 - **Local developers:** Run `git pull` to get bot's changes
 
@@ -334,7 +336,7 @@ graph TB
         G[commitlint.config.js]
         H[.lycheeignore]
     end
-    
+
     A --> I[Prettier]
     B --> J[ESLint]
     C --> K[markdownlint]
@@ -343,7 +345,7 @@ graph TB
     F --> N[yamllint]
     G --> O[commitlint]
     H --> P[Lychee]
-    
+
     I --> Q[Consistent Format]
     J --> Q
     K --> Q
@@ -352,17 +354,19 @@ graph TB
     N --> Q
     O --> Q
     P --> Q
-    
+
     style Q fill:#c8e6c9
 ```
 
 ### Key Configuration Files
 
 #### Formatting
+
 - `.prettierrc.json` — 80 char width, single quotes, trailing commas
 - `.prettierignore` — Exclude patterns
 
 #### Linting
+
 - `.eslintrc.json` — JS/TS rules
 - `.markdownlint.json` — Markdown rules (relaxed for docs)
 - `.stylelintrc.json` — CSS/SCSS rules
@@ -371,9 +375,11 @@ graph TB
 - `commitlint.config.js` — Commit format validation
 
 #### Link Checking
+
 - `.lycheeignore` — URLs to exclude (bot-protected, known issues)
 
 #### Python (via CLI args)
+
 - **Black:** Line length 88
 - **isort:** Profile `black`
 - **flake8:** Max line 88, ignore E203/W503
@@ -385,12 +391,14 @@ graph TB
 ### 🤖 AI Agent Development (Perplexity, Claude, Cursor)
 
 **How it works:**
+
 1. Agent commits via Git MCP/CLI tool
 2. CI formats and lints automatically
 3. Agent sees results in PR checks
 4. Agent makes fixes if needed
 
 **Best practices:**
+
 - Use Conventional Commit format
 - Wait for CI before next commit
 - Review bot commits (they're part of your PR)
@@ -398,18 +406,21 @@ graph TB
 ### 🌐 GitHub Web Editor
 
 **How it works:**
+
 1. Edit files directly in GitHub UI
 2. Commit with proper message format
 3. CI formats automatically
 4. Continue editing as needed
 
 **Best practices:**
+
 - Use "feat:", "fix:", "docs:" prefixes
 - Wait for green checkmark before merging
 
 ### 💻 Local Development
 
 **How it works:**
+
 1. Edit files locally
 2. Commit and push
 3. CI runs format/lint
@@ -438,6 +449,7 @@ vim another-file.ts
 ```
 
 **Why pull after CI?**
+
 - Bot may have reformatted your code
 - Keeps your local branch in sync
 - Prevents merge conflicts
