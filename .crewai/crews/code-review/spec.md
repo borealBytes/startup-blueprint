@@ -24,6 +24,7 @@ The Code Review Crew is an autonomous multi-agent system that performs comprehen
 A seasoned software engineer with 15+ years of experience across multiple languages and paradigms. Passionate about clean code, SOLID principles, and long-term maintainability. Known for catching subtle bugs and suggesting elegant refactorings.
 
 **Responsibilities**:
+
 - Code structure and organization
 - Design patterns and anti-patterns
 - DRY principle violations
@@ -33,6 +34,7 @@ A seasoned software engineer with 15+ years of experience across multiple langua
 - Code duplication detection
 
 **Tools**:
+
 - `get_file_content`: Read changed files
 - `get_commit_diff`: Analyze specific changes
 - `get_pr_metadata`: Understand context
@@ -49,6 +51,7 @@ A seasoned software engineer with 15+ years of experience across multiple langua
 A security-focused engineer who has seen the consequences of vulnerabilities in production. Expert in OWASP Top 10, secure coding practices, and threat modeling. Always thinking like an attacker.
 
 **Responsibilities**:
+
 - SQL injection vulnerabilities
 - Cross-site scripting (XSS) risks
 - Authentication/authorization issues
@@ -59,6 +62,7 @@ A security-focused engineer who has seen the consequences of vulnerabilities in 
 - Insecure configurations
 
 **Tools**:
+
 - `get_file_content`: Scan for security issues
 - `get_commit_diff`: Focus on security-sensitive changes
 - `search_for_patterns`: Find potential secrets/vulnerabilities
@@ -75,6 +79,7 @@ A security-focused engineer who has seen the consequences of vulnerabilities in 
 A performance-obsessed engineer who has optimized systems from milliseconds to microseconds. Deep understanding of algorithms, data structures, and system-level performance. Believes every cycle counts.
 
 **Responsibilities**:
+
 - Algorithm complexity (Big O)
 - Database query optimization
 - N+1 query detection
@@ -85,6 +90,7 @@ A performance-obsessed engineer who has optimized systems from milliseconds to m
 - Load testing implications
 
 **Tools**:
+
 - `get_file_content`: Analyze code for performance issues
 - `get_commit_diff`: Focus on performance-critical changes
 - `analyze_complexity`: Estimate algorithmic complexity
@@ -101,6 +107,7 @@ A performance-obsessed engineer who has optimized systems from milliseconds to m
 A technical writer turned engineer who values clarity above all. Has onboarded countless developers and knows the pain of poor documentation. Believes code should tell a story.
 
 **Responsibilities**:
+
 - Code comments quality and necessity
 - Function/class documentation (docstrings)
 - README and documentation updates
@@ -111,6 +118,7 @@ A technical writer turned engineer who values clarity above all. Has onboarded c
 - Migration guides
 
 **Tools**:
+
 - `get_file_content`: Review documentation
 - `get_pr_description`: Check PR documentation
 - `check_documentation_coverage`: Ensure completeness
@@ -127,6 +135,7 @@ A technical writer turned engineer who values clarity above all. Has onboarded c
 A QA engineer who has found thousands of bugs before they reached production. Expert in test-driven development, edge case analysis, and breaking things gracefully. Trust is earned through tests.
 
 **Responsibilities**:
+
 - Test coverage analysis
 - Edge case identification
 - Error condition testing
@@ -137,6 +146,7 @@ A QA engineer who has found thousands of bugs before they reached production. Ex
 - Test maintainability
 
 **Tools**:
+
 - `get_file_content`: Review test files
 - `get_test_coverage`: Analyze coverage metrics
 - `identify_test_gaps`: Find untested code paths
@@ -177,6 +187,7 @@ All 5 agents work **concurrently** on their specialized analyses:
 - **Test Engineer**: Analyzes test coverage
 
 Each agent:
+
 1. Uses specialized tools to gather relevant data
 2. Applies domain expertise to analyze changes
 3. Generates findings with severity levels
@@ -204,10 +215,11 @@ Each agent:
 
 Write comprehensive report to GitHub Actions summary:
 
-```markdown
+````markdown
 ## 🤖 CrewAI Code Review Report
 
 ### 📊 Summary
+
 - **PR**: #123 - Add user authentication
 - **Files Changed**: 8
 - **Lines Added**: +245, **Lines Removed**: -12
@@ -216,35 +228,44 @@ Write comprehensive report to GitHub Actions summary:
 ### 🎯 Key Findings
 
 #### 🔴 Critical Issues (2)
+
 1. **Security**: Hardcoded API key in `auth.py:42` (@SecurityAnalyst)
 2. **Performance**: N+1 query in `users.py:156` (@PerformanceEngineer)
 
 #### 🟡 Warnings (5)
+
 1. **Code Quality**: Complex function with cyclomatic complexity 15 (@SeniorDeveloper)
 2. **Testing**: Missing test coverage for error paths (@TestEngineer)
-...
+   ...
 
 #### 🟢 Suggestions (3)
+
 1. **Documentation**: Add docstring to public API (@DocsSpecialist)
-...
+   ...
 
 ### 📁 File-by-File Analysis
 
 #### `src/auth.py` (+87, -3)
 
 **🔴 Critical - Security Analyst**
+
 > Line 42: Hardcoded API key detected
+
 ```python
 API_KEY = "sk_live_1234567890abcdef"  # ❌ Remove this
 ```
+````
+
 **Recommendation**: Use environment variables
+
 ```python
 API_KEY = os.getenv("API_KEY")  # ✅ Better
 ```
 
 **🟡 Warning - Senior Developer**
+
 > Lines 67-89: Function `authenticate_user` has complexity 12
-**Recommendation**: Extract validation logic into separate function
+> **Recommendation**: Extract validation logic into separate function
 
 ...
 
@@ -260,7 +281,8 @@ API_KEY = os.getenv("API_KEY")  # ✅ Better
 2. **Before Merge**: Address N+1 query performance issue
 3. **Future**: Consider reducing complexity of authentication flow
 4. **Consider**: Add integration tests for error conditions
-```
+
+````
 
 ---
 
@@ -336,26 +358,29 @@ Searches for regex patterns across specified files.
 
 **Workflow File**: `.github/workflows/crewai-review.yml`
 
-**Trigger**: 
+**Trigger**:
 ```yaml
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-```
+````
 
 **Secrets Required**:
+
 - `OPENROUTER_API_KEY`: For LLM access
 - `GITHUB_TOKEN`: Auto-provided by GitHub Actions
 
 **Permissions**:
+
 ```yaml
 permissions:
-  contents: read        # Read code
-  pull-requests: write  # Comment on PRs
-  checks: write         # Update status checks
+  contents: read # Read code
+  pull-requests: write # Comment on PRs
+  checks: write # Update status checks
 ```
 
 **Job Steps**:
+
 1. Checkout code at PR head
 2. Setup Python 3.13
 3. Install CrewAI and dependencies
@@ -372,6 +397,7 @@ permissions:
 ### Permissions Model
 
 **What the crew CAN do**:
+
 - ✅ Read repository contents (public & PR code)
 - ✅ Read PR metadata (title, description, files)
 - ✅ Read commit history and diffs
@@ -379,6 +405,7 @@ permissions:
 - ✅ Post comments on PRs (optional)
 
 **What the crew CANNOT do**:
+
 - ❌ Modify code or files
 - ❌ Merge or close PRs
 - ❌ Access repository secrets
@@ -389,12 +416,14 @@ permissions:
 ### Token Security
 
 **GitHub Token**:
+
 - Uses built-in `GITHUB_TOKEN` (automatically provided)
 - Scoped to PR's repository only
 - Expires after job completion
 - Never logged or exposed
 
 **OpenRouter API Key**:
+
 - Stored in GitHub Secrets (encrypted)
 - Never printed in logs
 - Masked in workflow output
@@ -425,21 +454,25 @@ permissions:
 ## Testing Strategy
 
 ### Unit Tests
+
 - Individual agent logic
 - Tool functionality
 - Error handling
 
 ### Integration Tests
+
 - Full crew workflow
 - GitHub API interactions
 - OpenRouter LLM calls (mocked)
 
 ### End-to-End Tests
+
 - Test PR with known issues
 - Verify report generation
 - Check GitHub Actions output
 
 ### Test Coverage Target
+
 - Minimum 80% code coverage
 - 100% coverage for security-critical paths
 
@@ -448,6 +481,7 @@ permissions:
 ## Rollout Plan
 
 ### Phase 1: Development & Testing (Week 1)
+
 - [ ] Set up CrewAI infrastructure
 - [ ] Implement GitHub tools
 - [ ] Create 5 agent definitions
@@ -455,6 +489,7 @@ permissions:
 - [ ] Write unit tests
 
 ### Phase 2: Integration (Week 1-2)
+
 - [ ] Create GitHub Actions workflow
 - [ ] Configure OpenRouter integration
 - [ ] Set up secrets management
@@ -462,6 +497,7 @@ permissions:
 - [ ] Add integration tests
 
 ### Phase 3: Testing (Week 2)
+
 - [ ] Test on sample PRs
 - [ ] Validate agent outputs
 - [ ] Optimize performance
@@ -469,12 +505,14 @@ permissions:
 - [ ] Security review
 
 ### Phase 4: Beta Rollout (Week 3)
+
 - [ ] Enable on non-critical PRs
 - [ ] Monitor performance and costs
 - [ ] Gather feedback
 - [ ] Iterate on agent prompts
 
 ### Phase 5: Production (Week 4)
+
 - [ ] Enable for all PRs
 - [ ] Document usage
 - [ ] Train team on output
@@ -485,6 +523,7 @@ permissions:
 ## Metrics & Monitoring
 
 ### Success Metrics
+
 - **Adoption**: % of PRs reviewed by crew
 - **Usefulness**: % of findings addressed by developers
 - **Performance**: Average review time
@@ -492,6 +531,7 @@ permissions:
 - **Quality**: Reduction in bugs reaching production
 
 ### Monitoring
+
 - GitHub Actions logs
 - OpenRouter API usage dashboard
 - Cost tracking
@@ -503,12 +543,14 @@ permissions:
 ## Future Enhancements
 
 ### Short-term (Next Quarter)
+
 - **PR Comments**: Inline code suggestions
 - **Severity Levels**: Configurable thresholds
 - **Custom Rules**: Project-specific checks
 - **Historical Analysis**: Compare against past reviews
 
 ### Long-term (6-12 Months)
+
 - **Auto-Fix**: Suggest code patches
 - **Learning**: Improve from accepted/rejected suggestions
 - **Multi-Repo**: Share insights across projects

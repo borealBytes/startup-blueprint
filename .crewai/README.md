@@ -59,12 +59,14 @@ The first crew implements automated multi-perspective code review:
 ### GitHub Token Scoping
 
 The crew requires read-only access to:
+
 - Repository contents
 - Pull request metadata
 - Commit history
 - File diffs
 
 **Token**: Uses GitHub Actions `GITHUB_TOKEN` with automatic read permissions
+
 - ✅ Read repository content
 - ✅ Read pull request data
 - ❌ No write access (cannot modify code)
@@ -73,6 +75,7 @@ The crew requires read-only access to:
 ### OpenRouter API Key
 
 **Secret**: `OPENROUTER_API_KEY`
+
 - Stored in GitHub Secrets
 - Never logged or exposed
 - Used only for LLM API calls
@@ -81,18 +84,21 @@ The crew requires read-only access to:
 ## Best Practices
 
 ### Agent Design
+
 - **Single Responsibility**: Each agent has one clear role
 - **Collaborative**: Agents can share insights and build on each other's work
 - **Contextual**: Agents consider project-specific standards
 - **Actionable**: Recommendations are specific and implementable
 
 ### Tool Development
+
 - **Read-Only**: Tools cannot modify code or settings
 - **Error Handling**: Graceful degradation on API failures
 - **Rate Limiting**: Respect GitHub API limits
 - **Caching**: Minimize redundant API calls
 
 ### Workflow Design
+
 - **Fast**: Complete reviews in under 5 minutes
 - **Informative**: Clear, structured output
 - **Non-Blocking**: Warnings/suggestions, not hard failures
@@ -101,15 +107,19 @@ The crew requires read-only access to:
 ## Future Crews (Planned)
 
 ### Architecture Review Crew
+
 Analyzes system design, scalability, and architectural patterns
 
 ### Security Audit Crew
+
 Deep security scanning, dependency analysis, threat modeling
 
 ### Performance Analysis Crew
+
 Load testing recommendations, optimization strategies, resource usage
 
 ### Business Impact Crew
+
 Analyzes decisions for business impact, ROI, strategic alignment
 
 ## Getting Started
