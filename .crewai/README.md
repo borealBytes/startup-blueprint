@@ -20,7 +20,7 @@ This directory contains a CrewAI-powered code review system that analyzes pull r
 ├── IMPLEMENTATION_PLAN.md       # Detailed implementation roadmap
 ├── crew.py                      # Main Crew definition
 ├── main.py                      # Entry point for GitHub Actions
-├── __init__.py                  
+├── __init__.py
 ├── config/
 │   ├── agents.yaml              # 3 agent definitions
 │   └── tasks.yaml               # 6 task definitions
@@ -35,6 +35,7 @@ This directory contains a CrewAI-powered code review system that analyzes pull r
 ```
 
 **Key Design Decisions:**
+
 - ✅ Uses standard `Crew` class (not `Flow`) - simpler for sequential tasks
 - ✅ Follows official CrewAI project structure conventions
 - ✅ Uses UV package manager (modern Python tooling)
@@ -45,8 +46,10 @@ This directory contains a CrewAI-powered code review system that analyzes pull r
 ## The Three Agents
 
 ### 1. Code Quality Reviewer 📖
+
 **Role**: Senior code reviewer  
-**Focus**: 
+**Focus**:
+
 - Code style and readability
 - Best practices and maintainability
 - Test coverage and quality
@@ -55,8 +58,10 @@ This directory contains a CrewAI-powered code review system that analyzes pull r
 **Tools**: GitHubDiffTool, CommitInfoTool, PRCommentTool
 
 ### 2. Security & Performance Analyst 🔒⚡
+
 **Role**: Security researcher + performance engineer  
 **Focus**:
+
 - Security vulnerabilities (SQL injection, XSS, auth issues)
 - Credential leaks and sensitive data exposure
 - Performance bottlenecks (N+1 queries, memory leaks)
@@ -65,8 +70,10 @@ This directory contains a CrewAI-powered code review system that analyzes pull r
 **Tools**: GitHubDiffTool, FileContentTool
 
 ### 3. Architecture & Impact Analyst 🏛️
+
 **Role**: Software architect + impact assessor  
 **Focus**:
+
 - Design patterns and architectural decisions
 - **Related files analysis** (finds files NOT directly modified but affected)
 - Coupling, cohesion, and modularity
@@ -144,7 +151,7 @@ GITHUB_PR_NUMBER=1 GITHUB_REPOSITORY=owner/repo GITHUB_SHA=abc123 python main.py
 1. **Add OpenRouter API Key** to GitHub Secrets:
    - Go to: Settings → Secrets and variables → Actions
    - Add secret: `OPENROUTER_API_KEY`
-   - Value: Your OpenRouter API key from https://openrouter.ai/keys
+   - Value: Your OpenRouter API key from <https://openrouter.ai/keys>
 
 2. **Workflow is automatically triggered** on:
    - Pull request opened
@@ -213,6 +220,7 @@ Agent(
 - Compare to: ~5 hours of human review time
 
 **Cost optimization:**
+
 - Use cheaper models for simple PRs (detect via file count/lines changed)
 - Cache responses for identical commits
 - Skip review for bot-generated PRs (Dependabot, etc.)
@@ -330,6 +338,7 @@ pytest --cov=. --cov-report=html
 ## Support
 
 **For issues or questions:**
+
 - Check `IMPLEMENTATION_PLAN.md` for detailed design decisions
 - Review GitHub Actions logs for errors
 - Open issue in repository
