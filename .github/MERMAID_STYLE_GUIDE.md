@@ -28,7 +28,7 @@ flowchart TB
     accDescr: {
         This diagram demonstrates proper structure.
     }
-    
+
     start([Start]) --> process[Do Something]
     process --> end_node([End])
 ```
@@ -44,7 +44,7 @@ flowchart TB
     accDescr: {
         Description here.
     }
-    
+
     start([Start]) --> end_node([End])
 ```
 
@@ -61,6 +61,7 @@ flowchart TB
 ```
 
 **Why it fails:**
+
 - Light-mode optimized colors are invisible/illegible in dark mode
 - GitHub can't auto-adjust styled nodes
 - Reduces accessibility
@@ -81,6 +82,7 @@ flowchart TB
 ```
 
 **Rules:**
+
 - 3-8 words maximum
 - Describes what the diagram shows
 - Plain text, no Markdown
@@ -100,6 +102,7 @@ flowchart TB
 ```
 
 **Rules:**
+
 - 2-4 sentences
 - Explains purpose and what user learns
 - Use curly braces `{ }` for multi-line
@@ -115,7 +118,7 @@ flowchart TB
         [Key insights or flow description.]
         [2-4 sentences total.]
     }
-    
+
     %% Your diagram content here
     start([Start]) --> end_node([End])
 ```
@@ -137,6 +140,7 @@ flowchart TB
 ```
 
 **Benefits:**
+
 - Self-documenting
 - Easier maintenance
 - Clear purpose at a glance
@@ -155,6 +159,7 @@ flowchart TB
 ```
 
 **Problems:**
+
 - Hard to reference in documentation
 - Unclear when updating
 - No semantic meaning
@@ -182,7 +187,7 @@ flowchart TB
         Visual reference for standard node shapes and their
         semantic meanings in flowcharts.
     }
-    
+
     start_end([Start/End]) --> process[Process/Action]
     process --> decision{Decision Point}
     decision -->|Yes| subprocess[[Subprocess/Group]]
@@ -190,15 +195,15 @@ flowchart TB
     subprocess --> event>Event/Trigger]
 ```
 
-| Shape | Syntax | Use For |
-|-------|--------|----------|
-| **Rounded Rectangle** | `([text])` | Start/End points |
-| **Rectangle** | `[text]` | Processes, actions, steps |
-| **Diamond** | `{text}` | Decision points, conditions |
-| **Subroutine** | `[[text]]` | Subprocesses, grouped actions |
-| **Cylinder** | `[(text)]` | Database, state, data store |
-| **Asymmetric** | `>text]` | Events, triggers, external |
-| **Hexagon** | `{{text}}` | Preparation, initialization |
+| Shape                 | Syntax     | Use For                       |
+| --------------------- | ---------- | ----------------------------- |
+| **Rounded Rectangle** | `([text])` | Start/End points              |
+| **Rectangle**         | `[text]`   | Processes, actions, steps     |
+| **Diamond**           | `{text}`   | Decision points, conditions   |
+| **Subroutine**        | `[[text]]` | Subprocesses, grouped actions |
+| **Cylinder**          | `[(text)]` | Database, state, data store   |
+| **Asymmetric**        | `>text]`   | Events, triggers, external    |
+| **Hexagon**           | `{{text}}` | Preparation, initialization   |
 
 ### Example: Shape-Based Hierarchy
 
@@ -209,7 +214,7 @@ flowchart TB
         Demonstrates using different shapes to indicate
         different types of operations in a CI pipeline.
     }
-    
+
     start([Commit Pushed]) --> prepare{{Setup Environment}}
     prepare --> lint[Run Linters]
     lint --> test[Run Tests]
@@ -229,6 +234,7 @@ flowchart TB
 **Guideline: 10 nodes or fewer**
 
 **Why?**
+
 - Easier to understand at a glance
 - Better mobile rendering
 - Clearer purpose
@@ -244,6 +250,7 @@ flowchart TB
 **Guideline: 3 decision points or fewer**
 
 **If more decisions needed:**
+
 - Create a decision tree diagram instead
 - Split into sequential diagrams
 - Use a table for multiple conditions
@@ -262,6 +269,7 @@ flowchart TB
 **✅ Split into Two Focused Diagrams:**
 
 **Diagram 1: Request Processing (8 nodes)**
+
 ```mermaid
 flowchart TB
     receive[Receive Request] --> validate{Valid?}
@@ -273,6 +281,7 @@ flowchart TB
 ```
 
 **Diagram 2: Deployment (8 nodes)**
+
 ```mermaid
 flowchart TB
     from_stage1[From Stage 1] --> build[Build]
@@ -356,17 +365,17 @@ flowchart TB
         Shows a pipeline with distinct stages grouped
         by responsibility using subgraphs.
     }
-    
+
     start([Start])
-    
+
     subgraph format ["Format & Lint"]
         prettier[Prettier] --> eslint[ESLint]
     end
-    
+
     subgraph test ["Testing"]
         unit[Unit Tests] --> integration[Integration Tests]
     end
-    
+
     start --> format
     format --> test
     test --> deploy[Deploy]
@@ -417,7 +426,7 @@ flowchart TB
         Sequential steps for deploying application
         from code commit to production.
     }
-    
+
     commit([Commit]) --> build[Build]
     build --> test[Test]
     test --> deploy[Deploy]
@@ -436,7 +445,7 @@ flowchart TB
         Decision tree for diagnosing common CI errors
         and identifying appropriate solutions.
     }
-    
+
     error{Error Type?}
     error -->|Build| build_fix[Fix Build Script]
     error -->|Test| test_fix[Fix Failing Tests]
@@ -454,7 +463,7 @@ flowchart LR
         State transitions for a pull request from
         draft creation through merge or closure.
     }
-    
+
     draft[(Draft)] --> open[(Open)]
     open --> review[(In Review)]
     review --> approved[(Approved)]
@@ -474,11 +483,11 @@ flowchart TB
         Compares traditional local linting workflow
         with automated CI-based linting approach.
     }
-    
+
     subgraph traditional ["Traditional"]
         t1[Edit] --> t2[Lint Locally] --> t3[Commit]
     end
-    
+
     subgraph automated ["Automated CI"]
         a1[Edit] --> a2[Commit] --> a3[CI Lints]
     end
@@ -497,7 +506,7 @@ flowchart TB
         [Explain what this diagram shows and its purpose.]
         [Add context about the flow and key decisions.]
     }
-    
+
     start([Start]) --> step1[First Step]
     step1 --> decision{Check Something?}
     decision -->|Yes| step2[Action A]
@@ -514,7 +523,7 @@ flowchart TB
     accDescr: {
         [Describe the decision process and outcomes.]
     }
-    
+
     root{Main Question?}
     root -->|Option 1| branch1{Sub-question 1?}
     root -->|Option 2| branch2{Sub-question 2?}
@@ -532,21 +541,21 @@ flowchart TB
     accDescr: {
         [Describe the stages and their relationships.]
     }
-    
+
     start([Start])
-    
+
     subgraph stage1 ["Stage 1: Preparation"]
         s1_step1[Setup] --> s1_step2[Validate]
     end
-    
+
     subgraph stage2 ["Stage 2: Execution"]
         s2_step1[Process] --> s2_step2[Transform]
     end
-    
+
     subgraph stage3 ["Stage 3: Finalization"]
         s3_step1[Verify] --> s3_step2[Complete]
     end
-    
+
     start --> stage1
     stage1 --> stage2
     stage2 --> stage3
@@ -654,7 +663,7 @@ flowchart TB
 flowchart TB
     receive --> validate --> process
 
-# Diagram 2: Output Generation  
+# Diagram 2: Output Generation
 flowchart TB
     format --> send --> complete
 ```
@@ -676,7 +685,7 @@ flowchart TB
     accDescr: {
         Basic two-step process from start to completion.
     }
-    
+
     start([Start]) --> end_node([Complete])
 ```
 
