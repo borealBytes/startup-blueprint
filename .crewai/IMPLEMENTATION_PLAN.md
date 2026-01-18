@@ -9,35 +9,43 @@
 ## Configuration Decisions ✅
 
 ### API Provider: OpenAI (Direct)
+
 **API Key**: `CREWAI_OPENAI_KEY`  
 **Provider**: OpenAI API directly (not OpenRouter)  
 **Model**: `gpt-4o` (balanced performance/cost)  
 **Fallback**: `gpt-4o-mini` (if budget constraints)
 
 **Why OpenAI direct?**
+
 - Simpler integration (one provider)
 - Predictable pricing
 - Official CrewAI support
 - Better rate limits for single provider
 
 ### Review Scope: Commit-Based
+
 **Focus**: All files updated in the commit  
 **Priority Analysis**:
+
 1. **Diff content** (lines added/removed) - highest priority
 2. **New files** - full review
 3. **Removed files** - impact assessment
 4. **Commit message** - context and intent validation
 
 **Why commit-based?**
+
 - Matches developer workflow (commit → review)
 - Clear scope per review
 - Commit message provides context
 - Easier to track review history
 
 ### Output Format: Executive Summary + Details
+
 **Structure**:
+
 ```markdown
 ## 📊 Executive Summary
+
 - Overall assessment (✅ LGTM | ⚠️ Needs Changes | 🚨 Critical Issues)
 - Key metrics (files changed, lines added/removed, issues found)
 - Top 3 action items
@@ -45,31 +53,38 @@
 ## 🔍 Detailed Findings
 
 ### 🚨 Critical Issues (Must Fix)
+
 [High-priority blocking issues]
 
 ### ⚠️ Warnings (Should Fix)
+
 [Important but non-blocking concerns]
 
 ### 💡 Suggestions (Nice to Have)
+
 [Improvements and optimizations]
 
 ### ✅ Positive Observations
+
 [Good patterns and practices found]
 ```
 
 **Why this format?**
+
 - Busy developers see summary first
 - Detailed findings for deep dive
 - Prioritized by severity
 - Acknowledges good work (positive feedback)
 
 ### Python Environment: CI-Only, Isolated
+
 **Setup**: Separate Python environment in GitHub Actions  
 **Scope**: CrewAI dependencies only (not dev environment)  
 **Management**: UV package manager with isolated venv  
 **Location**: `.crewai/` directory with own `pyproject.toml`
 
 **Why CI-only?**
+
 - No Python requirement for Node.js developers
 - Keeps dev setup simple
 - CrewAI runs automatically in CI
@@ -88,6 +103,7 @@ This document outlines the implementation plan for integrating CrewAI multi-agen
 **Decision**: Use standard `Crew` class (not `Flow`)
 
 **Rationale**:
+
 - Official CrewAI PR review demo uses `Crew` with sequential processing
 - `Flow` is overkill for linear task dependencies
 - `Crew` is simpler, more maintainable, better documented
@@ -123,6 +139,7 @@ startup-blueprint/
 ```
 
 **Key Structure Decisions**:
+
 - ✅ `.crewai/` has own `pyproject.toml` (isolated Python environment)
 - ✅ Use `crew.py` (matches official pattern)
 - ✅ Use `main.py` (standard entry point)
@@ -139,8 +156,10 @@ startup-blueprint/
 ### Agent Architecture (3 Specialized Agents)
 
 #### 1. Code Quality Reviewer
+
 **Role**: Senior code reviewer  
-**Focus**: 
+**Focus**:
+
 - Code style, readability, maintainability
 - Test coverage and quality
 - Documentation completeness
@@ -150,8 +169,10 @@ startup-blueprint/
 **Consolidates**: Code Quality + Test Engineer from original plan
 
 #### 2. Security & Performance Analyst
+
 **Role**: Security researcher + performance engineer  
-**Focus**: 
+**Focus**:
+
 - Security vulnerabilities (SQL injection, XSS, auth issues)
 - Credential leaks, hardcoded secrets
 - Performance bottlenecks (N+1 queries, memory leaks)
@@ -161,8 +182,10 @@ startup-blueprint/
 **Consolidates**: Security + Performance agents from original plan
 
 #### 3. Architecture & Impact Analyst
+
 **Role**: Software architect + impact assessor  
-**Focus**: 
+**Focus**:
+
 - Design patterns and architectural decisions
 - Related file impact analysis
 - Coupling, cohesion, modularity
@@ -172,6 +195,7 @@ startup-blueprint/
 **New capability**: Analyzes files NOT directly modified but affected
 
 **Why 3 agents?**
+
 - Lower API costs (~60% reduction vs 5 agents)
 - Faster execution (fewer sequential handoffs)
 - Simpler to maintain and debug
@@ -182,13 +206,16 @@ startup-blueprint/
 ## Task Workflow (6 Sequential Tasks)
 
 ### Task 1: Analyze Commit Changes
+
 **Agent**: Code Quality Reviewer  
-**Input**: 
+**Input**:
+
 - Commit SHA, diff, message
 - Files modified (new, changed, removed)
 - Lines added/removed per file
 
 **Output**: Code quality issues report with:
+
 - Commit message assessment
 - Style and readability issues
 - Testing gaps
@@ -197,9 +224,11 @@ startup-blueprint/
 **Duration**: ~30-60 seconds
 
 ### Task 2: Security & Performance Review
+
 **Agent**: Security & Performance Analyst  
 **Input**: Task 1 output + commit diff  
-**Output**: 
+**Output**:
+
 - Security vulnerabilities (CRITICAL/HIGH/MEDIUM)
 - Performance bottlenecks
 - Resource usage concerns
@@ -208,9 +237,11 @@ startup-blueprint/
 **Runs**: Sequentially after Task 1 (needs quality context)
 
 ### Task 3: Find Related Files
+
 **Agent**: Architecture & Impact Analyst  
 **Input**: Changed files list from commit  
-**Output**: 
+**Output**:
+
 - Related files (imports, dependencies, patterns)
 - Relatedness scores (0-100)
 - Why each file is related
@@ -220,9 +251,11 @@ startup-blueprint/
 **Why critical**: Catches issues in files NOT in commit
 
 ### Task 4: Analyze Related Files
+
 **Agent**: Architecture & Impact Analyst  
 **Input**: Task 3 output (related files)  
-**Output**: 
+**Output**:
+
 - Impact assessment on related components
 - Potential breaking changes
 - Integration risks
@@ -231,9 +264,11 @@ startup-blueprint/
 **Duration**: ~30-60 seconds
 
 ### Task 5: Architecture Review
+
 **Agent**: Architecture & Impact Analyst  
 **Input**: All previous task outputs + commit intent  
-**Output**: 
+**Output**:
+
 - Design pattern evaluation
 - Coupling and cohesion analysis
 - Alignment with project architecture
@@ -242,11 +277,14 @@ startup-blueprint/
 **Duration**: ~30-60 seconds
 
 ### Task 6: Generate Executive Summary & Post
+
 **Agent**: Code Quality Reviewer (coordinator)  
 **Input**: All task outputs  
 **Output Format**:
+
 ```markdown
 ## 📊 Executive Summary
+
 - Overall: ✅ LGTM | ⚠️ Needs Changes | 🚨 Critical Issues
 - Files: 5 modified, 2 new, 0 removed
 - Changes: +245 lines, -87 lines
@@ -257,6 +295,7 @@ startup-blueprint/
   3. Document breaking change in API
 
 ## 🔍 Detailed Findings
+
 [Detailed sections from all agents]
 ```
 
@@ -270,9 +309,11 @@ startup-blueprint/
 ## Implementation Tasks
 
 ### Task 1.1: Environment Setup with UV (CI-Only)
+
 **Estimated**: 2-3 hours
 
 - [ ] Create `.crewai/pyproject.toml` (isolated from root):
+
   ```toml
   [project]
   name = "startup-blueprint-crewai"
@@ -285,7 +326,7 @@ startup-blueprint/
       "python-dotenv>=1.0.0",
       "openai>=1.10.0",  # Direct OpenAI API
   ]
-  
+
   [project.optional-dependencies]
   dev = [
       "pytest>=8.0.0",
@@ -295,10 +336,11 @@ startup-blueprint/
   ```
 
 - [ ] Create `.crewai/.env.example`:
+
   ```bash
   # OpenAI API Key for CrewAI agents
   CREWAI_OPENAI_KEY=sk-...
-  
+
   # GitHub API (auto-provided in Actions)
   GITHUB_TOKEN=ghp_...
   GITHUB_REPOSITORY=owner/repo
@@ -307,6 +349,7 @@ startup-blueprint/
   ```
 
 - [ ] Update root `.gitignore`:
+
   ```
   # CrewAI environment
   .crewai/.env
@@ -319,6 +362,7 @@ startup-blueprint/
 - [ ] Document in README: "CrewAI runs in CI only, no local Python setup required"
 
 ### Task 1.2: GitHub Tools Development (Commit-Focused)
+
 **Estimated**: 5-7 hours
 
 - [ ] `tools/github_tools.py`:
@@ -326,18 +370,17 @@ startup-blueprint/
   - [ ] `CommitInfoTool` - Get commit message, author, timestamp, file stats
   - [ ] `FileContentTool` - Read full file content for context
   - [ ] `PRCommentTool` - Post review with executive summary format
-  
 - [ ] `tools/related_files_tool.py`:
   - [ ] Parse imports from changed files
   - [ ] Find files importing changed files
   - [ ] Detect shared dependencies
   - [ ] Score relatedness (0-100)
-  
 - [ ] Add comprehensive error handling
 - [ ] Implement GitHub API rate limiting
 - [ ] Unit tests with mocked GitHub API
 
 ### Task 1.3: Agent Definitions (agents.yaml)
+
 **Estimated**: 2-3 hours
 
 ```yaml
@@ -385,6 +428,7 @@ architecture_impact_analyst:
 ```
 
 ### Task 1.4: Task Definitions (tasks.yaml) - Executive Summary Format
+
 **Estimated**: 3-4 hours
 
 ```yaml
@@ -394,7 +438,7 @@ analyze_commit_changes:
     Focus on: diff content (lines added/removed), new files, removed files.
     Evaluate: code style, readability, test coverage, documentation.
     Assess commit message: does it clearly explain what and why?
-    
+
     Provide specific line references from the diff.
   expected_output: >
     A structured report with:
@@ -412,7 +456,7 @@ security_performance_review:
     Focus on lines added (new attack surface) and removed (breaking changes).
     Check for: SQL injection, XSS, auth bypasses, hardcoded secrets,
     N+1 queries, memory leaks, inefficient algorithms.
-    
+
     Flag CRITICAL issues that block merge.
   expected_output: >
     A report with:
@@ -426,7 +470,7 @@ find_related_files:
   description: >
     Identify files functionally or logically related to changed files,
     even if NOT modified in this commit.
-    
+
     Analyze: imports, dependencies, shared patterns, architectural layers.
     This finds hidden impacts not visible in the commit diff.
   expected_output: >
@@ -441,7 +485,7 @@ analyze_related_files:
   description: >
     Analyze the related files identified in the previous task.
     Assess potential impacts of this commit's changes on those files.
-    
+
     Consider: breaking changes, interface modifications, shared contracts.
   expected_output: >
     An impact assessment with:
@@ -456,7 +500,7 @@ architecture_review:
     Evaluate architectural implications of this commit.
     Consider: design patterns, SOLID principles, coupling, cohesion,
     scalability, and alignment with existing architecture.
-    
+
     Reference insights from all previous tasks to provide holistic view.
   expected_output: >
     An architectural assessment with:
@@ -470,7 +514,7 @@ architecture_review:
 generate_executive_summary:
   description: >
     Synthesize all agent findings into executive summary + detailed review.
-    
+
     Format as markdown:
     1. Executive Summary (4-5 sentences, overall assessment, top 3 actions)
     2. Detailed Findings:
@@ -478,7 +522,7 @@ generate_executive_summary:
        - ⚠️ Warnings (should fix soon)
        - 💡 Suggestions (nice to have)
        - ✅ Positive Observations (good patterns found)
-    
+
     Use emojis, code snippets with line numbers, and clear action items.
     Post the complete review to PR using PRCommentTool.
   expected_output: >
@@ -487,12 +531,13 @@ generate_executive_summary:
     - Detailed findings (critical/warning/suggestion/positive)
     - Code snippets with file:line references
     - Clear next steps for developer
-    
+
     Also return markdown for GitHub Actions summary.
   agent: code_quality_reviewer
 ```
 
 ### Task 1.5: Crew Implementation (crew.py) - OpenAI Configuration
+
 **Estimated**: 4-6 hours
 
 ```python
@@ -508,25 +553,25 @@ from pathlib import Path
 @CrewBase
 class CodeReviewCrew:
     """Code review crew for GitHub commit analysis"""
-    
+
     def __init__(self):
         config_dir = Path(__file__).parent / "config"
         with open(config_dir / "agents.yaml") as f:
             self.agents_config = yaml.safe_load(f)
         with open(config_dir / "tasks.yaml") as f:
             self.tasks_config = yaml.safe_load(f)
-        
+
         # Configure OpenAI LLM
         api_key = os.getenv('CREWAI_OPENAI_KEY')
         if not api_key:
             raise ValueError("CREWAI_OPENAI_KEY environment variable required")
-        
+
         self.llm = ChatOpenAI(
             model="gpt-4o",  # or "gpt-4o-mini" for cost savings
             api_key=api_key,
             temperature=0.3,  # Lower temp for consistent reviews
         )
-    
+
     # Agents
     @agent
     def code_quality_reviewer(self) -> Agent:
@@ -536,7 +581,7 @@ class CodeReviewCrew:
             llm=self.llm,
             verbose=True
         )
-    
+
     @agent
     def security_performance_analyst(self) -> Agent:
         return Agent(
@@ -545,7 +590,7 @@ class CodeReviewCrew:
             llm=self.llm,
             verbose=True
         )
-    
+
     @agent
     def architecture_impact_analyst(self) -> Agent:
         return Agent(
@@ -554,7 +599,7 @@ class CodeReviewCrew:
             llm=self.llm,
             verbose=True
         )
-    
+
     # Tasks
     @task
     def analyze_commit_changes(self) -> Task:
@@ -562,42 +607,42 @@ class CodeReviewCrew:
             config=self.tasks_config['analyze_commit_changes'],
             agent=self.code_quality_reviewer()
         )
-    
+
     @task
     def security_performance_review(self) -> Task:
         return Task(
             config=self.tasks_config['security_performance_review'],
             agent=self.security_performance_analyst()
         )
-    
+
     @task
     def find_related_files(self) -> Task:
         return Task(
             config=self.tasks_config['find_related_files'],
             agent=self.architecture_impact_analyst()
         )
-    
+
     @task
     def analyze_related_files(self) -> Task:
         return Task(
             config=self.tasks_config['analyze_related_files'],
             agent=self.architecture_impact_analyst()
         )
-    
+
     @task
     def architecture_review(self) -> Task:
         return Task(
             config=self.tasks_config['architecture_review'],
             agent=self.architecture_impact_analyst()
         )
-    
+
     @task
     def generate_executive_summary(self) -> Task:
         return Task(
             config=self.tasks_config['generate_executive_summary'],
             agent=self.code_quality_reviewer()
         )
-    
+
     @crew
     def crew(self) -> Crew:
         return Crew(
@@ -620,6 +665,7 @@ class CodeReviewCrew:
 ```
 
 ### Task 1.6: Entry Point (main.py) - Commit Context
+
 **Estimated**: 3-4 hours
 
 ```python
@@ -631,24 +677,24 @@ from dotenv import load_dotenv
 def main():
     """Entry point for GitHub Actions - commit-based review"""
     load_dotenv()
-    
+
     # Get GitHub context from environment
     pr_number = os.getenv('GITHUB_PR_NUMBER')
     repo = os.getenv('GITHUB_REPOSITORY')
     sha = os.getenv('GITHUB_SHA')
     api_key = os.getenv('CREWAI_OPENAI_KEY')
-    
+
     if not all([pr_number, repo, sha, api_key]):
         print("❌ Missing required environment variables")
         print(f"   PR: {pr_number}, Repo: {repo}, SHA: {sha[:8] if sha else 'None'}")
         print(f"   API Key: {'Set' if api_key else 'Missing'}")
         sys.exit(1)
-    
+
     print(f"🚀 Starting code review for commit in PR #{pr_number}")
     print(f"📦 Repository: {repo}")
     print(f"📝 Commit SHA: {sha[:8]}")
     print()
-    
+
     try:
         crew = CodeReviewCrew()
         inputs = {
@@ -657,7 +703,7 @@ def main():
             'commit_sha': sha,
             'review_scope': 'commit',  # Focus on commit changes
         }
-        
+
         print("🤖 Crew agents activated:")
         print("  1️⃣ Code Quality Reviewer (coordinator)")
         print("  2️⃣ Security & Performance Analyst")
@@ -666,21 +712,21 @@ def main():
         print("📋 Review scope: All files in commit + related file impacts")
         print("📊 Output format: Executive summary + detailed findings")
         print()
-        
+
         result = crew.crew().kickoff(inputs=inputs)
-        
+
         print("\n✅ Code review complete!")
         print(f"📊 Review posted to PR #{pr_number}")
-        
+
         # Write to GitHub Actions summary
         summary_file = os.getenv('GITHUB_STEP_SUMMARY')
         if summary_file:
             with open(summary_file, 'a') as f:
                 f.write("\n## 🤖 CrewAI Code Review\n\n")
                 f.write(result)
-        
+
         return 0
-        
+
     except Exception as e:
         print(f"\n❌ Error during code review: {e}")
         import traceback
@@ -692,6 +738,7 @@ if __name__ == "__main__":
 ```
 
 ### Task 1.7: GitHub Actions Workflow (CI-Only Python)
+
 **Estimated**: 3-4 hours
 
 ```yaml
@@ -715,35 +762,35 @@ jobs:
     name: AI Code Review
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     # Only run on actual code changes, skip bot PRs
     if: |
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for related file analysis
-      
+          fetch-depth: 0 # Full history for related file analysis
+
       - name: Setup Python (CI-only)
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install UV package manager
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      
+
       - name: Install CrewAI dependencies (isolated)
         run: |
           cd .crewai
           uv venv
           source .venv/bin/activate
           uv pip install -e .
-      
+
       - name: Run CrewAI code review
         env:
           CREWAI_OPENAI_KEY: ${{ secrets.CREWAI_OPENAI_KEY }}
@@ -755,7 +802,7 @@ jobs:
           cd .crewai
           source .venv/bin/activate
           python main.py
-      
+
       - name: Upload review logs (debugging)
         if: always()
         uses: actions/upload-artifact@v4
@@ -766,6 +813,7 @@ jobs:
 ```
 
 ### Task 1.8: Testing
+
 **Estimated**: 5-7 hours
 
 - [ ] Unit tests for each tool (mocked GitHub API)
@@ -777,6 +825,7 @@ jobs:
 - [ ] Validate PR comment markdown rendering
 
 ### Task 1.9: Documentation
+
 **Estimated**: 2-3 hours
 
 - [ ] Update `.crewai/README.md`:
@@ -792,9 +841,11 @@ jobs:
   - Note: "No Python setup required for developers"
 
 ---
+
 ## Success Criteria
 
-### Phase 1 Complete When:
+### Phase 1 Complete When
+
 - [ ] All 3 agents implemented with OpenAI LLM
 - [ ] Commit-based review working (all changed files analyzed)
 - [ ] Executive summary + detailed findings format
@@ -811,15 +862,18 @@ jobs:
 ## Cost Estimates (OpenAI Direct)
 
 ### Per Review (gpt-4o)
+
 - **3 agents** × ~$0.07 per agent = **~$0.21 per review**
 - Input tokens: ~50K (commit diff + context)
 - Output tokens: ~2K (executive summary + details)
 
 ### Per Review (gpt-4o-mini) - Budget Option
+
 - **3 agents** × ~$0.02 per agent = **~$0.06 per review**
 - Same quality for most reviews
 
 ### Monthly (100 PRs)
+
 - **gpt-4o**: ~$21/month
 - **gpt-4o-mini**: ~$6/month
 - **Hybrid** (mini for small PRs, full for large): ~$12/month
