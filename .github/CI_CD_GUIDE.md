@@ -17,7 +17,7 @@ flowchart TB
             B3[Push]
             B1 --> B2 --> B3
         end
-        
+
         subgraph ci_new ["CI Pipeline"]
             B4[Format/Lint + Auto-Commit]
             B5[Test]
@@ -25,7 +25,7 @@ flowchart TB
             B7[Deploy]
             B4 --> B5 --> B6 --> B7
         end
-        
+
         B3 --> B4
     end
 
@@ -37,14 +37,14 @@ flowchart TB
             A4[Push]
             A1 --> A2 --> A3 --> A4
         end
-        
+
         subgraph ci_old ["CI Pipeline"]
             A5[Test]
             A6[Build]
             A7[Deploy]
             A5 --> A6 --> A7
         end
-        
+
         A4 --> A5
     end
 
@@ -57,7 +57,7 @@ flowchart TB
     style B5 fill:#c8e6c9
     style B6 fill:#c8e6c9
     style B7 fill:#66bb6a
-    
+
     style A1 fill:#f5f5f5
     style A2 fill:#e0e0e0
     style A3 fill:#f5f5f5
