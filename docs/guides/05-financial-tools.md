@@ -27,16 +27,15 @@ Clients expect proper invoices, receipts, and payment flows.
 ## Architecture
 
 ```mermaid
-graph TD
-    A["Customer"] --> B["Payment Link / Invoice"]
-    B --> C["Payment Processor (Stripe/PayPal)"]
-    C --> D["Business Bank Account"]
-    D --> E["Accounting System"]
-    E --> F["Tax Filing"]
+flowchart TD
+    accTitle: Payment and Accounting Flow
+    accDescr: End-to-end flow from customer payment through processor to bank account, accounting system, and tax filing
 
-    style C fill:#e1f5ff
-    style D fill:#c8e6c9
-    style E fill:#fff3e0
+    customer[Customer] --> payment_link[Payment Link / Invoice]
+    payment_link --> payment_processor["Payment Processor (Stripe/PayPal)"]
+    payment_processor --> business_bank[Business Bank Account]
+    business_bank --> accounting_system[Accounting System]
+    accounting_system --> tax_filing[Tax Filing]
 ```
 
 ---
