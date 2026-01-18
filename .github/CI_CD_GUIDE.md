@@ -10,23 +10,23 @@ In most projects, developers format and lint code **locally before pushing**. Th
 
 ```mermaid
 flowchart TB
-    subgraph new ["✅ THIS PROJECT"]
+    subgraph new ["✅ THIS PROJECT:<br/>CI Does Format/Lint"]
         direction TB
-        subgraph agent ["Your Machine"]
-            B1[Edit] --> B2[Commit] --> B3[Push]
+        subgraph agent ["Agent/Local/Web"]
+            B1[Edit Code] --> B2[Commit] --> B3[Push]
         end
-        subgraph ci_new ["CI"]
-            B4[Format/Lint] --> B5[Test] --> B6[Build] --> B7[Deploy]
+        subgraph ci_new ["CI Pipeline"]
+            B4[Format/Lint] --> B5[Bot Auto-Commit] --> B6[Test] --> B7[Build] --> B8[Deploy]
         end
         agent --> ci_new
     end
 
-    subgraph old ["⚠️ TRADITIONAL"]
+    subgraph old ["⚠️ TRADITIONAL:<br/>Local Format/Lint"]
         direction TB
-        subgraph local ["Your Machine"]
-            A1[Edit] --> A2[Format/Lint] --> A3[Commit] --> A4[Push]
+        subgraph local ["Local Machine"]
+            A1[Edit Code] --> A2[Format/Lint] --> A3[Commit] --> A4[Push]
         end
-        subgraph ci_old ["CI"]
+        subgraph ci_old ["CI Pipeline"]
             A5[Test] --> A6[Build] --> A7[Deploy]
         end
         local --> ci_old
@@ -38,9 +38,10 @@ flowchart TB
     style B2 fill:#e8f5e9
     style B3 fill:#e8f5e9
     style B4 fill:#a5d6a7
-    style B5 fill:#c8e6c9
+    style B5 fill:#81c784
     style B6 fill:#c8e6c9
-    style B7 fill:#66bb6a
+    style B7 fill:#c8e6c9
+    style B8 fill:#66bb6a
 
     style A1 fill:#f5f5f5
     style A2 fill:#e0e0e0
@@ -51,7 +52,7 @@ flowchart TB
     style A7 fill:#e0e0e0
 ```
 
-**Key difference:** Format/Lint happens in CI (green), not on your machine. ✅ = our approach, ⚠️ = traditional.
+**Key difference:** Format/Lint happens in CI (green) with automatic bot commits, not on your machine. ✅ = our approach, ⚠️ = traditional.
 
 ### Why This Approach?
 
