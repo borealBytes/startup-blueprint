@@ -27,15 +27,14 @@ No email hosting needed—just forwarding + Gmail.
 ## Architecture
 
 ```mermaid
-graph LR
-    A["Incoming Email"] -->|Routed to Cloudflare| B["Cloudflare Email Routing"]
-    B -->|Forwards to| C["Gmail Inbox"]
-    D["Gmail SMTP"] -->|Sends as| E["founder@BUSINESS-NAME.com"]
-    F["Reply"] -->|Uses correct address| E
+flowchart LR
+    accTitle: Email Routing Architecture
+    accDescr: Flow showing incoming email routed through Cloudflare to Gmail inbox, with Gmail SMTP sending emails from custom domain address
 
-    style B fill:#e1f5ff
-    style C fill:#c8e6c9
-    style E fill:#fff3e0
+    incoming_email[Incoming Email] --> cloudflare_routing[Cloudflare Email Routing]
+    cloudflare_routing --> gmail_inbox[Gmail Inbox]
+    gmail_smtp[Gmail SMTP] --> custom_address["founder@BUSINESS-NAME.com"]
+    reply[Reply] --> custom_address
 ```
 
 ---
