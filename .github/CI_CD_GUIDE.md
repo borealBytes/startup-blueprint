@@ -41,7 +41,7 @@ flowchart TB
     style B5 fill:#c8e6c9
     style B6 fill:#c8e6c9
     style B7 fill:#66bb6a
-    
+
     style A1 fill:#f5f5f5
     style A2 fill:#e0e0e0
     style A3 fill:#f5f5f5
