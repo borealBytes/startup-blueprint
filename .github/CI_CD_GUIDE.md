@@ -45,15 +45,15 @@ flowchart LR
     B --> C[CI Format/Lint]
     C --> D{Changes Made?}
     D -->|Yes| E[Bot Commits Fixes]
-    D -->|No| F[No Additional Commit]
+    D -->|No| F[Ready to Continue]
     E --> G[Pull to Sync]
-    F --> H[Ready to Continue]
+    G --> F
 
     style A fill:#e1f5ff
     style C fill:#fff9c4
-    style E fill:#c8e6c9
+    style E fill:#ffecb3
     style G fill:#c8e6c9
-    style H fill:#c8e6c9
+    style F fill:#c8e6c9
 ```
 
 ### If You're Developing Locally
