@@ -116,25 +116,12 @@ graph TD
 
 ### Contributing Improvements (Public PR)
 
-```mermaid
-graph LR
-    A["Found improvement"] --> B["Fork public repo"]
-    B --> C["Create feature branch"]
-    C --> D["Make changes"]
-    D --> E["Open PR to startup-blueprint"]
-    E --> F["Everyone benefits"]
-    
-    style A fill:#fff3e0
-    style F fill:#c8e6c9
-```
+### 5. **Low Cost, High ROI**
+Most tools are free or extremely low cost (free Gmail, GitHub, Perplexity Spaces; domain registrar cost-only pricing from Cloudflare). Your primary recurring expense is your domain (about ~$10.50/year at Cloudflare's cost-based pricing).
 
 **Steps:**
 
-1. Fork this repo (public)
-2. Create branch: `git checkout -b feat/better-ci-workflow`
-3. Make your improvement (docs, automation, templates)
-4. Open PR back to `startup-blueprint/main`
-5. Help other founders
+The ROI comes from saved time, avoided mistakes, and a professional foundation that doesn't need to be rebuilt later.
 
 ---
 
@@ -358,5 +345,4 @@ Once you complete the blueprint:
 
 ---
 
-**Ready to build?** 🚀  
-→ [Quick Start Guide](./docs/guides/QUICKSTART.md) | [Jump to Guide #1](./docs/guides/01-legal-foundation.md) | [Check the CI/CD Guide](./.github/CI_CD_GUIDE.md)
+**Ready to start?** → [Go to Quickstart](./docs/QUICKSTART.md) or [Jump to Guide #1](./docs/01-legal-foundation.md)
