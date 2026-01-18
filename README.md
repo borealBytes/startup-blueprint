@@ -13,19 +13,15 @@ From "I'm starting a company" to "my website is deployed and CI is green"—this
 Most startup guides are vague advice. Most repo templates ignore the business side. This combines both:
 
 ```mermaid
-graph LR
-    A["📋 Business Guides"] --> C["🏢 Your Company Repo"]
-    B["⚙️ Git/CI Template"] --> C
-    C --> D["📝 Every Decision in Git"]
-    C --> E["🤖 AI Agent Ready"]
-    C --> F["🚀 Deploy to Production"]
+flowchart LR
+    accTitle: Startup Blueprint Components
+    accDescr: How business guides and Git/CI template combine into a complete company repository ready for AI agents and production deployment
 
-    style A fill:#e1f5ff
-    style B fill:#f3e5f5
-    style C fill:#c8e6c9
-    style D fill:#fff3e0
-    style E fill:#e8f5e9
-    style F fill:#fce4ec
+    business_guides["📋 Business Guides"] --> company_repo["🏢 Your Company Repo"]
+    git_ci_template["⚙️ Git/CI Template"] --> company_repo
+    company_repo --> decisions["📝 Every Decision in Git"]
+    company_repo --> ai_ready["🤖 AI Agent Ready"]
+    company_repo --> deploy["🚀 Deploy to Production"]
 ```
 
 ### Three Core Ideas
@@ -88,20 +84,18 @@ Root configs:
 ### For Your Own Business (Private Fork)
 
 ```mermaid
-graph TD
-    A["Fork startup-blueprint"] --> B["Make it private"]
-    B --> C["Follow setup guides"]
-    C --> D{"Need to customize?"}
-    D -->|Yes| E["Create branch"]
-    E --> F["Update docs to match your reality"]
-    F --> G["Merge to YOUR main"]
-    D -->|No| H["Continue building"]
-    G --> H
+flowchart TD
+    accTitle: Private Fork Workflow
+    accDescr: Process for forking this repo privately and customizing it for your own business while maintaining your own main branch
 
-    style A fill:#e1f5ff
-    style B fill:#fff3e0
-    style G fill:#c8e6c9
-    style H fill:#c8e6c9
+    fork_repo[Fork startup-blueprint] --> make_private[Make it private]
+    make_private --> follow_guides[Follow setup guides]
+    follow_guides --> need_customize{Need to customize?}
+    need_customize -->|Yes| create_branch[Create branch]
+    create_branch --> update_docs[Update docs to match your reality]
+    update_docs --> merge_main[Merge to YOUR main]
+    need_customize -->|No| continue_building[Continue building]
+    merge_main --> continue_building
 ```
 
 **Steps:**
@@ -159,16 +153,16 @@ The ROI comes from saved time, avoided mistakes, and a professional foundation t
 ## 🎯 Success Criteria
 
 ```mermaid
-graph TD
-    A["Start"] --> B["✅ LLC Registered"]
-    B --> C["✅ Domain + Email"]
-    C --> D["✅ GitHub Repo + CI"]
-    D --> E["✅ Website Deployed"]
-    E --> F["✅ Operations Documented"]
-    F --> G["🎉 Professional Business Foundation"]
+flowchart TD
+    accTitle: Business Setup Success Path
+    accDescr: Sequential milestones from starting setup through achieving a professional business foundation
 
-    style A fill:#ffe0b2
-    style G fill:#c8e6c9
+    start([Start]) --> llc_registered["✅ LLC Registered"]
+    llc_registered --> domain_email["✅ Domain + Email"]
+    domain_email --> github_ci["✅ GitHub Repo + CI"]
+    github_ci --> website_deployed["✅ Website Deployed"]
+    website_deployed --> ops_documented["✅ Operations Documented"]
+    ops_documented --> foundation_complete([Professional Business Foundation])
 ```
 
 After completing this blueprint:
@@ -241,21 +235,19 @@ To reduce decision fatigue, we made opinionated choices:
 ## 🤖 AI Agent Workflow
 
 ```mermaid
-graph LR
-    A["You: Make request"] --> B["AI Agent (Perplexity/Cursor)"]
-    B --> C["Read repo context"]
-    C --> D["Create branch"]
-    D --> E["Make changes"]
-    E --> F["Push + open PR"]
-    F --> G["CI runs (auto-format/lint)"]
-    G --> H["You review"]
-    H --> I["Merge to main"]
-    I --> J["Auto-deploy"]
+flowchart LR
+    accTitle: AI Agent Workflow
+    accDescr: End-to-end workflow showing how AI agents work with this repo from request through auto-deployment
 
-    style B fill:#e1f5ff
-    style G fill:#fff3e0
-    style I fill:#c8e6c9
-    style J fill:#c8e6c9
+    user_request([You: Make request]) --> ai_agent[AI Agent]
+    ai_agent --> read_context[Read repo context]
+    read_context --> create_branch[Create branch]
+    create_branch --> make_changes[Make changes]
+    make_changes --> push_pr[Push + open PR]
+    push_pr --> ci_runs{{CI runs}}
+    ci_runs --> you_review[You review]
+    you_review --> merge_main[Merge to main]
+    merge_main --> auto_deploy([Auto-deploy])
 ```
 
 **Why this works:**
@@ -268,7 +260,7 @@ graph LR
 
 ---
 
-## 📖 Documentation Structure
+## 📚 Documentation Structure
 
 Every guide includes:
 
