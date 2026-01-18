@@ -27,16 +27,16 @@ Your domain can host websites, email, APIs, everything. It's the foundation.
 ## Cloudflare vs Alternatives
 
 ```mermaid
-graph TD
-    A["Domain Registrar"] --> B["Cloudflare"]
-    A --> C["GoDaddy"]
-    A --> D["Namecheap"]
-    B --> B1["Integrated email routing, DNS, Workers, DDoS protection"]
-    C --> C1["Cheap, but basic. Email routing costs extra."]
-    D --> D1["Good value, but fewer integrations"]
+flowchart TD
+    accTitle: Domain Registrar Comparison
+    accDescr: Comparison of domain registrars showing Cloudflare with integrated features versus GoDaddy and Namecheap with basic offerings
 
-    style B fill:#c8e6c9
-    style B1 fill:#e8f5e9
+    domain_registrar[Domain Registrar] --> cloudflare[Cloudflare]
+    domain_registrar --> godaddy[GoDaddy]
+    domain_registrar --> namecheap[Namecheap]
+    cloudflare --> cloudflare_features["Integrated email routing, DNS, Workers, DDoS protection"]
+    godaddy --> godaddy_features["Cheap, but basic. Email routing costs extra."]
+    namecheap --> namecheap_features["Good value, but fewer integrations"]
 ```
 
 **Recommendation: Cloudflare** — Integrated, powerful, cost-effective.
