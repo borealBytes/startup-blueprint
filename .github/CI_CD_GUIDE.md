@@ -31,7 +31,7 @@ graph TD
     style B3 fill:#e8f5e9
     style B4 fill:#a5d6a7
     style B5 fill:#66bb6a
-    
+
     style A1 fill:#f5f5f5
     style A2 fill:#e0e0e0
     style A3 fill:#f5f5f5
