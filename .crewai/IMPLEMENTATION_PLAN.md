@@ -2,25 +2,34 @@
 
 > **Based on official [CrewAI PR Review Demo](https://github.com/crewAIInc/demo-pull-request-review) + project requirements**
 >
-> **Architecture**: 3-agent Crew, commit-based review, OpenAI API, CI-only Python environment
+> **Architecture**: 3-agent Crew, commit-based review, OpenRouter API, CI-only Python environment
 
 ---
 
 ## Configuration Decisions ✅
 
-### API Provider: OpenAI (Direct)
+### API Provider: OpenRouter
 
-**API Key**: `CREWAI_OPENAI_KEY`  
-**Provider**: OpenAI API directly (not OpenRouter)  
-**Model**: `gpt-4o` (balanced performance/cost)  
-**Fallback**: `gpt-4o-mini` (if budget constraints)
+**API Key**: `OPENROUTER_API_KEY`  
+**Provider**: OpenRouter (unified LLM gateway)  
+**Default Model**: `x-ai/grok-beta` (free tier)  
+**Alternatives**: Any OpenRouter model (per-agent configuration supported)
 
-**Why OpenAI direct?**
+**Why OpenRouter?**
 
-- Simpler integration (one provider)
-- Predictable pricing
-- Official CrewAI support
-- Better rate limits for single provider
+- **Cost flexibility**: Free models (Grok), super cheap models ($0.10-0.50/1M tokens)
+- **Model switching**: Change models per agent without code changes
+- **Future-proof**: Easy to test new models as they become available
+- **Budget control**: Start free, scale to paid only when needed
+- **Unified API**: One key for 100+ models (OpenAI, Anthropic, Google, etc.)
+
+**Model Strategy**:
+- Start with free models (x-ai/grok-beta, google/gemini-flash-1.5)
+- Monitor quality vs cost
+- Use different models per agent based on task complexity:
+  - Code Quality: Cheaper model (simple pattern matching)
+  - Security: More capable model (reasoning required)
+  - Architecture: Most capable model (complex analysis)
 
 ### Review Scope: Commit-Based
 
@@ -134,7 +143,7 @@ startup-blueprint/
 │   ├── workflows/
 │   │   ├── ci.yml                   # Existing (unchanged)
 │   │   └── crewai-review.yml        # NEW: CrewAI workflow
-│   └── SECRETS.md                   # Updated: Document CREWAI_OPENAI_KEY
+│   └── SECRETS.md                   # Updated: Document OPENROUTER_API_KEY
 └── README.md                        # Updated with CrewAI section
 ```
 
@@ -166,6 +175,7 @@ startup-blueprint/
 - Commit message quality
 
 **Tools**: GitHubDiffTool, CommitInfoTool, PRCommentTool  
+**Model**: Free/cheap (pattern matching task)  
 **Consolidates**: Code Quality + Test Engineer from original plan
 
 #### 2. Security & Performance Analyst
@@ -179,6 +189,7 @@ startup-blueprint/
 - Resource usage optimization
 
 **Tools**: GitHubDiffTool, FileContentTool  
+**Model**: Mid-tier (reasoning required)  
 **Consolidates**: Security + Performance agents from original plan
 
 #### 3. Architecture & Impact Analyst
@@ -192,6 +203,7 @@ startup-blueprint/
 - Scalability and long-term maintainability
 
 **Tools**: GitHubDiffTool, FileContentTool, RelatedFilesTool  
+**Model**: Most capable (complex analysis)  
 **New capability**: Analyzes files NOT directly modified but affected
 
 **Why 3 agents?**
@@ -324,7 +336,7 @@ startup-blueprint/
       "crewai-tools>=0.12.0",
       "PyGithub>=2.1.1",
       "python-dotenv>=1.0.0",
-      "openai>=1.10.0",  # Direct OpenAI API
+      "langchain-openai>=0.2.0",  # For OpenRouter LLM support
   ]
 
   [project.optional-dependencies]
@@ -338,8 +350,9 @@ startup-blueprint/
 - [ ] Create `.crewai/.env.example`:
 
   ```bash
-  # OpenAI API Key for CrewAI agents
-  CREWAI_OPENAI_KEY=sk-...
+  # OpenRouter API Key for CrewAI agents
+  # Get from: https://openrouter.ai/keys (free tier available)
+  OPENROUTER_API_KEY=sk-or-v1-...
 
   # GitHub API (auto-provided in Actions)
   GITHUB_TOKEN=ghp_...
@@ -536,7 +549,7 @@ generate_executive_summary:
   agent: code_quality_reviewer
 ```
 
-### Task 1.5: Crew Implementation (crew.py) - OpenAI Configuration
+### Task 1.5: Crew Implementation (crew.py) - OpenRouter Configuration
 
 **Estimated**: 4-6 hours
 
@@ -561,15 +574,38 @@ class CodeReviewCrew:
         with open(config_dir / "tasks.yaml") as f:
             self.tasks_config = yaml.safe_load(f)
 
-        # Configure OpenAI LLM
-        api_key = os.getenv('CREWAI_OPENAI_KEY')
+        # Configure OpenRouter API
+        api_key = os.getenv('OPENROUTER_API_KEY')
         if not api_key:
-            raise ValueError("CREWAI_OPENAI_KEY environment variable required")
+            raise ValueError("OPENROUTER_API_KEY environment variable required")
 
-        self.llm = ChatOpenAI(
-            model="gpt-4o",  # or "gpt-4o-mini" for cost savings
+        # Model configuration per agent (can be customized)
+        self.model_config = {
+            'code_quality': os.getenv('MODEL_CODE_QUALITY', 'x-ai/grok-beta'),
+            'security': os.getenv('MODEL_SECURITY', 'google/gemini-flash-1.5'),
+            'architecture': os.getenv('MODEL_ARCHITECTURE', 'x-ai/grok-beta'),
+        }
+
+        # Create LLM instances for each agent
+        self.llm_code_quality = ChatOpenAI(
+            base_url="https://openrouter.ai/api/v1",
             api_key=api_key,
-            temperature=0.3,  # Lower temp for consistent reviews
+            model=self.model_config['code_quality'],
+            temperature=0.3,
+        )
+        
+        self.llm_security = ChatOpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+            model=self.model_config['security'],
+            temperature=0.2,  # More deterministic for security
+        )
+        
+        self.llm_architecture = ChatOpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+            model=self.model_config['architecture'],
+            temperature=0.4,  # Higher for creative architectural thinking
         )
 
     # Agents
@@ -578,7 +614,7 @@ class CodeReviewCrew:
         return Agent(
             config=self.agents_config['code_quality_reviewer'],
             tools=[CommitDiffTool(), CommitInfoTool(), PRCommentTool()],
-            llm=self.llm,
+            llm=self.llm_code_quality,
             verbose=True
         )
 
@@ -587,7 +623,7 @@ class CodeReviewCrew:
         return Agent(
             config=self.agents_config['security_performance_analyst'],
             tools=[CommitDiffTool(), FileContentTool()],
-            llm=self.llm,
+            llm=self.llm_security,
             verbose=True
         )
 
@@ -596,7 +632,7 @@ class CodeReviewCrew:
         return Agent(
             config=self.agents_config['architecture_impact_analyst'],
             tools=[CommitDiffTool(), FileContentTool(), RelatedFilesTool()],
-            llm=self.llm,
+            llm=self.llm_architecture,
             verbose=True
         )
 
@@ -682,7 +718,7 @@ def main():
     pr_number = os.getenv('GITHUB_PR_NUMBER')
     repo = os.getenv('GITHUB_REPOSITORY')
     sha = os.getenv('GITHUB_SHA')
-    api_key = os.getenv('CREWAI_OPENAI_KEY')
+    api_key = os.getenv('OPENROUTER_API_KEY')
 
     if not all([pr_number, repo, sha, api_key]):
         print("❌ Missing required environment variables")
@@ -697,6 +733,14 @@ def main():
 
     try:
         crew = CodeReviewCrew()
+        
+        # Show model configuration
+        print("🤖 Model configuration:")
+        print(f"   Code Quality: {crew.model_config['code_quality']}")
+        print(f"   Security: {crew.model_config['security']}")
+        print(f"   Architecture: {crew.model_config['architecture']}")
+        print()
+        
         inputs = {
             'pr_number': pr_number,
             'repository': repo,
@@ -793,7 +837,11 @@ jobs:
 
       - name: Run CrewAI code review
         env:
-          CREWAI_OPENAI_KEY: ${{ secrets.CREWAI_OPENAI_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          # Optional: Override default models per agent
+          # MODEL_CODE_QUALITY: x-ai/grok-beta
+          # MODEL_SECURITY: google/gemini-flash-1.5
+          # MODEL_ARCHITECTURE: x-ai/grok-beta
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_PR_NUMBER: ${{ github.event.pull_request.number || github.event.number }}
@@ -830,11 +878,12 @@ jobs:
 
 - [ ] Update `.crewai/README.md`:
   - CI-only setup (no local Python required)
-  - OpenAI API key setup (`CREWAI_OPENAI_KEY`)
+  - OpenRouter API key setup (`OPENROUTER_API_KEY`)
+  - Model configuration options
   - Commit-based review scope
   - Executive summary output format
 - [ ] Update `.github/SECRETS.md`:
-  - Document `CREWAI_OPENAI_KEY` (rotation: 90 days)
+  - Document `OPENROUTER_API_KEY` (rotation: 90 days)
   - Permissions required
 - [ ] Update root `README.md`:
   - "Automated AI code review in CI" section
@@ -846,39 +895,47 @@ jobs:
 
 ### Phase 1 Complete When
 
-- [ ] All 3 agents implemented with OpenAI LLM
+- [ ] All 3 agents implemented with OpenRouter LLM
 - [ ] Commit-based review working (all changed files analyzed)
 - [ ] Executive summary + detailed findings format
 - [ ] Related files analysis catching hidden impacts
 - [ ] CI-only Python environment (no dev setup required)
 - [ ] Reviews post to PR comments
 - [ ] Average execution time < 5 minutes
-- [ ] Average cost per review < $0.25 (OpenAI gpt-4o)
+- [ ] Average cost per review < $0.05 (free/cheap models)
+- [ ] Model switching per agent supported
 - [ ] 80%+ test coverage
 - [ ] Zero API key leaks in logs
 
 ---
 
-## Cost Estimates (OpenAI Direct)
+## Cost Estimates (OpenRouter - Free/Cheap Models)
 
-### Per Review (gpt-4o)
+### Per Review (Free Models)
 
-- **3 agents** × ~$0.07 per agent = **~$0.21 per review**
-- Input tokens: ~50K (commit diff + context)
-- Output tokens: ~2K (executive summary + details)
+- **x-ai/grok-beta**: **FREE** (rate limited)
+- **google/gemini-flash-1.5**: **FREE** (rate limited)
+- **3 agents** × $0.00 = **$0.00 per review**
 
-### Per Review (gpt-4o-mini) - Budget Option
+### Per Review (Budget Models)
 
-- **3 agents** × ~$0.02 per agent = **~$0.06 per review**
-- Same quality for most reviews
+- **x-ai/grok-beta**: $0.10/1M tokens
+- **google/gemini-flash-1.5-8b**: $0.075/1M tokens  
+- **3 agents** × ~50K tokens × $0.10/1M = **~$0.015 per review**
 
 ### Monthly (100 PRs)
 
-- **gpt-4o**: ~$21/month
-- **gpt-4o-mini**: ~$6/month
-- **Hybrid** (mini for small PRs, full for large): ~$12/month
+- **Free models**: $0/month (best for testing)
+- **Budget models**: ~$1.50/month (scale when needed)
+- **Premium models**: ~$5-15/month (if quality demands it)
 
 **ROI**: ~5 hours of human review time saved/month
+
+**Cost flexibility**:
+- Start FREE with x-ai/grok-beta or gemini-flash
+- Monitor review quality
+- Switch to better models only if needed
+- Different model per agent based on task complexity
 
 ---
 
@@ -887,14 +944,17 @@ jobs:
 - [Official CrewAI PR Review Demo](https://github.com/crewAIInc/demo-pull-request-review)
 - [CrewAI Documentation](https://docs.crewai.com/)
 - [UV Package Manager](https://docs.astral.sh/uv/)
-- [OpenAI API Documentation](https://platform.openai.com/docs/)
+- [OpenRouter API](https://openrouter.ai/docs)
+- [OpenRouter Models](https://openrouter.ai/models) - Browse 100+ models with pricing
 - [GitHub Actions: Isolated Environments](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions)
 
 ---
 
 **Plan Status**: ✅ Ready for Implementation  
 **Last Updated**: 2026-01-18  
-**API Provider**: OpenAI (CREWAI_OPENAI_KEY)  
+**API Provider**: OpenRouter (OPENROUTER_API_KEY)  
+**Default Model**: x-ai/grok-beta (FREE)  
 **Review Scope**: Commit-based (all changed files)  
 **Output Format**: Executive summary + detailed findings  
-**Python Setup**: CI-only, isolated environment
+**Python Setup**: CI-only, isolated environment  
+**Cost**: $0/month (free models) → $1.50/month (100 PRs, budget models)
