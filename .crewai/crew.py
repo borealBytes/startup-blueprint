@@ -37,20 +37,20 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
-        # Model configuration per agent (using verified free models)
+        # Model configuration per agent (using xiaomi/mimo-v2-flash:free for all agents)
         # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
             "code_quality": os.getenv(
                 "MODEL_CODE_QUALITY",
-                "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+                "openrouter/xiaomi/mimo-v2-flash:free",
             ),
             "security": os.getenv(
                 "MODEL_SECURITY",
-                "openrouter/google/gemini-2.0-flash-exp:free",
+                "openrouter/xiaomi/mimo-v2-flash:free",
             ),
             "architecture": os.getenv(
                 "MODEL_ARCHITECTURE",
-                "openrouter/mistralai/devstral-2512:free",
+                "openrouter/xiaomi/mimo-v2-flash:free",
             ),
         }
 
