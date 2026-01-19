@@ -1,229 +1,205 @@
 # GitHub Actions Workflows
 
-## Architecture: Orchestrator Pattern
+## Orchestrated CI Pipeline
 
-Our CI uses a **reusable workflow orchestrator pattern** to maintain modularity while ensuring CrewAI review only runs after core CI succeeds.
-
-### Workflow Files
-
-```
-.github/workflows/
-├── ci.yml                        # 🎯 Orchestrator (entry point)
-├── core-ci-reusable.yml          # 📋 Core CI (format, lint, link check)
-└── crewai-review-reusable.yml    # 🤖 AI code review
-```
+This directory contains a **modular, orchestrated CI workflow** that runs comprehensive checks before allowing AI-powered code review.
 
 ---
 
-## How It Works
+## 📁 Workflow Files
 
-### 1. **ci.yml** (Orchestrator)
-
-**Triggers:** `pull_request`
-
-**Jobs:**
+### 1. **`ci.yml`** - Main Orchestrator
+**Purpose:** Entry point that coordinates the entire CI pipeline  
+**Triggers:** Every pull request  
+**What it does:**
+- Runs Core CI first (format, lint, type check, link check)
+- Only runs CrewAI review if Core CI succeeds
+- Skips AI review for:
+  - Bot PRs (`dependabot[bot]`, `renovate[bot]`)
+  - Draft PRs
 
 ```yaml
+on:
+  pull_request:
+
 jobs:
   core-ci:
     uses: ./.github/workflows/core-ci-reusable.yml
-
+  
   crewai-review:
     needs: [core-ci]
-    if: needs.core-ci.result == 'success'
+    if: needs.core-ci.result == 'success' && !draft && !bot
     uses: ./.github/workflows/crewai-review-reusable.yml
 ```
 
+---
+
+### 2. **`core-ci-reusable.yml`** - Format, Lint, Test
+**Purpose:** Comprehensive code quality checks  
 **What it does:**
-- Calls `core-ci-reusable.yml` first
-- Only calls `crewai-review-reusable.yml` if core CI succeeds
-- Passes secrets and inputs to child workflows
+
+**Formatting:**
+- ✨ Prettier (JS/TS/JSON/MD/YAML/CSS)
+- 🐍 Black (Python)
+- 🔀 isort (Python imports)
+- 🗄️ SQLFluff (SQL - PostgreSQL/DuckDB)
+- 🎨 stylelint (CSS/SCSS)
+- 📝 markdownlint
+- 🦴 gofmt (Go)
+
+**Linting:**
+- 🔍 ESLint (JS/TS)
+- 🐍 flake8 (Python)
+- 📄 yamllint (YAML)
+- 🐚 shellcheck (Bash)
+- 🦴 golangci-lint (Go)
+- 💬 commitlint (Conventional Commits)
+
+**Type Checking:**
+- 🔷 TypeScript compiler (tsc --noEmit)
+
+**Link Validation:**
+- 🔗 lychee (Markdown link checker with cache)
+
+**Auto-fix & Commit:**
+- If formatting/linting issues found, auto-commits fixes
+- Outputs final commit SHA for next steps
+- Prevents workflow files from being modified
 
 ---
 
-### 2. **core-ci-reusable.yml**
-
-**Reusable workflow** (`on: workflow_call`)
-
-**Jobs:**
-- `format-and-lint`: Run formatters and linters (Prettier, ESLint, Black, etc.)
-- `link-check`: Validate Markdown links with Lychee
-
+### 3. **`crewai-review-reusable.yml`** - AI Code Review
+**Purpose:** Multi-model AI code review using CrewAI agents  
 **What it does:**
-- Formats and lints all code (JS/TS, Python, SQL, Go, Markdown, etc.)
-- Auto-commits fixes if needed
-- Checks documentation links
-- **Fails fast** if any check fails (stops before CrewAI runs)
+- Reviews the exact commit after Core CI (uses SHA from Core CI output)
+- Runs multiple specialized AI agents:
+  - Code quality review
+  - Security vulnerability scan
+  - Architecture analysis
+- Posts review as PR comment
+- Uploads logs as artifacts
+
+**Requirements:**
+- `OPENROUTER_API_KEY` secret must be set
+- `.crewai/` directory with review agents
+- Only runs if Core CI passes ✅
 
 ---
 
-### 3. **crewai-review-reusable.yml**
-
-**Reusable workflow** (`on: workflow_call`)
-
-**Jobs:**
-- `crewai-review`: AI-powered code review using CrewAI
-
-**What it does:**
-- Reviews code quality, security, architecture
-- Posts findings as PR comments
-- Only runs if core CI passed (resource optimization)
-
-**Skipped when:**
-- Core CI failed
-- PR is a draft
-- PR author is a bot (dependabot, renovate)
-
----
-
-## Execution Flow
+## 🔄 Execution Flow
 
 ```mermaid
 graph TD
-    A[Pull Request Created/Updated] --> B{ci.yml Orchestrator}
-    B --> C[core-ci-reusable.yml]
-    C --> D{Core CI Success?}
-    D -->|✅ Yes| E[crewai-review-reusable.yml]
-    D -->|❌ No| F[Stop - Don't Run CrewAI]
-    E --> G[CrewAI Reviews Code]
-    G --> H[Post Findings to PR]
-    F --> I[Fix Issues & Push Again]
-    I --> A
+    A[PR Created/Updated] --> B[CI Orchestrator]
+    B --> C[Core CI: Format & Lint]
+    C -->|✅ Success| D[Core CI: Link Check]
+    C -->|❌ Failed| E[Stop - Fix Issues]
+    D -->|✅ Success| F{Check Conditions}
+    D -->|❌ Failed| E
+    F -->|Bot PR?| G[Skip CrewAI]
+    F -->|Draft PR?| G
+    F -->|✅ Ready| H[CrewAI Review]
+    H --> I[Post Review Comment]
+    I --> J[Done]
+    G --> J
 ```
 
 ---
 
-## Benefits
+## 🔐 Secrets Management
 
-### ✅ **Resource Efficiency**
-- CrewAI never runs if lint/format/link checks fail
-- Saves API costs and compute time
-- Fast feedback on basic issues
+### Automatic Secrets (No Configuration Needed)
+- `GITHUB_TOKEN` - Auto-provided by GitHub Actions
+  - Used for: Checkout, PR comments, API access
+  - **Cannot** be explicitly declared in `workflow_call` secrets
 
-### ✅ **Modularity**
-- Each workflow file has a single responsibility
-- Easy to test and maintain individually
-- Can reuse workflows in other contexts
-
-### ✅ **Single Workflow Run**
-- Appears as one "CI" workflow in GitHub UI
-- Clear job dependencies visible in Actions tab
-- All steps in one place for audit trail
-
-### ✅ **Clear Dependency Chain**
-- `needs: [core-ci]` makes execution order explicit
-- `if: needs.core-ci.result == 'success'` prevents wasted work
-- Human-readable workflow structure
+### Required Secrets (Must Configure)
+- `OPENROUTER_API_KEY` - Required for CrewAI review
+  - Add in: Repository Settings → Secrets → Actions
+  - Get from: https://openrouter.ai/
 
 ---
 
-## Customization
+## 🎯 Why This Architecture?
 
-### Skip CrewAI for Specific PRs
+### ✅ Benefits
 
-Add label-based conditions to `ci.yml`:
+1. **No Wasted Resources**
+   - CrewAI doesn't run if code doesn't pass basic checks
+   - Saves API costs and compute time
 
-```yaml
-crewai-review:
-  needs: [core-ci]
-  if: |
-    needs.core-ci.result == 'success' &&
-    !contains(github.event.pull_request.labels.*.name, 'skip-ai-review')
-```
+2. **Single Workflow Run**
+   - Shows as one "CI" workflow in GitHub UI
+   - Clean, professional appearance
 
-### Add More Reusable Workflows
+3. **Modular & Maintainable**
+   - Three files instead of one monolith
+   - Easy to modify individual steps
+   - Reusable workflows for future projects
 
-Create new workflow files:
+4. **Clear Dependencies**
+   - `needs: [core-ci]` makes execution order explicit
+   - Conditional logic prevents unwanted runs
 
-```yaml
-# .github/workflows/security-scan-reusable.yml
-name: Security Scan (Reusable)
-on:
-  workflow_call:
-
-jobs:
-  security:
-    # ... Snyk, Trivy, etc.
-```
-
-Then call from orchestrator:
-
-```yaml
-# ci.yml
-jobs:
-  core-ci:
-    uses: ./.github/workflows/core-ci-reusable.yml
-
-  security-scan:
-    needs: [core-ci]
-    if: needs.core-ci.result == 'success'
-    uses: ./.github/workflows/security-scan-reusable.yml
-
-  crewai-review:
-    needs: [security-scan]
-    if: needs.security-scan.result == 'success'
-    uses: ./.github/workflows/crewai-review-reusable.yml
-```
+5. **Smart Skipping**
+   - Doesn't waste AI review on bot PRs
+   - Doesn't review drafts (saves reviews for ready PRs)
 
 ---
 
-## Troubleshooting
+## 🚀 Usage
 
-### CrewAI Never Runs
+### For Developers
+**Just open a PR!** The workflow runs automatically.
 
-**Check:**
-1. Did core CI pass? (Look at `core-ci` job result)
-2. Is the PR a draft? (CrewAI skips drafts)
-3. Is the author a bot? (CrewAI skips bot PRs)
-4. Is `OPENROUTER_API_KEY` secret set?
+### What to Expect
+1. Core CI runs (1-3 minutes)
+   - Auto-commits format/lint fixes if needed
+2. Link check validates docs (30 seconds)
+3. CrewAI review analyzes code (2-5 minutes)
+4. Review posted as PR comment
 
-### Core CI Fails on Valid Code
+### If CI Fails
+- Check the "Core CI" job logs
+- Fix the issues locally
+- Push your changes
+- Workflow re-runs automatically
 
-**Check:**
-1. Are linters/formatters configured correctly?
-2. Run locally: `pnpm lint`, `pnpm format`
-3. Check workflow logs for specific tool failures
-
-### Workflow Files Not Found
-
-**Error:** `workflow_call: ./.github/workflows/xxx.yml not found`
-
-**Fix:** Ensure all workflow files are committed to the same branch
-
----
-
-## Migration from Old Structure
-
-**Before:**
-```
-.github/workflows/
-├── ci.yml              # All CI steps (1000+ lines)
-└── crewai-review.yml   # Separate workflow (runs independently)
-```
-
-**After:**
-```
-.github/workflows/
-├── ci.yml                        # Orchestrator (30 lines)
-├── core-ci-reusable.yml          # Core CI logic (600 lines)
-└── crewai-review-reusable.yml    # CrewAI logic (80 lines)
-```
-
-**Key Changes:**
-- CrewAI now runs as part of CI (not separately)
-- CrewAI only runs if core CI passes (conditional execution)
-- Workflow logic split into maintainable files
-- Single workflow run in GitHub UI (not two separate runs)
+### If CrewAI Review Fails
+- Check the "CrewAI Code Review" job logs
+- Review logs available as downloadable artifacts
+- Does not block PR merge (informational only)
 
 ---
 
-## Further Reading
+## 🔧 Troubleshooting
+
+### Workflow Not Running?
+1. Check PR is not a draft
+2. Verify workflow files are on the base branch
+3. Check branch protection rules
+
+### CrewAI Review Skipped?
+- ✅ Expected if Core CI failed
+- ✅ Expected if PR is draft
+- ✅ Expected if opened by bot
+
+### Format/Lint Auto-Commit Loop?
+- Check `.gitignore` excludes generated files
+- Verify formatters are deterministic
+- Review "Unstage workflow files" safeguard step
+
+---
+
+## 📚 References
 
 - [GitHub Actions: Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
-- [GitHub Actions: Workflow Syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions)
+- [Conventional Commits](https://www.conventionalcommits.org/)
 - [CrewAI Documentation](https://docs.crewai.com/)
+- [OpenRouter API](https://openrouter.ai/docs)
 
 ---
 
 **Last Updated:** 2026-01-18  
-**Structure Version:** 2.0 (Orchestrator Pattern)
+**Architecture Version:** 1.0  
+**Status:** ✅ Production Ready
