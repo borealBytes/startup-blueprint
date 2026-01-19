@@ -63,9 +63,7 @@ def execute_with_retry(crew, inputs, max_retries=2):
             )
 
             if is_context_error and not fallback_activated and attempt < max_retries:
-                logger.warning(
-                    f"⚠️  Context overflow detected on attempt {attempt + 1}"
-                )
+                logger.warning(f"⚠️  Context overflow detected on attempt {attempt + 1}")
                 logger.info(
                     f"🔄 Switching architecture agent to fallback model: {crew.model_config['fallback']}"
                 )
@@ -87,9 +85,7 @@ def execute_with_retry(crew, inputs, max_retries=2):
 
             # Check if it's a rate limit error
             is_rate_limit = (
-                "rate limit" in error_str
-                or "ratelimit" in error_str
-                or "429" in error_str
+                "rate limit" in error_str or "ratelimit" in error_str or "429" in error_str
             )
 
             if is_rate_limit and attempt < max_retries:
@@ -136,9 +132,7 @@ def write_actions_summary(crew, pr_number, repo, sha, result):
             f.write("| Property | Value |\n")
             f.write("|----------|-------|\n")
             f.write(f"| **Repository** | `{repo}` |\n")
-            f.write(
-                f"| **Pull Request** | [#{pr_number}]({get_pr_url(repo, pr_number)}) |\n"
-            )
+            f.write(f"| **Pull Request** | [#{pr_number}]({get_pr_url(repo, pr_number)}) |\n")
             f.write(f"| **Commit** | [`{sha[:8]}`]({get_commit_url(repo, sha)}) |\n")
             f.write(f"| **Status** | ✅ Review Complete |\n")
             f.write("\n")
@@ -147,12 +141,8 @@ def write_actions_summary(crew, pr_number, repo, sha, result):
             f.write("### 🤖 AI Models Used\n\n")
             f.write("| Task | Model |\n")
             f.write("|------|-------|\n")
-            f.write(
-                f"| Quick Analysis (Tasks 1,2,6) | `{crew.model_config['fast']}` |\n"
-            )
-            f.write(
-                f"| Complex Analysis (Tasks 3-5) | `{crew.model_config['complex']}` |\n"
-            )
+            f.write(f"| Quick Analysis (Tasks 1,2,6) | `{crew.model_config['fast']}` |\n")
+            f.write(f"| Complex Analysis (Tasks 3-5) | `{crew.model_config['complex']}` |\n")
             if crew.model_config["complex"] == crew.model_config["fallback"]:
                 f.write("| **Note** | ⚠️  Fallback model activated for context overflow |\n")
             f.write("\n")
