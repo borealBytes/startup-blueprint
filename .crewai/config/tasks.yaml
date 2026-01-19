@@ -83,11 +83,25 @@ architecture_review:
 
 generate_executive_summary:
   description: >
-    Synthesize all agent findings into executive summary + detailed review for
-    commit {commit_sha} in repository {repository} (PR #{pr_number}).
+    IMPORTANT: This task receives outputs from ALL previous tasks (1-5) as context.
+    Your job is ONLY to synthesize these existing findings into a final markdown report.
+    
+    DO NOT use CommitDiffTool, FileContentTool, or any other tools.
+    DO NOT try to fetch data from GitHub - you already have all findings from previous tasks.
+    
+    Simply read the outputs from:
+    - Task 1: Code quality analysis
+    - Task 2: Security and performance review
+    - Task 3: Related files discovered
+    - Task 4: Impact on related files
+    - Task 5: Architecture review
+    
+    Synthesize these into a cohesive markdown report for commit {commit_sha} in
+    repository {repository} (PR #{pr_number}).
 
-    Format as markdown: 1. Executive Summary (4-5 sentences, overall assessment,
-    top 3 actions) 2. Detailed Findings:
+    Format as markdown:
+    1. Executive Summary (4-5 sentences, overall assessment, top 3 actions)
+    2. Detailed Findings:
        - 🚨 Critical Issues (must fix before merge)
        - ⚠️ Warnings (should fix soon)
        - 💡 Suggestions (nice to have)
@@ -99,10 +113,12 @@ generate_executive_summary:
     Include link to commit: https://github.com/{repository}/commit/{commit_sha}
     Include link to PR: https://github.com/{repository}/pull/{pr_number}
   expected_output: >
-    Markdown-formatted review with: - Executive summary (overall assessment,
-    metrics, top actions) - Detailed findings
-    (critical/warning/suggestion/positive) - Code snippets with file:line
-    references - Clear next steps for developer - Links to commit and PR
+    Markdown-formatted review with:
+    - Executive summary (overall assessment, metrics, top actions)
+    - Detailed findings (critical/warning/suggestion/positive)
+    - Code snippets with file:line references
+    - Clear next steps for developer
+    - Links to commit and PR
 
     Output will be displayed in GitHub Actions summary page.
-  agent: code_quality_reviewer
+  agent: executive_summary_agent
