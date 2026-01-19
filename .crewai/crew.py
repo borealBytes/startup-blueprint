@@ -38,13 +38,18 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
         # Model configuration per agent (using verified free OpenRouter models)
-        # All models are free tier - no cost!
+        # Important: Use 'openrouter/' prefix to force routing through LiteLLM/OpenRouter
+        # Without the prefix, CrewAI tries to use native provider SDKs (google-genai, etc.)
         self.model_config = {
             "code_quality": os.getenv(
-                "MODEL_CODE_QUALITY", "meta-llama/llama-3.3-70b-instruct:free"
+                "MODEL_CODE_QUALITY", "openrouter/meta-llama/llama-3.3-70b-instruct:free"
             ),
-            "security": os.getenv("MODEL_SECURITY", "google/gemini-2.0-flash-exp:free"),
-            "architecture": os.getenv("MODEL_ARCHITECTURE", "mistralai/devstral-2512:free"),
+            "security": os.getenv(
+                "MODEL_SECURITY", "openrouter/google/gemini-2.0-flash-exp:free"
+            ),
+            "architecture": os.getenv(
+                "MODEL_ARCHITECTURE", "openrouter/mistralai/devstral-2512:free"
+            ),
         }
 
         logger.info("Model Configuration:")
