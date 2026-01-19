@@ -2,7 +2,7 @@
 name = "startup-blueprint-crewai"
 version = "0.1.0"
 description = "CrewAI multi-agent code review system for startup-blueprint"
-requires-python = ">=3.10 <=3.13"
+requires-python = ">=3.10,<=3.13"
 readme = "README.md"
 license = {text = "MIT"}
 
