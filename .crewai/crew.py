@@ -38,21 +38,21 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
         # Model configuration per agent
-        # Devstral 2 (December 2025): 123B params, 256K context, optimized for agentic coding
-        # Cost: $0.05 input / $0.22 output per 1M tokens (~$0.01-0.03 per review)
+        # Qwen3-VL-8B: 8B params, multimodal (vision-language), supports function calling
+        # Free on OpenRouter, testing for tool execution compatibility
         # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
             "code_quality": os.getenv(
                 "MODEL_CODE_QUALITY",
-                "openrouter/mistralai/devstral-2512",
+                "openrouter/qwen/qwen3-vl-8b-instruct",
             ),
             "security": os.getenv(
                 "MODEL_SECURITY",
-                "openrouter/mistralai/devstral-2512",
+                "openrouter/qwen/qwen3-vl-8b-instruct",
             ),
             "architecture": os.getenv(
                 "MODEL_ARCHITECTURE",
-                "openrouter/mistralai/devstral-2512",
+                "openrouter/qwen/qwen3-vl-8b-instruct",
             ),
         }
 
