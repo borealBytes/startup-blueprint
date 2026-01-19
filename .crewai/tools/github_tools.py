@@ -65,10 +65,7 @@ def CommitDiffTool(commit_sha: str, repository: str) -> Dict[str, Any]:
             }
             diff_data["files"].append(file_info)
 
-        logger.info(
-            f"Retrieved diff for {commit_sha[:8]}: "
-            f"{len(files_list)} files changed"
-        )
+        logger.info(f"Retrieved diff for {commit_sha[:8]}: " f"{len(files_list)} files changed")
         return diff_data
 
     except GithubException as e:
