@@ -120,7 +120,7 @@ class CodeReviewCrew:
     @agent
     def executive_summary_agent(self) -> Agent:
         """Executive summary agent - synthesizes findings from all previous tasks.
-        
+
         This agent has NO tools - it only receives context from previous tasks
         and synthesizes them into a final markdown report. This prevents it from
         trying to re-fetch data and hitting iteration limits.
