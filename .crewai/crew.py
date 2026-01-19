@@ -211,8 +211,8 @@ class CodeReviewCrew:
         CRITICAL: This task will receive clean context manually in main.py.
         DO NOT add context=[] here - it will be injected during execution
         with only the final outputs from tasks 1-5, not full execution traces.
-        
-        The dedicated executive_summary_agent has NO tools, preventing it from 
+
+        The dedicated executive_summary_agent has NO tools, preventing it from
         trying to re-fetch data and hitting iteration limits.
         """
         return Task(
