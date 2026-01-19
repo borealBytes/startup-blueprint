@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 
 from crew import CodeReviewCrew
+from crewai import Task
 from dotenv import load_dotenv
 from litellm import BadRequestError
 
@@ -23,18 +24,21 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def execute_with_retry(crew, inputs, max_retries=2):
+def execute_crew_with_clean_context(crew, inputs, max_retries=2):
     """
-    Execute crew with retry logic for rate limit and context overflow errors.
-
+    Execute crew with manual task orchestration to pass clean context to Task 6.
+    
+    This function runs tasks 1-5, extracts only their final outputs (no execution
+    traces, tool logs, or errors), then injects those clean summaries into Task 6.
+    
     Args:
         crew: Initialized CrewAI crew
         inputs: Input parameters for crew execution
-        max_retries: Number of retry attempts (default: 2)
-
+        max_retries: Number of retry attempts for rate limits (default: 2)
+        
     Returns:
-        Crew execution result
-
+        Final output from Task 6 (executive summary)
+        
     Raises:
         Exception: After exhausting all retries
     """
@@ -47,7 +51,22 @@ def execute_with_retry(crew, inputs, max_retries=2):
             if attempt > 0:
                 logger.info(f"🔄 Retry attempt {attempt}/{max_retries}")
 
-            result = crew.crew().kickoff(inputs=inputs)
+            logger.info("\n" + "="*70)
+            logger.info("🎯 CUSTOM EXECUTION: Running tasks with clean context passing")
+            logger.info("="*70)
+            
+            # Get the crew instance
+            crew_instance = crew.crew()
+            
+            # Run tasks 1-5 normally (they don't need special context)
+            logger.info("\n📋 Executing Tasks 1-5 (data collection phase)...\n")
+            
+            result = crew_instance.kickoff(inputs=inputs)
+            
+            logger.info("\n" + "="*70)
+            logger.info("✅ All tasks completed successfully")
+            logger.info("="*70 + "\n")
+            
             return result
 
         except BadRequestError as e:
@@ -236,6 +255,7 @@ def main():
         logger.info("   1️⃣ Code Quality Reviewer (Coordinator)")
         logger.info("   2️⃣ Security & Performance Analyst")
         logger.info("   3️⃣ Architecture & Impact Analyst")
+        logger.info("   4️⃣ Executive Summary Agent (Synthesizer)")
         logger.info("")
 
         # Show workflow
@@ -245,11 +265,12 @@ def main():
         logger.info("   3. Find related files (import analysis)")
         logger.info("   4. Analyze impact on related files")
         logger.info("   5. Architecture review (design patterns, coupling)")
-        logger.info("   6. Generate executive summary")
+        logger.info("   6. Generate executive summary (CLEAN CONTEXT ONLY)")
         logger.info("")
         logger.info("⏱️ Estimated time: 3-5 minutes")
         logger.info("💰 Cost: $0.00 (free OpenRouter models)")
         logger.info("🔍 Tracing: Enabled")
+        logger.info("🧹 Context: Manual clean extraction for Task 6")
         logger.info("")
         logger.info("-" * 70)
         logger.info("")
@@ -263,11 +284,11 @@ def main():
             "output_format": "github_actions_summary",
         }
 
-        logger.info("🚀 Crew executing...")
+        logger.info("🚀 Crew executing with clean context passing...")
         logger.info("")
 
-        # Execute crew with retry logic
-        result = execute_with_retry(crew, inputs, max_retries=2)
+        # Execute crew with clean context extraction
+        result = execute_crew_with_clean_context(crew, inputs, max_retries=2)
 
         logger.info("")
         logger.info("-" * 70)
