@@ -129,7 +129,7 @@ class CodeReviewCrew:
             config=self.agents_config["code_quality_reviewer"],  # Reuse config
             tools=[],  # NO TOOLS - only synthesize previous outputs
             llm=self.model_config["fast"],
-            max_iter=8,  # Higher limit for synthesis iterations
+            max_iter=10,  # Higher limit for synthesis iterations
             verbose=True,
         )
 
@@ -208,21 +208,17 @@ class CodeReviewCrew:
     def generate_executive_summary(self) -> Task:
         """Task: Generate executive summary.
 
-        CRITICAL: This task receives context from ALL previous tasks so it can
-        synthesize their findings. The dedicated executive_summary_agent has NO
-        tools, preventing it from trying to re-fetch data and hitting iteration
-        limits. It only reads and synthesizes the outputs from tasks 1-5.
+        CRITICAL: This task will receive clean context manually in main.py.
+        DO NOT add context=[] here - it will be injected during execution
+        with only the final outputs from tasks 1-5, not full execution traces.
+        
+        The dedicated executive_summary_agent has NO tools, preventing it from 
+        trying to re-fetch data and hitting iteration limits.
         """
         return Task(
             config=self.tasks_config["generate_executive_summary"],
-            agent=self.executive_summary_agent(),  # Use dedicated synthesis agent
-            context=[
-                self.analyze_commit_changes(),
-                self.security_performance_review(),
-                self.find_related_files(),
-                self.analyze_related_files(),
-                self.architecture_review(),
-            ],  # Receive outputs from all previous tasks
+            agent=self.executive_summary_agent(),
+            # NO context=[] here - will be set manually with clean outputs
         )
 
     @crew
