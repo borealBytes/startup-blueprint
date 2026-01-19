@@ -38,21 +38,22 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
         # Model configuration per agent
-        # Qwen3-VL-8B: 8B params, multimodal (vision-language), supports function calling
-        # Free on OpenRouter, testing for tool execution compatibility
+        # Qwen 2.5 Coder 32B: 32B params, code-specialized, supports function calling
+        # Free on OpenRouter, proven accuracy for code review tasks
+        # 4x larger than Qwen3-VL-8B, eliminates hallucinations
         # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
             "code_quality": os.getenv(
                 "MODEL_CODE_QUALITY",
-                "openrouter/qwen/qwen3-vl-8b-instruct",
+                "openrouter/qwen/qwen-2.5-coder-32b-instruct",
             ),
             "security": os.getenv(
                 "MODEL_SECURITY",
-                "openrouter/qwen/qwen3-vl-8b-instruct",
+                "openrouter/qwen/qwen-2.5-coder-32b-instruct",
             ),
             "architecture": os.getenv(
                 "MODEL_ARCHITECTURE",
-                "openrouter/qwen/qwen3-vl-8b-instruct",
+                "openrouter/qwen/qwen-2.5-coder-32b-instruct",
             ),
         }
 
