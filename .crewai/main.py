@@ -54,9 +54,7 @@ def execute_with_retry(crew, inputs, max_retries=2):
 
             # Check if it's a rate limit error
             is_rate_limit = (
-                "rate limit" in error_str
-                or "ratelimit" in error_str
-                or "429" in error_str
+                "rate limit" in error_str or "ratelimit" in error_str or "429" in error_str
             )
 
             if is_rate_limit and attempt < max_retries:
@@ -112,15 +110,9 @@ def write_actions_summary(crew, pr_number, repo, sha, result):
             f.write("### 🤖 AI Models Used\n\n")
             f.write("| Agent | Model |\n")
             f.write("|-------|-------|\n")
-            f.write(
-                f"| Code Quality Reviewer | `{crew.model_config['code_quality']}` |\n"
-            )
-            f.write(
-                f"| Security & Performance | `{crew.model_config['security']}` |\n"
-            )
-            f.write(
-                f"| Architecture & Impact | `{crew.model_config['architecture']}` |\n"
-            )
+            f.write(f"| Code Quality Reviewer | `{crew.model_config['code_quality']}` |\n")
+            f.write(f"| Security & Performance | `{crew.model_config['security']}` |\n")
+            f.write(f"| Architecture & Impact | `{crew.model_config['architecture']}` |\n")
             f.write("\n")
 
             # Review output
@@ -201,13 +193,9 @@ def main():
 
         # Show configuration
         logger.info("🔧 Model Configuration:")
-        logger.info(
-            f"   1️⃣ Code Quality: {crew.model_config['code_quality']}"
-        )
+        logger.info(f"   1️⃣ Code Quality: {crew.model_config['code_quality']}")
         logger.info(f"   2️⃣ Security: {crew.model_config['security']}")
-        logger.info(
-            f"   3️⃣ Architecture: {crew.model_config['architecture']}"
-        )
+        logger.info(f"   3️⃣ Architecture: {crew.model_config['architecture']}")
         logger.info("")
 
         # Show agents
@@ -219,9 +207,7 @@ def main():
 
         # Show workflow
         logger.info("📋 Review Workflow:")
-        logger.info(
-            "   1. Analyze commit changes (code quality, tests, docs)"
-        )
+        logger.info("   1. Analyze commit changes (code quality, tests, docs)")
         logger.info("   2. Security & performance review")
         logger.info("   3. Find related files (import analysis)")
         logger.info("   4. Analyze impact on related files")
