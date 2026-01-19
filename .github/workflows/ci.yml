@@ -34,4 +34,3 @@ jobs:
       commit_sha: ${{ github.event.pull_request.head.sha }}
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
