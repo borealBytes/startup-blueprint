@@ -44,9 +44,7 @@ class CodeReviewCrew:
             "code_quality": os.getenv(
                 "MODEL_CODE_QUALITY", "openrouter/meta-llama/llama-3.3-70b-instruct:free"
             ),
-            "security": os.getenv(
-                "MODEL_SECURITY", "openrouter/google/gemini-2.0-flash-exp:free"
-            ),
+            "security": os.getenv("MODEL_SECURITY", "openrouter/google/gemini-2.0-flash-exp:free"),
             "architecture": os.getenv(
                 "MODEL_ARCHITECTURE", "openrouter/mistralai/devstral-2512:free"
             ),
