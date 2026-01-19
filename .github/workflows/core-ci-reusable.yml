@@ -378,10 +378,10 @@ jobs:
               echo "errors=0" >> $GITHUB_OUTPUT
             else
               # Count number of violation lines
-              ERROR_COUNT=$(grep -c "^\./" /tmp/flake8_output.txt || echo "0")
+              ERROR_COUNT=$(grep -c "^\./ " /tmp/flake8_output.txt || echo "0")
               echo "status=❌ Failed ($ERROR_COUNT violations)" >> $GITHUB_OUTPUT
               echo "errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
-              
+
               echo "::error::flake8 found $ERROR_COUNT violations"
               exit 1
             fi
@@ -821,6 +821,13 @@ jobs:
             --timeout 10
             --max-redirects 5
             --exclude-mail
+            --exclude 'dos\.ny\.gov/business-services'
+            --exclude 'accounts\.google\.com/signup'
+            --exclude 'onecorp\.lara\.state\.mi\.us'
+            --exclude 'cofs\.lara\.state\.mi\.us'
+            --exclude 'bpd\.sos\.ca\.gov'
+            --exclude 'nerdwallet\.com/article/small-business/start-an-llc'
+            --exclude 'sba\.gov/business-guide/launch/choose-business-structure'
             '**/*.md'
           output: lychee/out.md
           jobSummary: false
