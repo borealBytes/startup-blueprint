@@ -101,7 +101,7 @@ class CodeReviewCrew:
     @task
     def analyze_commit_changes(self) -> Task:
         """Task: Analyze commit changes.
-        
+
         Note: This is the first task, so it has no previous context.
         No need for context=[] here.
         """
@@ -113,7 +113,7 @@ class CodeReviewCrew:
     @task
     def security_performance_review(self) -> Task:
         """Task: Security and performance review.
-        
+
         Note: context=[] prevents automatic injection of previous task outputs
         as system messages, which causes 'Unexpected role system after assistant'
         errors with Mistral API. Task still has full access to commit data via tools.
@@ -127,7 +127,7 @@ class CodeReviewCrew:
     @task
     def find_related_files(self) -> Task:
         """Task: Find related files.
-        
+
         Note: context=[] prevents automatic context injection.
         Task uses RelatedFilesTool to analyze imports directly.
         """
@@ -140,7 +140,7 @@ class CodeReviewCrew:
     @task
     def analyze_related_files(self) -> Task:
         """Task: Analyze related files.
-        
+
         Note: context=[] prevents automatic injection of previous task outputs
         as system messages, which causes 'Unexpected role system after assistant'
         errors with Mistral API. Task can still access find_related_files output
@@ -155,7 +155,7 @@ class CodeReviewCrew:
     @task
     def architecture_review(self) -> Task:
         """Task: Architecture review.
-        
+
         Note: context=[] prevents automatic context injection.
         Task uses FileContentTool to analyze architecture directly.
         """
@@ -168,7 +168,7 @@ class CodeReviewCrew:
     @task
     def generate_executive_summary(self) -> Task:
         """Task: Generate executive summary.
-        
+
         Note: context=[] prevents automatic context injection.
         Task generates final summary for PR comment.
         """
