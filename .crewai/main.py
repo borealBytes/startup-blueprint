@@ -9,6 +9,7 @@ from pathlib import Path
 
 from crew import CodeReviewCrew
 from dotenv import load_dotenv
+from litellm import BadRequestError
 
 # Setup logging
 logging.basicConfig(
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 def execute_with_retry(crew, inputs, max_retries=2):
     """
-    Execute crew with retry logic for rate limit errors.
+    Execute crew with retry logic for rate limit and context overflow errors.
 
     Args:
         crew: Initialized CrewAI crew
@@ -39,6 +40,7 @@ def execute_with_retry(crew, inputs, max_retries=2):
     """
     attempt = 0
     last_error = None
+    fallback_activated = False
 
     while attempt <= max_retries:
         try:
@@ -48,13 +50,46 @@ def execute_with_retry(crew, inputs, max_retries=2):
             result = crew.crew().kickoff(inputs=inputs)
             return result
 
+        except BadRequestError as e:
+            last_error = e
+            error_str = str(e).lower()
+
+            # Check if it's a context overflow error (400 from provider)
+            is_context_error = (
+                "400" in error_str
+                or "bad request" in error_str
+                or "context" in error_str
+                or "too large" in error_str
+            )
+
+            if is_context_error and not fallback_activated and attempt < max_retries:
+                logger.warning(
+                    f"⚠️  Context overflow detected on attempt {attempt + 1}"
+                )
+                logger.info(
+                    f"🔄 Switching architecture agent to fallback model: {crew.model_config['fallback']}"
+                )
+
+                # Switch architecture agent to fallback model
+                crew.model_config["complex"] = crew.model_config["fallback"]
+                fallback_activated = True
+
+                # Brief pause before retry
+                time.sleep(2)
+                attempt += 1
+            else:
+                # Either not a context error, fallback already tried, or out of retries
+                raise
+
         except Exception as e:
             last_error = e
             error_str = str(e).lower()
 
             # Check if it's a rate limit error
             is_rate_limit = (
-                "rate limit" in error_str or "ratelimit" in error_str or "429" in error_str
+                "rate limit" in error_str
+                or "ratelimit" in error_str
+                or "429" in error_str
             )
 
             if is_rate_limit and attempt < max_retries:
@@ -101,18 +136,25 @@ def write_actions_summary(crew, pr_number, repo, sha, result):
             f.write("| Property | Value |\n")
             f.write("|----------|-------|\n")
             f.write(f"| **Repository** | `{repo}` |\n")
-            f.write(f"| **Pull Request** | [#{pr_number}]({get_pr_url(repo, pr_number)}) |\n")
+            f.write(
+                f"| **Pull Request** | [#{pr_number}]({get_pr_url(repo, pr_number)}) |\n"
+            )
             f.write(f"| **Commit** | [`{sha[:8]}`]({get_commit_url(repo, sha)}) |\n")
             f.write(f"| **Status** | ✅ Review Complete |\n")
             f.write("\n")
 
             # Model configuration
             f.write("### 🤖 AI Models Used\n\n")
-            f.write("| Agent | Model |\n")
-            f.write("|-------|-------|\n")
-            f.write(f"| Code Quality Reviewer | `{crew.model_config['code_quality']}` |\n")
-            f.write(f"| Security & Performance | `{crew.model_config['security']}` |\n")
-            f.write(f"| Architecture & Impact | `{crew.model_config['architecture']}` |\n")
+            f.write("| Task | Model |\n")
+            f.write("|------|-------|\n")
+            f.write(
+                f"| Quick Analysis (Tasks 1,2,6) | `{crew.model_config['fast']}` |\n"
+            )
+            f.write(
+                f"| Complex Analysis (Tasks 3-5) | `{crew.model_config['complex']}` |\n"
+            )
+            if crew.model_config["complex"] == crew.model_config["fallback"]:
+                f.write("| **Note** | ⚠️  Fallback model activated for context overflow |\n")
             f.write("\n")
 
             # Review output
@@ -193,9 +235,10 @@ def main():
 
         # Show configuration
         logger.info("🔧 Model Configuration:")
-        logger.info(f"   1️⃣ Code Quality: {crew.model_config['code_quality']}")
-        logger.info(f"   2️⃣ Security: {crew.model_config['security']}")
-        logger.info(f"   3️⃣ Architecture: {crew.model_config['architecture']}")
+        logger.info(f"   ⚡ Fast (Tasks 1,2,6): {crew.model_config['fast']}")
+        logger.info(f"   🧠 Complex (Tasks 3-5): {crew.model_config['complex']}")
+        logger.info(f"   🔄 Fallback: {crew.model_config['fallback']}")
+        logger.info(f"   🎯 Max Tokens: {crew.llm_config['max_tokens']}")
         logger.info("")
 
         # Show agents
