@@ -62,10 +62,7 @@ def CommitDiffTool(commit_sha: str, repository: str) -> Dict[str, Any]:
             }
             diff_data["files"].append(file_info)
 
-        logger.info(
-            f"Retrieved diff for {commit_sha[:8]}: "
-            f"{len(commit.files)} files changed"
-        )
+        logger.info(f"Retrieved diff for {commit_sha[:8]}: " f"{len(commit.files)} files changed")
         return diff_data
 
     except GithubException as e:
@@ -113,9 +110,7 @@ def CommitInfoTool(commit_sha: str, repository: str) -> Dict[str, Any]:
 
 
 @tool
-def FileContentTool(
-    file_path: str, repository: str, ref: str = "HEAD"
-) -> Dict[str, Any]:
+def FileContentTool(file_path: str, repository: str, ref: str = "HEAD") -> Dict[str, Any]:
     """
     Read file content from repository.
 
@@ -154,9 +149,7 @@ def FileContentTool(
 
 
 @tool
-def PRCommentTool(
-    pr_number: int, repository: str, comment_body: str
-) -> Dict[str, Any]:
+def PRCommentTool(pr_number: int, repository: str, comment_body: str) -> Dict[str, Any]:
     """
     Post a comment on a pull request.
 
@@ -175,10 +168,7 @@ def PRCommentTool(
 
         # Truncate if too large (GitHub limit: 65536 chars)
         if len(comment_body) > 65000:
-            comment_body = (
-                comment_body[:64900]
-                + "\n\n_Comment truncated (exceeded GitHub limit)_"
-            )
+            comment_body = comment_body[:64900] + "\n\n_Comment truncated (exceeded GitHub limit)_"
 
         comment = pr.create_issue_comment(comment_body)
 

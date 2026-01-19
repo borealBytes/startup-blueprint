@@ -122,9 +122,7 @@ def find_files_importing(repo_path: str, target_modules: Set[str]) -> List[str]:
 
                 filepath = os.path.join(root, file)
                 try:
-                    with open(
-                        filepath, "r", encoding="utf-8", errors="ignore"
-                    ) as f:
+                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
                         content = f.read(50000)  # Limit read size
                         imports = parse_imports(content, filepath)
 
@@ -141,9 +139,7 @@ def find_files_importing(repo_path: str, target_modules: Set[str]) -> List[str]:
 
 
 @tool
-def RelatedFilesTool(
-    changed_files: List[str], repository: str
-) -> Dict[str, Any]:
+def RelatedFilesTool(changed_files: List[str], repository: str) -> Dict[str, Any]:
     """
     Find files related to changed files based on imports and dependencies.
 
@@ -156,9 +152,7 @@ def RelatedFilesTool(
     """
     try:
         # Try to use repository parameter as local path first
-        repo_path = (
-            repository if os.path.isdir(repository) else os.getcwd()
-        )
+        repo_path = repository if os.path.isdir(repository) else os.getcwd()
 
         related = {
             "changed_files": changed_files,
@@ -173,12 +167,7 @@ def RelatedFilesTool(
                 # Extract module/package name from file path
                 parts = Path(changed_file).parts
                 if parts:
-                    module_name = (
-                        parts[0]
-                        .replace(".py", "")
-                        .replace(".js", "")
-                        .replace(".ts", "")
-                    )
+                    module_name = parts[0].replace(".py", "").replace(".js", "").replace(".ts", "")
                     if not module_name.startswith("."):
                         target_modules_from_changes.add(module_name)
             except Exception as e:
@@ -186,9 +175,7 @@ def RelatedFilesTool(
 
         # Find files that import the changed modules
         if target_modules_from_changes:
-            importing_files = find_files_importing(
-                repo_path, target_modules_from_changes
-            )
+            importing_files = find_files_importing(repo_path, target_modules_from_changes)
 
             # Build detailed response
             for rel_file in importing_files:
@@ -205,9 +192,7 @@ def RelatedFilesTool(
             related["summary"] = {
                 "total_related_files": len(related["related_files"]),
                 "relationship_types": ["imports_changed_module"],
-                "requires_additional_testing": (
-                    len(related["related_files"]) > 0
-                ),
+                "requires_additional_testing": (len(related["related_files"]) > 0),
             }
 
         logger.info(
