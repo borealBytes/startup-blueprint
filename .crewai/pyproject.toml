@@ -18,6 +18,7 @@ dependencies = [
     "python-multipart>=0.0.6",
     "prisma>=0.11.0",
     "email-validator>=2.0.0",  # Required for Pydantic EmailStr validation
+    "fastapi-sso>=0.10.0",  # Required for LiteLLM proxy SSO features
     # Other dependencies
     "PyGithub>=2.1.1",
     "python-dotenv>=1.0.0",
