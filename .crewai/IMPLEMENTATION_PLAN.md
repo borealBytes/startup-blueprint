@@ -24,6 +24,7 @@
 - **Unified API**: One key for 100+ models (OpenAI, Anthropic, Google, etc.)
 
 **Model Strategy**:
+
 - Start with free models (x-ai/grok-beta, google/gemini-flash-1.5)
 - Monitor quality vs cost
 - Use different models per agent based on task complexity:
@@ -593,14 +594,14 @@ class CodeReviewCrew:
             model=self.model_config['code_quality'],
             temperature=0.3,
         )
-        
+
         self.llm_security = ChatOpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=api_key,
             model=self.model_config['security'],
             temperature=0.2,  # More deterministic for security
         )
-        
+
         self.llm_architecture = ChatOpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=api_key,
@@ -733,14 +734,14 @@ def main():
 
     try:
         crew = CodeReviewCrew()
-        
+
         # Show model configuration
         print("🤖 Model configuration:")
         print(f"   Code Quality: {crew.model_config['code_quality']}")
         print(f"   Security: {crew.model_config['security']}")
         print(f"   Architecture: {crew.model_config['architecture']}")
         print()
-        
+
         inputs = {
             'pr_number': pr_number,
             'repository': repo,
@@ -920,7 +921,7 @@ jobs:
 ### Per Review (Budget Models)
 
 - **x-ai/grok-beta**: $0.10/1M tokens
-- **google/gemini-flash-1.5-8b**: $0.075/1M tokens  
+- **google/gemini-flash-1.5-8b**: $0.075/1M tokens
 - **3 agents** × ~50K tokens × $0.10/1M = **~$0.015 per review**
 
 ### Monthly (100 PRs)
@@ -932,6 +933,7 @@ jobs:
 **ROI**: ~5 hours of human review time saved/month
 
 **Cost flexibility**:
+
 - Start FREE with x-ai/grok-beta or gemini-flash
 - Monitor review quality
 - Switch to better models only if needed
