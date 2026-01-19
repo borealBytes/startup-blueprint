@@ -37,20 +37,22 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
-        # Model configuration per agent (using xiaomi/mimo-v2-flash:free for all agents)
+        # Model configuration per agent
+        # Devstral 2 (Codestral 2503): 123B params, 256K context, optimized for agentic coding
+        # Cost: $0.05 input / $0.22 output per 1M tokens (~$0.01-0.03 per review)
         # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
             "code_quality": os.getenv(
                 "MODEL_CODE_QUALITY",
-                "openrouter/xiaomi/mimo-v2-flash:free",
+                "openrouter/mistralai/codestral-2503",
             ),
             "security": os.getenv(
                 "MODEL_SECURITY",
-                "openrouter/xiaomi/mimo-v2-flash:free",
+                "openrouter/mistralai/codestral-2503",
             ),
             "architecture": os.getenv(
                 "MODEL_ARCHITECTURE",
-                "openrouter/xiaomi/mimo-v2-flash:free",
+                "openrouter/mistralai/codestral-2503",
             ),
         }
 
