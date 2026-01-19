@@ -117,6 +117,22 @@ class CodeReviewCrew:
             verbose=True,
         )
 
+    @agent
+    def executive_summary_agent(self) -> Agent:
+        """Executive summary agent - synthesizes findings from all previous tasks.
+        
+        This agent has NO tools - it only receives context from previous tasks
+        and synthesizes them into a final markdown report. This prevents it from
+        trying to re-fetch data and hitting iteration limits.
+        """
+        return Agent(
+            config=self.agents_config["code_quality_reviewer"],  # Reuse config
+            tools=[],  # NO TOOLS - only synthesize previous outputs
+            llm=self.model_config["fast"],
+            max_iter=8,  # Higher limit for synthesis iterations
+            verbose=True,
+        )
+
     # Tasks
     @task
     def analyze_commit_changes(self) -> Task:
@@ -192,14 +208,21 @@ class CodeReviewCrew:
     def generate_executive_summary(self) -> Task:
         """Task: Generate executive summary.
 
-        Note: context=[] prevents automatic context injection.
-        Task generates final summary for PR comment.
-        Uses fast model for quick summarization.
+        CRITICAL: This task receives context from ALL previous tasks so it can
+        synthesize their findings. The dedicated executive_summary_agent has NO
+        tools, preventing it from trying to re-fetch data and hitting iteration
+        limits. It only reads and synthesizes the outputs from tasks 1-5.
         """
         return Task(
             config=self.tasks_config["generate_executive_summary"],
-            agent=self.code_quality_reviewer(),
-            context=[],  # Disable automatic context passing
+            agent=self.executive_summary_agent(),  # Use dedicated synthesis agent
+            context=[
+                self.analyze_commit_changes(),
+                self.security_performance_review(),
+                self.find_related_files(),
+                self.analyze_related_files(),
+                self.architecture_review(),
+            ],  # Receive outputs from all previous tasks
         )
 
     @crew
@@ -210,6 +233,7 @@ class CodeReviewCrew:
                 self.code_quality_reviewer(),
                 self.security_performance_analyst(),
                 self.architecture_impact_analyst(),
+                self.executive_summary_agent(),  # Add new synthesis agent
             ],
             tasks=[
                 self.analyze_commit_changes(),
