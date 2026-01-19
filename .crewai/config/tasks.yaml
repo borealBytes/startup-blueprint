@@ -83,38 +83,78 @@ architecture_review:
 
 generate_executive_summary:
   description: >
-    IMPORTANT: This task receives outputs from ALL previous tasks (1-5) as
-    context. Your job is ONLY to synthesize these existing findings into a final
-    markdown report.
-
-    DO NOT use CommitDiffTool, FileContentTool, or any other tools. DO NOT try
-    to fetch data from GitHub - you already have all findings from previous
-    tasks.
-
-    Simply read the outputs from: - Task 1: Code quality analysis - Task 2:
-    Security and performance review - Task 3: Related files discovered - Task 4:
-    Impact on related files - Task 5: Architecture review
-
-    Synthesize these into a cohesive markdown report for commit {commit_sha} in
-    repository {repository} (PR #{pr_number}).
-
-    Format as markdown: 1. Executive Summary (4-5 sentences, overall assessment,
-    top 3 actions) 2. Detailed Findings:
-       - 🚨 Critical Issues (must fix before merge)
-       - ⚠️ Warnings (should fix soon)
-       - 💡 Suggestions (nice to have)
-       - ✅ Positive Observations (good patterns found)
-
-    Use emojis, code snippets with line numbers, and clear action items. Return
-    markdown suitable for GitHub Actions summary display.
-
-    Include link to commit: https://github.com/{repository}/commit/{commit_sha}
-    Include link to PR: https://github.com/{repository}/pull/{pr_number}
+    === YOUR ROLE: SYNTHESIZER ONLY ===
+    
+    You are the Executive Summary Agent. Your ONLY job is to read the findings 
+    from the 5 previous tasks and write a markdown summary. That's it.
+    
+    YOU DO NOT HAVE ACCESS TO ANY TOOLS.
+    YOU CANNOT call CommitDiffTool, FileContentTool, or any other tool.
+    YOU CANNOT fetch data from GitHub.
+    YOU CANNOT access the repository.
+    
+    ALL THE DATA YOU NEED is already in your context from previous tasks:
+    - Task 1 (Code Quality): Code review findings
+    - Task 2 (Security): Security and performance issues
+    - Task 3 (Related Files): List of related files
+    - Task 4 (Impact): Impact assessment
+    - Task 5 (Architecture): Architecture review
+    
+    YOUR TASK:
+    Read the findings above and synthesize them into ONE cohesive markdown report.
+    
+    === OUTPUT FORMAT ===
+    
+    Write markdown with this exact structure:
+    
+    ```markdown
+    ## 📊 Executive Summary for Commit {commit_sha}
+    
+    [4-5 sentences: overall assessment, key metrics, recommendation]
+    
+    **Top 3 Actions:**
+    1. [Most important action]
+    2. [Second most important action]
+    3. [Third most important action]
+    
+    ---
+    
+    ## 🚨 Critical Issues (Must Fix Before Merge)
+    
+    [List critical issues from previous tasks, or "None found" if clean]
+    
+    ## ⚠️ Warnings (Should Fix Soon)
+    
+    [List warnings, or "None found"]
+    
+    ## 💡 Suggestions (Nice to Have)
+    
+    [List suggestions for improvement]
+    
+    ## ✅ Positive Observations
+    
+    [List good patterns found]
+    
+    ---
+    
+    **Links:**
+    - [View Commit](https://github.com/{repository}/commit/{commit_sha})
+    - [View Pull Request](https://github.com/{repository}/pull/{pr_number})
+    ```
+    
+    === IMPORTANT ===
+    
+    DO NOT try to fetch more data. DO NOT call any tools. DO NOT say "I'll analyze".
+    
+    Just read your context and write the markdown report NOW.
   expected_output: >
-    Markdown-formatted review with: - Executive summary (overall assessment,
-    metrics, top actions) - Detailed findings
-    (critical/warning/suggestion/positive) - Code snippets with file:line
-    references - Clear next steps for developer - Links to commit and PR
-
-    Output will be displayed in GitHub Actions summary page.
+    Complete markdown-formatted executive summary with:
+    - Executive summary section (overall assessment, metrics, top 3 actions)
+    - Detailed findings by category (critical/warning/suggestion/positive)
+    - Code snippets with file:line references where relevant
+    - Clear action items for developer
+    - Links to commit and PR
+    
+    The output will be displayed in GitHub Actions summary page and posted as a 
+    PR comment.
   agent: executive_summary_agent
