@@ -29,6 +29,10 @@ dev = [
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["config*", "crews*", "tools*"]
+
 [tool.black]
 line-length = 100
 target-version = ["py310", "py311", "py312", "py313"]
