@@ -26,9 +26,10 @@ def main():
         load_dotenv(env_path)
 
     # Get GitHub context from environment
-    pr_number = os.getenv("GITHUB_PR_NUMBER")
+    # Note: These match the env vars set in crewai-review-reusable.yml
+    pr_number = os.getenv("PR_NUMBER")
     repo = os.getenv("GITHUB_REPOSITORY")
-    sha = os.getenv("GITHUB_SHA")
+    sha = os.getenv("COMMIT_SHA")
     api_key = os.getenv("OPENROUTER_API_KEY")
 
     # Validate environment
