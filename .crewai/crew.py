@@ -37,36 +37,54 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
-        # Model configuration per agent
-        # DeepSeek V3.2 Speciale: 685B params, optimized for agentic tool-use
-        # High-compute variant with maximum reasoning and function calling reliability
-        # Free on OpenRouter, proven for code review and agent workflows
-        # Eliminates empty response issues seen with Qwen models
+        # Multi-model strategy for optimal performance and reliability
+        # - Xiaomi Mimo V2 Flash: Fast, efficient for simple analysis tasks
+        # - ByteDance SEED 1.6: Better for complex reasoning and larger context
+        # - Qwen Plus Thinking: Fallback for context overflow (400 errors)
+        
         # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
-            "code_quality": os.getenv(
-                "MODEL_CODE_QUALITY",
-                "openrouter/deepseek/deepseek-v3.2-speciale",
+            # Quick tasks: code quality, security, summary
+            "fast": os.getenv(
+                "MODEL_FAST",
+                "openrouter/xiaomi/mimo-v2-flash",
             ),
-            "security": os.getenv(
-                "MODEL_SECURITY",
-                "openrouter/deepseek/deepseek-v3.2-speciale",
+            # Complex tasks: related files, architecture
+            "complex": os.getenv(
+                "MODEL_COMPLEX",
+                "openrouter/bytedance-seed/seed-1.6",
             ),
-            "architecture": os.getenv(
-                "MODEL_ARCHITECTURE",
-                "openrouter/deepseek/deepseek-v3.2-speciale",
+            # Fallback for context overflow
+            "fallback": os.getenv(
+                "MODEL_FALLBACK",
+                "openrouter/qwen/qwen-plus-2025-07-28:thinking",
             ),
         }
 
+        # Add max_tokens to prevent oversized responses
+        self.llm_config = {
+            "max_tokens": 4000,
+            "temperature": 0.1,  # Lower temperature for more focused responses
+        }
+
         logger.info("Model Configuration:")
-        logger.info(f"  Code Quality: {self.model_config['code_quality']}")
-        logger.info(f"  Security: {self.model_config['security']}")
-        logger.info(f"  Architecture: {self.model_config['architecture']}")
+        logger.info(f"  Fast (Tasks 1,2,6): {self.model_config['fast']}")
+        logger.info(f"  Complex (Tasks 3-5): {self.model_config['complex']}")
+        logger.info(f"  Fallback: {self.model_config['fallback']}")
+        logger.info(f"  Max Tokens: {self.llm_config['max_tokens']}")
+
+    def _create_llm_config(self, model_key: str) -> dict:
+        """Create LLM configuration with fallback support."""
+        config = {
+            "model": self.model_config[model_key],
+            **self.llm_config
+        }
+        return config
 
     # Agents
     @agent
     def code_quality_reviewer(self) -> Agent:
-        """Code quality reviewer agent."""
+        """Code quality reviewer agent - uses fast model."""
         return Agent(
             config=self.agents_config["code_quality_reviewer"],
             tools=[
@@ -75,27 +93,30 @@ class CodeReviewCrew:
                 FileContentTool,
                 PRCommentTool,
             ],
-            llm=self.model_config["code_quality"],
+            llm=self.model_config["fast"],
+            max_iter=5,  # Limit iterations to prevent runaway loops
             verbose=True,
         )
 
     @agent
     def security_performance_analyst(self) -> Agent:
-        """Security and performance analyst agent."""
+        """Security and performance analyst agent - uses fast model."""
         return Agent(
             config=self.agents_config["security_performance_analyst"],
             tools=[CommitDiffTool, FileContentTool],
-            llm=self.model_config["security"],
+            llm=self.model_config["fast"],
+            max_iter=5,
             verbose=True,
         )
 
     @agent
     def architecture_impact_analyst(self) -> Agent:
-        """Architecture and impact analyst agent."""
+        """Architecture and impact analyst agent - uses complex model for deep analysis."""
         return Agent(
             config=self.agents_config["architecture_impact_analyst"],
             tools=[CommitDiffTool, FileContentTool, RelatedFilesTool],
-            llm=self.model_config["architecture"],
+            llm=self.model_config["complex"],
+            max_iter=5,
             verbose=True,
         )
 
@@ -132,6 +153,7 @@ class CodeReviewCrew:
 
         Note: context=[] prevents automatic context injection.
         Task uses RelatedFilesTool to analyze imports directly.
+        Uses complex model (ByteDance SEED) for better reasoning.
         """
         return Task(
             config=self.tasks_config["find_related_files"],
@@ -147,6 +169,7 @@ class CodeReviewCrew:
         as system messages, which causes 'Unexpected role system after assistant'
         errors with Mistral API. Task can still access find_related_files output
         via explicit task references.
+        Uses complex model for deep analysis.
         """
         return Task(
             config=self.tasks_config["analyze_related_files"],
@@ -160,6 +183,7 @@ class CodeReviewCrew:
 
         Note: context=[] prevents automatic context injection.
         Task uses FileContentTool to analyze architecture directly.
+        Uses complex model for architectural reasoning.
         """
         return Task(
             config=self.tasks_config["architecture_review"],
@@ -173,6 +197,7 @@ class CodeReviewCrew:
 
         Note: context=[] prevents automatic context injection.
         Task generates final summary for PR comment.
+        Uses fast model for quick summarization.
         """
         return Task(
             config=self.tasks_config["generate_executive_summary"],
@@ -199,4 +224,5 @@ class CodeReviewCrew:
             ],
             process=Process.sequential,
             verbose=True,
+            max_rpm=10,  # Rate limit to 10 requests per minute to avoid quota issues
         )
