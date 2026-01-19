@@ -1,19 +1,20 @@
-name: CrewAI Code Review (Reusable)
+name: CrewAI Review (Reusable)
 
 on:
   workflow_call:
     inputs:
       pr_number:
-        description: 'Pull request number'
-        required: false
+        required: true
         type: number
+        description: 'Pull request number'
       commit_sha:
-        description: 'Commit SHA to review'
-        required: false
+        required: true
         type: string
+        description: 'Commit SHA to review'
     secrets:
       OPENROUTER_API_KEY:
         required: true
+        description: 'OpenRouter API key for CrewAI LLM access'
 
 permissions:
   contents: read
@@ -29,61 +30,82 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
-          ref: ${{ inputs.commit_sha || github.sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install UV package manager
+      - name: Install UV
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install CrewAI dependencies
+        working-directory: .crewai
         run: |
-          cd .crewai
-          uv venv
-          source .venv/bin/activate
-          uv pip install -e .
-          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+          uv pip install --system -r pyproject.toml
 
       - name: Run CrewAI code review
+        working-directory: .crewai
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number || github.event.number }}
-          GITHUB_SHA: ${{ inputs.commit_sha || github.event.pull_request.head.sha || github.sha }}
-          # Optional: Override default models
-          # MODEL_CODE_QUALITY: x-ai/grok-beta
-          # MODEL_SECURITY: google/gemini-flash-1.5
-          # MODEL_ARCHITECTURE: x-ai/grok-beta
+          PR_NUMBER: ${{ inputs.pr_number }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
-          cd .crewai
-          source .venv/bin/activate
-          python main.py
+          python main.py 2>&1 | tee crewai_review.log
+        continue-on-error: true
 
-      - name: Upload review logs
+      # Upload logs as artifact (only if review ran)
+      - name: Upload CrewAI logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crewai-review-logs-${{ github.run_number }}
+          name: crewai-review-logs
           path: .crewai/crewai_review.log
           retention-days: 7
 
-      - name: Comment on PR if failed
-        if: failure() && inputs.pr_number
+      - name: Check review success
+        run: |
+          if [ -f .crewai/crewai_review.log ]; then
+            if grep -q "ERROR" .crewai/crewai_review.log; then
+              echo "::warning::CrewAI review completed with errors. Check logs for details."
+              exit 0
+            fi
+            echo "CrewAI review completed successfully"
+          else
+            echo "::error::CrewAI review log not found"
+            exit 1
+          fi
+
+      - name: Post review summary
+        if: always()
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            github.rest.issues.createComment({
-              issue_number: ${{ inputs.pr_number }},
+            const fs = require('fs');
+            const logPath = '.crewai/crewai_review.log';
+
+            if (!fs.existsSync(logPath)) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: ${{ inputs.pr_number }},
+                body: '## 🤖 CrewAI Code Review\n\n❌ Review failed to generate. Check workflow logs.'
+              });
+              return;
+            }
+
+            const log = fs.readFileSync(logPath, 'utf8');
+            const summary = log.substring(0, 65000);
+
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '❌ **CrewAI Code Review Failed**\n\nThe AI code review encountered an error. Please check the workflow logs for details.\n\n[View Logs](' + context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId + ')'
-            })
+              issue_number: ${{ inputs.pr_number }},
+              body: `## 🤖 CrewAI Code Review\n\n${summary}`
+            });
