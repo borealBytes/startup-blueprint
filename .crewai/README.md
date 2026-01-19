@@ -11,6 +11,7 @@
 This directory contains a CrewAI-powered code review system that analyzes **commit changes** in pull requests using three specialized AI agents. The system provides comprehensive feedback on code quality, security, performance, and architecture - posted as **executive summaries** directly in PR comments.
 
 **Key Features:**
+
 - 🤖 Three specialized AI agents (60% cost reduction vs 5 agents)
 - 🔍 Commit-based review: all changed files + related file impacts
 - 📊 Executive summary format: quick scan + detailed findings
@@ -45,6 +46,7 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 ```
 
 **Key Design Decisions:**
+
 - ✅ Uses standard `Crew` class (not `Flow`) - simpler for sequential tasks
 - ✅ Follows official CrewAI project structure conventions
 - ✅ Uses UV package manager (modern Python tooling)
@@ -56,8 +58,10 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 ## The Three Agents
 
 ### 1. Code Quality Reviewer 📚
+
 **Role**: Senior code reviewer + coordinator  
-**Focus**: 
+**Focus**:
+
 - Code style and readability
 - Best practices and maintainability
 - Test coverage and quality
@@ -68,8 +72,10 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 **Tools**: CommitDiffTool, CommitInfoTool, PRCommentTool
 
 ### 2. Security & Performance Analyst 🔒⚡
+
 **Role**: Security researcher + performance engineer  
 **Focus**:
+
 - Security vulnerabilities (SQL injection, XSS, auth issues)
 - Credential leaks and hardcoded secrets
 - Performance bottlenecks (N+1 queries, memory leaks)
@@ -78,8 +84,10 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 **Tools**: CommitDiffTool, FileContentTool
 
 ### 3. Architecture & Impact Analyst 🏛️
+
 **Role**: Software architect + impact assessor  
 **Focus**:
+
 - Design patterns and architectural decisions
 - **Related files analysis** (finds files NOT directly modified but affected)
 - Coupling, cohesion, and modularity
@@ -140,15 +148,19 @@ Each review is posted to the PR with this structure:
 ## 🔍 Detailed Findings
 
 ### 🚨 Critical Issues (Must Fix)
+
 [Blocking issues with file:line references]
 
 ### ⚠️ Warnings (Should Fix)
+
 [Important non-blocking concerns]
 
 ### 💡 Suggestions (Nice to Have)
+
 [Improvements and optimizations]
 
 ### ✅ Positive Observations
+
 [Good patterns found]
 ```
 
@@ -198,7 +210,7 @@ python main.py
 1. **Add OpenRouter API Key** to GitHub Secrets:
    - Go to: Settings → Secrets and variables → Actions
    - Add secret: `OPENROUTER_API_KEY`
-   - Value: Your OpenRouter API key from https://openrouter.ai/keys
+   - Value: Your OpenRouter API key from <https://openrouter.ai/keys>
 
 2. **Workflow is automatically triggered** on:
    - Pull request opened
@@ -239,6 +251,7 @@ self.llm = ChatOpenRouter(
 ```
 
 **Available Models via OpenRouter**:
+
 - `openai/gpt-4o` - Best quality (~$0.21/review)
 - `openai/gpt-4o-mini` - Good quality, budget (~$0.06/review)
 - `anthropic/claude-3.5-sonnet` - Excellent reasoning (~$0.24/review)
@@ -289,22 +302,22 @@ file_extensions = ['.py', '.js', '.ts', '.jsx', '.tsx']
 
 ### Per Review
 
-| Model | Input Tokens | Output Tokens | Cost/Review |
-|-------|-------------|--------------|-------------|
-| **gpt-4o** | ~50K | ~2K | ~$0.21 |
-| **gpt-4o-mini** | ~50K | ~2K | ~$0.06 |
-| **claude-3.5-sonnet** | ~50K | ~2K | ~$0.24 |
-| **claude-3-haiku** | ~50K | ~2K | ~$0.08 |
+| Model                 | Input Tokens | Output Tokens | Cost/Review |
+| --------------------- | ------------ | ------------- | ----------- |
+| **gpt-4o**            | ~50K         | ~2K           | ~$0.21      |
+| **gpt-4o-mini**       | ~50K         | ~2K           | ~$0.06      |
+| **claude-3.5-sonnet** | ~50K         | ~2K           | ~$0.24      |
+| **claude-3-haiku**    | ~50K         | ~2K           | ~$0.08      |
 
 ### Monthly (100 PRs)
 
-| Model | Monthly Cost | Quality | Best For |
-|-------|-------------|----------|----------|
-| **gpt-4o** | ~$21 | High | Complex PRs |
-| **gpt-4o-mini** | ~$6 | Good | Most PRs |
-| **claude-3.5-sonnet** | ~$24 | Excellent | Architecture reviews |
-| **claude-3-haiku** | ~$8 | Good | Fast feedback |
-| **Hybrid** | ~$12 | Balanced | Cost optimization |
+| Model                 | Monthly Cost | Quality   | Best For             |
+| --------------------- | ------------ | --------- | -------------------- |
+| **gpt-4o**            | ~$21         | High      | Complex PRs          |
+| **gpt-4o-mini**       | ~$6          | Good      | Most PRs             |
+| **claude-3.5-sonnet** | ~$24         | Excellent | Architecture reviews |
+| **claude-3-haiku**    | ~$8          | Good      | Fast feedback        |
+| **Hybrid**            | ~$12         | Balanced  | Cost optimization    |
 
 **Hybrid strategy**: Use `gpt-4o-mini` for small commits (<50 lines), `gpt-4o` for complex commits
 
@@ -380,6 +393,7 @@ pytest --cov=. --cov-report=html
 ### "OPENROUTER_API_KEY not found"
 
 **Solution:**
+
 - Ensure secret is added in GitHub Settings → Secrets
 - Secret name must be exactly `OPENROUTER_API_KEY`
 - Re-run workflow after adding secret
@@ -387,6 +401,7 @@ pytest --cov=. --cov-report=html
 ### "OpenRouter rate limit exceeded"
 
 **Solution:**
+
 - Check your OpenRouter account limits
 - Set spending limits on OpenRouter dashboard
 - Implement exponential backoff (future enhancement)
@@ -395,6 +410,7 @@ pytest --cov=. --cov-report=html
 ### "Review not posted to PR"
 
 **Solution:**
+
 - Check GitHub Actions logs for errors
 - Verify `pull-requests: write` permission in workflow
 - Ensure `GITHUB_TOKEN` has correct scopes
@@ -402,6 +418,7 @@ pytest --cov=. --cov-report=html
 ### "Timeout after 15 minutes"
 
 **Solution:**
+
 - Large PRs may hit timeout
 - Reduce diff size (chunk files >500 lines)
 - Use faster model (`gpt-4o-mini` or `claude-3-haiku`)
@@ -410,6 +427,7 @@ pytest --cov=. --cov-report=html
 ### "High API costs"
 
 **Solution:**
+
 - Switch to `gpt-4o-mini` for most reviews
 - Implement hybrid strategy (mini for small, full for large)
 - Skip review for bot PRs (Dependabot, Renovate)
@@ -419,6 +437,7 @@ pytest --cov=. --cov-report=html
 ### "Model unavailable"
 
 **Solution:**
+
 - Check [OpenRouter Status](https://status.openrouter.ai/)
 - Try alternative model in `crew.py`
 - Implement fallback model logic (future enhancement)
@@ -453,6 +472,7 @@ pytest --cov=. --cov-report=html
 ## Support
 
 **For issues or questions:**
+
 - Check `IMPLEMENTATION_PLAN.md` for detailed design decisions
 - Review GitHub Actions logs for errors
 - Verify secret configuration in repository settings
