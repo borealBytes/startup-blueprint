@@ -125,7 +125,7 @@ class CodeReviewCrew:
     @task
     def analyze_related_files(self) -> Task:
         """Task: Analyze related files.
-        
+
         Note: context=[] prevents automatic injection of previous task outputs
         as system messages, which causes 'Unexpected role system after assistant'
         errors with Mistral API. Task can still access find_related_files output
