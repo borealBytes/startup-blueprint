@@ -7,7 +7,6 @@ from pathlib import Path
 import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from langchain_openai import ChatOpenAI
 from tools.github_tools import (CommitDiffTool, CommitInfoTool,
                                 FileContentTool, PRCommentTool)
 from tools.related_files_tool import RelatedFilesTool
@@ -29,47 +28,27 @@ class CodeReviewCrew:
         with open(config_dir / "tasks.yaml") as f:
             self.tasks_config = yaml.safe_load(f)
 
-        # Configure OpenRouter API
+        # Verify OpenRouter API key
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY environment variable required")
 
+        # Set LiteLLM base URL for OpenRouter
+        os.environ["OPENROUTER_API_KEY"] = api_key
+        os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
+
         # Model configuration per agent (can be customized via environment variables)
+        # Note: CrewAI + LiteLLM will automatically use OpenRouter when model starts with 'openrouter/'
         self.model_config = {
-            "code_quality": os.getenv("MODEL_CODE_QUALITY", "x-ai/grok-beta"),
-            "security": os.getenv("MODEL_SECURITY", "google/gemini-flash-1.5"),
-            "architecture": os.getenv("MODEL_ARCHITECTURE", "x-ai/grok-beta"),
+            "code_quality": os.getenv("MODEL_CODE_QUALITY", "openrouter/x-ai/grok-beta"),
+            "security": os.getenv("MODEL_SECURITY", "openrouter/google/gemini-flash-1.5"),
+            "architecture": os.getenv("MODEL_ARCHITECTURE", "openrouter/x-ai/grok-beta"),
         }
 
         logger.info("Model Configuration:")
         logger.info(f"  Code Quality: {self.model_config['code_quality']}")
         logger.info(f"  Security: {self.model_config['security']}")
         logger.info(f"  Architecture: {self.model_config['architecture']}")
-
-        # Create LLM instances for each agent
-        self.llm_code_quality = ChatOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=api_key,
-            model=self.model_config["code_quality"],
-            temperature=0.3,
-            timeout=60,
-        )
-
-        self.llm_security = ChatOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=api_key,
-            model=self.model_config["security"],
-            temperature=0.2,  # More deterministic for security
-            timeout=60,
-        )
-
-        self.llm_architecture = ChatOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=api_key,
-            model=self.model_config["architecture"],
-            temperature=0.4,  # Higher for creative architectural thinking
-            timeout=60,
-        )
 
     # Agents
     @agent
@@ -78,7 +57,7 @@ class CodeReviewCrew:
         return Agent(
             config=self.agents_config["code_quality_reviewer"],
             tools=[CommitDiffTool, CommitInfoTool, FileContentTool, PRCommentTool],
-            llm=self.llm_code_quality,
+            llm=self.model_config["code_quality"],
             verbose=True,
         )
 
@@ -88,7 +67,7 @@ class CodeReviewCrew:
         return Agent(
             config=self.agents_config["security_performance_analyst"],
             tools=[CommitDiffTool, FileContentTool],
-            llm=self.llm_security,
+            llm=self.model_config["security"],
             verbose=True,
         )
 
@@ -98,7 +77,7 @@ class CodeReviewCrew:
         return Agent(
             config=self.agents_config["architecture_impact_analyst"],
             tools=[CommitDiffTool, FileContentTool, RelatedFilesTool],
-            llm=self.llm_architecture,
+            llm=self.model_config["architecture"],
             verbose=True,
         )
 
