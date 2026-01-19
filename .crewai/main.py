@@ -27,18 +27,18 @@ logger = logging.getLogger(__name__)
 def execute_crew_with_clean_context(crew, inputs, max_retries=2):
     """
     Execute crew with manual task orchestration to pass clean context to Task 6.
-    
+
     This function runs tasks 1-5, extracts only their final outputs (no execution
     traces, tool logs, or errors), then injects those clean summaries into Task 6.
-    
+
     Args:
         crew: Initialized CrewAI crew
         inputs: Input parameters for crew execution
         max_retries: Number of retry attempts for rate limits (default: 2)
-        
+
     Returns:
         Final output from Task 6 (executive summary)
-        
+
     Raises:
         Exception: After exhausting all retries
     """
@@ -51,22 +51,22 @@ def execute_crew_with_clean_context(crew, inputs, max_retries=2):
             if attempt > 0:
                 logger.info(f"🔄 Retry attempt {attempt}/{max_retries}")
 
-            logger.info("\n" + "="*70)
+            logger.info("\n" + "=" * 70)
             logger.info("🎯 CUSTOM EXECUTION: Running tasks with clean context passing")
-            logger.info("="*70)
-            
+            logger.info("=" * 70)
+
             # Get the crew instance
             crew_instance = crew.crew()
-            
+
             # Run tasks 1-5 normally (they don't need special context)
             logger.info("\n📋 Executing Tasks 1-5 (data collection phase)...\n")
-            
+
             result = crew_instance.kickoff(inputs=inputs)
-            
-            logger.info("\n" + "="*70)
+
+            logger.info("\n" + "=" * 70)
             logger.info("✅ All tasks completed successfully")
-            logger.info("="*70 + "\n")
-            
+            logger.info("=" * 70 + "\n")
+
             return result
 
         except BadRequestError as e:
