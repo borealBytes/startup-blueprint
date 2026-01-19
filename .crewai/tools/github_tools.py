@@ -41,6 +41,9 @@ def CommitDiffTool(commit_sha: str, repository: str) -> Dict[str, Any]:
         repo = ghub.get_repo(repository)
         commit = repo.get_commit(commit_sha)
 
+        # Convert PaginatedList to list to avoid len() error
+        files_list = list(commit.files)
+
         diff_data = {
             "commit_sha": commit_sha[:8],
             "message": commit.commit.message,
@@ -51,7 +54,7 @@ def CommitDiffTool(commit_sha: str, repository: str) -> Dict[str, Any]:
             "total_changes": commit.stats.total,
         }
 
-        for file_change in commit.files:
+        for file_change in files_list:
             file_info = {
                 "filename": file_change.filename,
                 "status": file_change.status,
@@ -62,7 +65,10 @@ def CommitDiffTool(commit_sha: str, repository: str) -> Dict[str, Any]:
             }
             diff_data["files"].append(file_info)
 
-        logger.info(f"Retrieved diff for {commit_sha[:8]}: " f"{len(commit.files)} files changed")
+        logger.info(
+            f"Retrieved diff for {commit_sha[:8]}: "
+            f"{len(files_list)} files changed"
+        )
         return diff_data
 
     except GithubException as e:
@@ -87,6 +93,9 @@ def CommitInfoTool(commit_sha: str, repository: str) -> Dict[str, Any]:
         repo = ghub.get_repo(repository)
         commit = repo.get_commit(commit_sha)
 
+        # Convert PaginatedList to list to get accurate count
+        files_count = len(list(commit.files))
+
         return {
             "sha": commit.sha[:8],
             "message": commit.commit.message,
@@ -100,7 +109,7 @@ def CommitInfoTool(commit_sha: str, repository: str) -> Dict[str, Any]:
                 "deletions": commit.stats.deletions,
                 "total_changes": commit.stats.total,
             },
-            "files_changed": len(commit.files),
+            "files_changed": files_count,
             "url": commit.html_url,
         }
 
