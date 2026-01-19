@@ -41,7 +41,7 @@ def parse_imports(content: str, file_path: str) -> Set[str]:
         # JavaScript/TypeScript imports
         patterns = [
             r"from\s+['\"]([^'\"]+)['\"]\s+import",
-            r"import\s+.*?\s+from\s+['\"]([^'\"]+)['\"],
+            r"import\s+.*?\s+from\s+['\"]([^'\"]+)['\"]",
             r"require\(['\"]([^'\"]+)['\"]\)",
         ]
         for pattern in patterns:
