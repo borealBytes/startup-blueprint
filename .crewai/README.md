@@ -11,12 +11,11 @@
 This directory contains a CrewAI-powered code review system that analyzes **commit changes** in pull requests using three specialized AI agents. The system provides comprehensive feedback on code quality, security, performance, and architecture - posted as **executive summaries** directly in PR comments.
 
 **Key Features:**
-
 - 🤖 Three specialized AI agents (60% cost reduction vs 5 agents)
 - 🔍 Commit-based review: all changed files + related file impacts
 - 📊 Executive summary format: quick scan + detailed findings
 - ⚡ CI-only (no Python setup required for developers)
-- 💰 Cost-effective: ~$0.21/review with OpenAI gpt-4o via OpenRouter
+- 💰 **100% FREE** with default models (grok-beta + gemini-flash-1.5)
 - ⏱️ Fast: 3-5 minutes per review
 
 ---
@@ -46,22 +45,20 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 ```
 
 **Key Design Decisions:**
-
 - ✅ Uses standard `Crew` class (not `Flow`) - simpler for sequential tasks
 - ✅ Follows official CrewAI project structure conventions
 - ✅ Uses UV package manager (modern Python tooling)
 - ✅ 3 specialized agents (not 5) - better cost/performance balance
-- ✅ OpenRouter integration - model flexibility + cost optimization
+- ✅ OpenRouter integration - access to **free models** with good quality
 
 ---
 
 ## The Three Agents
 
 ### 1. Code Quality Reviewer 📚
-
 **Role**: Senior code reviewer + coordinator  
-**Focus**:
-
+**Default Model**: `x-ai/grok-beta` (FREE)  
+**Focus**: 
 - Code style and readability
 - Best practices and maintainability
 - Test coverage and quality
@@ -72,10 +69,9 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 **Tools**: CommitDiffTool, CommitInfoTool, PRCommentTool
 
 ### 2. Security & Performance Analyst 🔒⚡
-
 **Role**: Security researcher + performance engineer  
+**Default Model**: `google/gemini-flash-1.5` (FREE)  
 **Focus**:
-
 - Security vulnerabilities (SQL injection, XSS, auth issues)
 - Credential leaks and hardcoded secrets
 - Performance bottlenecks (N+1 queries, memory leaks)
@@ -84,10 +80,9 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 **Tools**: CommitDiffTool, FileContentTool
 
 ### 3. Architecture & Impact Analyst 🏛️
-
 **Role**: Software architect + impact assessor  
+**Default Model**: `x-ai/grok-beta` (FREE)  
 **Focus**:
-
 - Design patterns and architectural decisions
 - **Related files analysis** (finds files NOT directly modified but affected)
 - Coupling, cohesion, and modularity
@@ -148,19 +143,15 @@ Each review is posted to the PR with this structure:
 ## 🔍 Detailed Findings
 
 ### 🚨 Critical Issues (Must Fix)
-
 [Blocking issues with file:line references]
 
 ### ⚠️ Warnings (Should Fix)
-
 [Important non-blocking concerns]
 
 ### 💡 Suggestions (Nice to Have)
-
 [Improvements and optimizations]
 
 ### ✅ Positive Observations
-
 [Good patterns found]
 ```
 
@@ -173,7 +164,7 @@ Each review is posted to the PR with this structure:
 - Python 3.10-3.13
 - UV package manager
 - GitHub repository with Actions enabled
-- OpenRouter API key
+- OpenRouter API key (free tier available)
 
 ### Local Development (Optional)
 
@@ -193,7 +184,7 @@ uv pip install -e .
 cp .env.example .env
 
 # 5. Add your API keys to .env
-OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_API_KEY=sk-or-v1-...  # Free tier available!
 GITHUB_TOKEN=ghp_...
 
 # 6. Test locally (requires PR context)
@@ -210,7 +201,8 @@ python main.py
 1. **Add OpenRouter API Key** to GitHub Secrets:
    - Go to: Settings → Secrets and variables → Actions
    - Add secret: `OPENROUTER_API_KEY`
-   - Value: Your OpenRouter API key from <https://openrouter.ai/keys>
+   - Value: Your OpenRouter API key from https://openrouter.ai/keys
+   - **Free tier available** - perfect for getting started!
 
 2. **Workflow is automatically triggered** on:
    - Pull request opened
@@ -230,32 +222,40 @@ python main.py
 1. Visit [OpenRouter](https://openrouter.ai/)
 2. Sign up or log in
 3. Go to [Keys page](https://openrouter.ai/keys)
-4. Create new key (optional: set spending limits)
-5. Copy the key (starts with `sk-or-v1-...`)
+4. Create new key
+5. **Free tier**: No credit card required for free models
+6. Copy the key (starts with `sk-or-v1-...`)
 
 ### Model Selection
 
-**Default Model**: `openai/gpt-4o`  
-**Alternative**: `openai/gpt-4o-mini` (70% cheaper, good quality)
+**Default Models (FREE)**:
+- `x-ai/grok-beta` - Code quality & architecture (0 credits/token)
+- `google/gemini-flash-1.5` - Security & performance (0 credits/token)
+
+**Paid Upgrade Options**:
+- `openai/gpt-4o-mini` - Budget option (~$0.06/review)
+- `openai/gpt-4o` - Best quality (~$0.21/review)
+- `anthropic/claude-3-haiku` - Fast (~$0.08/review)
+- `anthropic/claude-3.5-sonnet` - Excellent reasoning (~$0.24/review)
 
 To change models, edit `.crewai/crew.py`:
 
 ```python
 from langchain_openrouter import ChatOpenRouter
 
-self.llm = ChatOpenRouter(
-    model="openai/gpt-4o",        # or "openai/gpt-4o-mini"
+# Use different model per agent
+self.code_quality_llm = ChatOpenRouter(
+    model="x-ai/grok-beta",           # FREE
     api_key=api_key,
-    temperature=0.3,              # Lower = more consistent
+    temperature=0.3,
+)
+
+self.security_llm = ChatOpenRouter(
+    model="google/gemini-flash-1.5",  # FREE
+    api_key=api_key,
+    temperature=0.3,
 )
 ```
-
-**Available Models via OpenRouter**:
-
-- `openai/gpt-4o` - Best quality (~$0.21/review)
-- `openai/gpt-4o-mini` - Good quality, budget (~$0.06/review)
-- `anthropic/claude-3.5-sonnet` - Excellent reasoning (~$0.24/review)
-- `anthropic/claude-3-haiku` - Fast and cheap (~$0.08/review)
 
 See [OpenRouter Models](https://openrouter.ai/models) for full list and pricing.
 
@@ -300,30 +300,41 @@ file_extensions = ['.py', '.js', '.ts', '.jsx', '.tsx']
 
 ## Cost Estimates
 
-### Per Review
+### Default Configuration (FREE Models)
 
-| Model                 | Input Tokens | Output Tokens | Cost/Review |
-| --------------------- | ------------ | ------------- | ----------- |
-| **gpt-4o**            | ~50K         | ~2K           | ~$0.21      |
-| **gpt-4o-mini**       | ~50K         | ~2K           | ~$0.06      |
-| **claude-3.5-sonnet** | ~50K         | ~2K           | ~$0.24      |
-| **claude-3-haiku**    | ~50K         | ~2K           | ~$0.08      |
+**Per Review**: $0.00 ✨  
+**Monthly (100 PRs)**: $0.00 ✨  
+**Annual (1200 PRs)**: $0.00 ✨  
 
-### Monthly (100 PRs)
+**Default models**:
+- x-ai/grok-beta (Code Quality + Architecture)
+- google/gemini-flash-1.5 (Security + Performance)
 
-| Model                 | Monthly Cost | Quality   | Best For             |
-| --------------------- | ------------ | --------- | -------------------- |
-| **gpt-4o**            | ~$21         | High      | Complex PRs          |
-| **gpt-4o-mini**       | ~$6          | Good      | Most PRs             |
-| **claude-3.5-sonnet** | ~$24         | Excellent | Architecture reviews |
-| **claude-3-haiku**    | ~$8          | Good      | Fast feedback        |
-| **Hybrid**            | ~$12         | Balanced  | Cost optimization    |
+**Free tier limits** (OpenRouter):
+- Rate limit: 10 requests/minute (sufficient for CI)
+- No monthly cap with free models
+- No credit card required
 
-**Hybrid strategy**: Use `gpt-4o-mini` for small commits (<50 lines), `gpt-4o` for complex commits
+### Optional Paid Model Upgrades
 
-**ROI**: Saves ~5 hours of human review time per month
+| Model | Cost/Review | Monthly (100 PRs) | Quality | Best For |
+|-------|------------|------------------|---------|----------|
+| **FREE (default)** | **$0.00** | **$0.00** | Good | All reviews |
+| gpt-4o-mini | $0.06 | $6 | Very Good | Better accuracy |
+| gpt-4o | $0.21 | $21 | High | Complex PRs |
+| claude-3-haiku | $0.08 | $8 | Good | Fast feedback |
+| claude-3.5-sonnet | $0.24 | $24 | Excellent | Architecture |
+| **Hybrid** | $0.03-0.12 | $3-12 | Balanced | Cost optimization |
 
-**Comparison to 5-agent plan**: 58% cost reduction
+**Hybrid strategy example**:
+- Use FREE models for small PRs (<50 lines)
+- Use gpt-4o-mini for medium PRs (50-200 lines)
+- Use gpt-4o for complex PRs (>200 lines or architectural changes)
+
+**ROI Comparison**:
+- **Free models**: $0 vs ~5 hours of human review time/month
+- **Paid models**: $6-24/month vs ~5 hours of human review time/month
+- Either way: **Massive time savings**
 
 ---
 
@@ -344,9 +355,10 @@ file_extensions = ['.py', '.js', '.ts', '.jsx', '.tsx']
 - Stored in GitHub Secrets (encrypted at rest)
 - Never logged or exposed in output
 - Used only for LLM API calls via OpenRouter
+- **Free tier**: No credit card data stored
 - **Rotation recommended**: Every 90 days
 - **Access control**: Only GitHub Actions workflows
-- **Spending limits**: Set on OpenRouter dashboard
+- **Optional spending limits**: Set on OpenRouter dashboard (for paid models)
 
 **Secret management documented in**: `.github/SECRETS.md`
 
@@ -393,24 +405,22 @@ pytest --cov=. --cov-report=html
 ### "OPENROUTER_API_KEY not found"
 
 **Solution:**
-
 - Ensure secret is added in GitHub Settings → Secrets
 - Secret name must be exactly `OPENROUTER_API_KEY`
 - Re-run workflow after adding secret
+- **Free tier**: No credit card needed for default models
 
 ### "OpenRouter rate limit exceeded"
 
 **Solution:**
-
-- Check your OpenRouter account limits
-- Set spending limits on OpenRouter dashboard
+- Free tier: 10 requests/minute (usually sufficient)
+- For higher volume: upgrade to paid tier on OpenRouter
 - Implement exponential backoff (future enhancement)
 - Consider caching responses for identical commits
 
 ### "Review not posted to PR"
 
 **Solution:**
-
 - Check GitHub Actions logs for errors
 - Verify `pull-requests: write` permission in workflow
 - Ensure `GITHUB_TOKEN` has correct scopes
@@ -418,29 +428,28 @@ pytest --cov=. --cov-report=html
 ### "Timeout after 15 minutes"
 
 **Solution:**
-
 - Large PRs may hit timeout
 - Reduce diff size (chunk files >500 lines)
-- Use faster model (`gpt-4o-mini` or `claude-3-haiku`)
-- Increase timeout in workflow YAML
-
-### "High API costs"
-
-**Solution:**
-
-- Switch to `gpt-4o-mini` for most reviews
-- Implement hybrid strategy (mini for small, full for large)
-- Skip review for bot PRs (Dependabot, Renovate)
-- Cache responses for identical commits
-- Set spending limits on OpenRouter dashboard
+- Free models are already fast (~3-5 min)
+- Increase timeout in workflow YAML if needed
 
 ### "Model unavailable"
 
 **Solution:**
-
 - Check [OpenRouter Status](https://status.openrouter.ai/)
-- Try alternative model in `crew.py`
+- Try alternative free model:
+  - `mistralai/mistral-7b-instruct` (FREE)
+  - `meta-llama/llama-3.2-3b-instruct` (FREE)
 - Implement fallback model logic (future enhancement)
+
+### "Poor review quality with free models"
+
+**Solution:**
+- Free models work well for most reviews
+- For complex PRs, consider upgrading specific agents:
+  - Architecture → `anthropic/claude-3.5-sonnet` ($0.24)
+  - Security → `openai/gpt-4o-mini` ($0.06)
+- Hybrid approach: free for most, paid for critical reviews
 
 ---
 
@@ -449,10 +458,10 @@ pytest --cov=. --cov-report=html
 - [ ] **Historical Commit Analysis** - Learn from past reviews
 - [ ] **Custom Rules Engine** - Project-specific checks
 - [ ] **Auto-Fix Suggestions** - Generate code patches
-- [ ] **Cost Dashboard** - Track API usage and costs
+- [ ] **Cost Dashboard** - Track API usage (even with free models)
 - [ ] **False Positive Feedback** - Learn from dismissals
 - [ ] **Multi-Language Support** - Beyond Python/JS/TS
-- [ ] **Hybrid Model Strategy** - Auto-select model based on commit size
+- [ ] **Smart Model Selection** - Auto-select based on commit complexity
 - [ ] **Response Caching** - Reuse reviews for identical commits
 - [ ] **Model Fallback** - Auto-retry with alternative model on failure
 
@@ -463,8 +472,8 @@ pytest --cov=. --cov-report=html
 - [Official CrewAI PR Review Demo](https://github.com/crewAIInc/demo-pull-request-review) - Architecture inspiration
 - [CrewAI Documentation](https://docs.crewai.com/) - Official patterns and API
 - [UV Package Manager](https://docs.astral.sh/uv/) - Modern Python tooling
-- [OpenRouter](https://openrouter.ai/) - LLM gateway with unified API
-- [OpenRouter Models](https://openrouter.ai/models) - Available models and pricing
+- [OpenRouter](https://openrouter.ai/) - LLM gateway with FREE tier
+- [OpenRouter Free Models](https://openrouter.ai/models?price=free) - Available free models
 - [GitHub Actions](https://docs.github.com/en/actions) - CI/CD platform
 
 ---
@@ -472,7 +481,6 @@ pytest --cov=. --cov-report=html
 ## Support
 
 **For issues or questions:**
-
 - Check `IMPLEMENTATION_PLAN.md` for detailed design decisions
 - Review GitHub Actions logs for errors
 - Verify secret configuration in repository settings
@@ -488,6 +496,7 @@ pytest --cov=. --cov-report=html
 **Status**: 🏁 Design Finalized, Implementation Ready  
 **Current Phase**: Phase 1 - Core Code Review Crew  
 **Last Updated**: 2026-01-18  
-**Cost**: ~$0.21/review (gpt-4o) | ~$21/month (100 PRs)  
+**Cost**: **$0.00/review** (FREE with default models) | Upgrade options: $6-24/month  
 **Speed**: 3-5 minutes average  
-**Dev Impact**: None (CI-only Python environment)
+**Dev Impact**: None (CI-only Python environment)  
+**Free Tier**: Perfect for startups and small teams 🎉
