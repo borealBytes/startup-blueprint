@@ -360,6 +360,7 @@ jobs:
           if [ "${{ steps.check_python.outputs.exists }}" == "true" ]; then
             echo "🐍 Running flake8 linter..."
 
+            # Run flake8 and capture output
             find . -type f -name "*.py" \
               -not -path "./node_modules/*" \
               -not -path "./.git/*" \
@@ -367,17 +368,28 @@ jobs:
               -not -path "./venv/*" \
               -not -path "./build/*" \
               -not -path "./dist/*" \
-              | xargs flake8 --max-line-length=88 --extend-ignore=E203,W503
+              | xargs flake8 --max-line-length=88 --extend-ignore=E203,W503 \
+              2>&1 | tee /tmp/flake8_output.txt
 
-            if [ $? -eq 0 ]; then
+            EXIT_CODE=${PIPESTATUS[0]}
+
+            if [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              echo "errors=0" >> $GITHUB_OUTPUT
             else
-              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              # Count number of violation lines
+              ERROR_COUNT=$(grep -c "^\./" /tmp/flake8_output.txt || echo "0")
+              echo "status=❌ Failed ($ERROR_COUNT violations)" >> $GITHUB_OUTPUT
+              echo "errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
+              
+              echo "::error::flake8 found $ERROR_COUNT violations"
               exit 1
             fi
           else
             echo "status=⏭️ Skipped (no Python files)" >> $GITHUB_OUTPUT
+            echo "errors=0" >> $GITHUB_OUTPUT
             echo "⏭️ No Python files found, skipping flake8"
+            touch /tmp/flake8_output.txt
           fi
 
       - name: Run gofmt (format Go files)
@@ -624,6 +636,18 @@ jobs:
           echo "| **commitlint** | ${{ steps.commitlint.outputs.status || '❌ Failed' }} | Validate commit messages |" >> $GITHUB_STEP_SUMMARY
           echo "| **TypeScript** | ${{ steps.typescript.outputs.status || '❌ Failed' }} | Check type errors |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Show flake8 errors if it failed
+          if [[ "${{ steps.flake8.conclusion }}" == "failure" ]] && [ -f "/tmp/flake8_output.txt" ]; then
+            echo "### 🐍 flake8 Violations" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Found **${{ steps.flake8.outputs.errors }}** Python code quality violations:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat /tmp/flake8_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
 
           if [ "$FAILED" == "true" ]; then
             echo "### 🛠️ Action Required" >> $GITHUB_STEP_SUMMARY
