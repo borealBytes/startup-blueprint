@@ -69,10 +69,10 @@ Most states require:
 ### Availability Check
 
 1. Go to your state's business registry:
-   - **Michigan** (LLC/PLLC): [LARA Business Entity Search](https://cofs.lara.state.mi.us/SearchApi/Search/Search)
+   - **Michigan** (LLC/PLLC): [Michigan Business Registration Portal (MiBRP)](https://www.michigan.gov/lara/bureau-list/cscl/corps/mibrp)
    - **Florida** (LLC/PLLC): [Sunbiz (Division of Corporations)](https://search.sunbiz.org/Inquiry/CorporationSearch/ByName)
-   - **California**: [Secretary of State](https://bpd.sos.ca.gov/)
-   - **New York**: [Department of State](https://www.dos.ny.gov/business-services/)
+   - **California**: [BizFile Online](https://bizfileonline.sos.ca.gov/search/business) or [CA SOS Business Programs](https://www.sos.ca.gov/business-programs/bizfile)
+   - **New York**: [NY Department of State](https://dos.ny.gov) or [Entity Search](https://apps.dos.ny.gov/publicInquiry/#search)
    - **Other**: Google `[YOUR STATE] LLC registration online`
 
 2. Search existing businesses
@@ -128,8 +128,8 @@ Most states require:
 
 ### State-Specific Notes (Examples)
 
-- **Michigan (LARA)**
-  - Online filing via LARA is straightforward for LLCs and PLLCs
+- **Michigan (MiBRP)**
+  - Online filing via [Michigan Business Registration Portal](https://www.michigan.gov/lara/bureau-list/cscl/corps/mibrp) is straightforward for LLCs and PLLCs
   - Pay fee online, get confirmation and entity ID
 
 - **Florida (Sunbiz)**
@@ -350,11 +350,12 @@ Maintain:
 ## Resources
 
 - **IRS EIN**: <https://www.irs.gov/ein>
-- **Michigan LARA (LLC/PLLC)**: <https://www.michigan.gov/lara>
+- **Michigan MiBRP (LLC/PLLC)**: <https://www.michigan.gov/lara/bureau-list/cscl/corps/mibrp>
 - **Florida Sunbiz (LLC/PLLC)**: <https://dos.myflorida.com/sunbiz/>
+- **California BizFile**: <https://www.sos.ca.gov/business-programs/bizfile>
+- **New York DOS**: <https://dos.ny.gov>
 - **State Business Registries**: Google `[STATE] LLC PLLC registration`
-- **SBA Guide**: <https://www.sba.gov/business-guide/launch/choose-business-structure>
-- **NerdWallet LLC Guide**: <https://www.nerdwallet.com/article/small-business/start-an-llc>
+- **SBA Guide**: <https://www.sba.gov/business-guide/launch-your-business/choose-business-structure>
 
 ---
 
