@@ -2,7 +2,7 @@
 name = "startup-blueprint-crewai"
 version = "0.1.0"
 description = "AI-powered code review using CrewAI and OpenRouter"
-requires-python = ">=3.10 <=3.13"
+requires-python = ">=3.10,<=3.13"
 authors = [{name = "Clayton Young", email = "claytoneyoung+github@gmail.com"}]
 
 dependencies = [
