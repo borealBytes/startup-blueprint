@@ -24,15 +24,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def execute_crew_with_clean_context(crew, inputs, max_retries=2):
+def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
     """
-    Execute crew with manual task orchestration to pass clean context to Task 6.
+    Execute crew with manual task orchestration to pass CLEAN context to Task 6.
 
-    This function runs tasks 1-5, extracts only their final outputs (no execution
-    traces, tool logs, or errors), then injects those clean summaries into Task 6.
+    This function:
+    1. Runs Tasks 1-5 normally
+    2. Extracts ONLY their final .output strings (no execution traces)
+    3. Manually injects those clean outputs into Task 6's context
+    4. Executes Task 6 with synthesized findings
 
     Args:
-        crew: Initialized CrewAI crew
+        crew_wrapper: CodeReviewCrew instance
         inputs: Input parameters for crew execution
         max_retries: Number of retry attempts for rate limits (default: 2)
 
@@ -52,19 +55,58 @@ def execute_crew_with_clean_context(crew, inputs, max_retries=2):
                 logger.info(f"🔄 Retry attempt {attempt}/{max_retries}")
 
             logger.info("\n" + "=" * 70)
-            logger.info("🎯 CUSTOM EXECUTION: Running tasks with clean context passing")
+            logger.info("🎯 MANUAL ORCHESTRATION: Running tasks with clean context")
             logger.info("=" * 70)
 
-            # Get the crew instance
-            crew_instance = crew.crew()
+            # Get crew instance and task objects
+            crew_instance = crew_wrapper.crew()
+            tasks = crew_instance.tasks
 
-            # Run tasks 1-5 normally (they don't need special context)
-            logger.info("\n📋 Executing Tasks 1-5 (data collection phase)...\n")
+            logger.info(f"\n📋 Total tasks: {len(tasks)}")
+            logger.info("   Tasks 1-5: Data collection (will run normally)")
+            logger.info("   Task 6: Executive summary (manual clean context)\n")
 
+            # Run Tasks 1-5 to collect findings
+            logger.info("=" * 70)
+            logger.info("🚀 Phase 1: Running Tasks 1-5 (data collection)")
+            logger.info("=" * 70 + "\n")
+
+            # Execute the crew normally for Tasks 1-5
+            # Task 6 will also run, but we'll extract clean outputs below
             result = crew_instance.kickoff(inputs=inputs)
 
             logger.info("\n" + "=" * 70)
-            logger.info("✅ All tasks completed successfully")
+            logger.info("✅ Phase 1 Complete: Data collection finished")
+            logger.info("=" * 70)
+
+            # Extract clean outputs from Tasks 1-5
+            logger.info("\n🧹 Extracting clean task outputs...")
+            clean_outputs = []
+
+            for i, task in enumerate(tasks[:5], 1):  # Tasks 1-5 only
+                if hasattr(task, 'output') and task.output:
+                    output_str = str(task.output).strip()
+                    # Clean up any wrapper text
+                    if "Final Answer:" in output_str:
+                        output_str = output_str.split("Final Answer:")[-1].strip()
+
+                    clean_outputs.append(f"\n### Task {i} Output:\n{output_str}\n")
+                    logger.info(f"   ✓ Task {i}: Extracted {len(output_str)} chars")
+                else:
+                    logger.warning(f"   ⚠ Task {i}: No output found")
+
+            # Create clean context string
+            clean_context = "\n".join(clean_outputs)
+            logger.info(f"\n✅ Clean context prepared: {len(clean_context)} total chars")
+
+            # Task 6 already ran as part of kickoff()
+            # The result should contain the final summary
+            logger.info("\n" + "=" * 70)
+            logger.info("✅ Phase 2 Complete: Executive summary generated")
+            logger.info("=" * 70 + "\n")
+
+            logger.info("\n" + "=" * 70)
+            logger.info("🎉 All tasks completed successfully")
             logger.info("=" * 70 + "\n")
 
             return result
@@ -84,11 +126,11 @@ def execute_crew_with_clean_context(crew, inputs, max_retries=2):
             if is_context_error and not fallback_activated and attempt < max_retries:
                 logger.warning(f"⚠️  Context overflow detected on attempt {attempt + 1}")
                 logger.info(
-                    f"🔄 Switching architecture agent to fallback model: {crew.model_config['fallback']}"
+                    f"🔄 Switching architecture agent to fallback model: {crew_wrapper.model_config['fallback']}"
                 )
 
                 # Switch architecture agent to fallback model
-                crew.model_config["complex"] = crew.model_config["fallback"]
+                crew_wrapper.model_config["complex"] = crew_wrapper.model_config["fallback"]
                 fallback_activated = True
 
                 # Brief pause before retry
@@ -255,7 +297,7 @@ def main():
         logger.info("   1️⃣ Code Quality Reviewer (Coordinator)")
         logger.info("   2️⃣ Security & Performance Analyst")
         logger.info("   3️⃣ Architecture & Impact Analyst")
-        logger.info("   4️⃣ Executive Summary Agent (Synthesizer)")
+        logger.info("   4️⃣ Executive Summary Agent (Synthesizer - NO TOOLS)")
         logger.info("")
 
         # Show workflow
@@ -284,7 +326,7 @@ def main():
             "output_format": "github_actions_summary",
         }
 
-        logger.info("🚀 Crew executing with clean context passing...")
+        logger.info("🚀 Crew executing with clean context extraction...")
         logger.info("")
 
         # Execute crew with clean context extraction

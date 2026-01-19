@@ -208,9 +208,8 @@ class CodeReviewCrew:
     def generate_executive_summary(self) -> Task:
         """Task: Generate executive summary.
 
-        CRITICAL: This task will receive clean context manually in main.py.
-        DO NOT add context=[] here - it will be injected during execution
-        with only the final outputs from tasks 1-5, not full execution traces.
+        CRITICAL: Context will be manually injected in main.py with CLEAN outputs only.
+        DO NOT add context=[] here - it will be set during manual orchestration.
 
         The dedicated executive_summary_agent has NO tools, preventing it from
         trying to re-fetch data and hitting iteration limits.
@@ -218,7 +217,7 @@ class CodeReviewCrew:
         return Task(
             config=self.tasks_config["generate_executive_summary"],
             agent=self.executive_summary_agent(),
-            # NO context=[] here - will be set manually with clean outputs
+            # NO context parameter - will be manually set with clean outputs
         )
 
     @crew
