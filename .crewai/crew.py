@@ -146,5 +146,5 @@ class CodeReviewCrew:
                 self.generate_executive_summary(),
             ],
             process=Process.sequential,
-            verbose=2,
+            verbose=True,
         )
