@@ -11,6 +11,7 @@
 This directory contains a CrewAI-powered code review system that analyzes **commit changes** in pull requests using three specialized AI agents. The system provides comprehensive feedback on code quality, security, performance, and architecture - posted as **executive summaries** directly in PR comments.
 
 **Key Features:**
+
 - 🤖 Three specialized AI agents (60% cost reduction vs 5 agents)
 - 🔍 Commit-based review: all changed files + related file impacts
 - 📊 Executive summary format: quick scan + detailed findings
@@ -45,6 +46,7 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 ```
 
 **Key Design Decisions:**
+
 - ✅ Uses standard `Crew` class (not `Flow`) - simpler for sequential tasks
 - ✅ Follows official CrewAI project structure conventions
 - ✅ Uses UV package manager (modern Python tooling)
@@ -56,9 +58,11 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 ## The Three Agents
 
 ### 1. Code Quality Reviewer 📚
+
 **Role**: Senior code reviewer + coordinator  
 **Default Model**: `x-ai/grok-beta` (FREE)  
-**Focus**: 
+**Focus**:
+
 - Code style and readability
 - Best practices and maintainability
 - Test coverage and quality
@@ -69,9 +73,11 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 **Tools**: CommitDiffTool, CommitInfoTool, PRCommentTool
 
 ### 2. Security & Performance Analyst 🔒⚡
+
 **Role**: Security researcher + performance engineer  
 **Default Model**: `google/gemini-flash-1.5` (FREE)  
 **Focus**:
+
 - Security vulnerabilities (SQL injection, XSS, auth issues)
 - Credential leaks and hardcoded secrets
 - Performance bottlenecks (N+1 queries, memory leaks)
@@ -80,9 +86,11 @@ This directory contains a CrewAI-powered code review system that analyzes **comm
 **Tools**: CommitDiffTool, FileContentTool
 
 ### 3. Architecture & Impact Analyst 🏛️
+
 **Role**: Software architect + impact assessor  
 **Default Model**: `x-ai/grok-beta` (FREE)  
 **Focus**:
+
 - Design patterns and architectural decisions
 - **Related files analysis** (finds files NOT directly modified but affected)
 - Coupling, cohesion, and modularity
@@ -143,15 +151,19 @@ Each review is posted to the PR with this structure:
 ## 🔍 Detailed Findings
 
 ### 🚨 Critical Issues (Must Fix)
+
 [Blocking issues with file:line references]
 
 ### ⚠️ Warnings (Should Fix)
+
 [Important non-blocking concerns]
 
 ### 💡 Suggestions (Nice to Have)
+
 [Improvements and optimizations]
 
 ### ✅ Positive Observations
+
 [Good patterns found]
 ```
 
@@ -201,7 +213,7 @@ python main.py
 1. **Add OpenRouter API Key** to GitHub Secrets:
    - Go to: Settings → Secrets and variables → Actions
    - Add secret: `OPENROUTER_API_KEY`
-   - Value: Your OpenRouter API key from https://openrouter.ai/keys
+   - Value: Your OpenRouter API key from <https://openrouter.ai/keys>
    - **Free tier available** - perfect for getting started!
 
 2. **Workflow is automatically triggered** on:
@@ -229,10 +241,12 @@ python main.py
 ### Model Selection
 
 **Default Models (FREE)**:
+
 - `x-ai/grok-beta` - Code quality & architecture (0 credits/token)
 - `google/gemini-flash-1.5` - Security & performance (0 credits/token)
 
 **Paid Upgrade Options**:
+
 - `openai/gpt-4o-mini` - Budget option (~$0.06/review)
 - `openai/gpt-4o` - Best quality (~$0.21/review)
 - `anthropic/claude-3-haiku` - Fast (~$0.08/review)
@@ -304,34 +318,38 @@ file_extensions = ['.py', '.js', '.ts', '.jsx', '.tsx']
 
 **Per Review**: $0.00 ✨  
 **Monthly (100 PRs)**: $0.00 ✨  
-**Annual (1200 PRs)**: $0.00 ✨  
+**Annual (1200 PRs)**: $0.00 ✨
 
 **Default models**:
+
 - x-ai/grok-beta (Code Quality + Architecture)
 - google/gemini-flash-1.5 (Security + Performance)
 
 **Free tier limits** (OpenRouter):
+
 - Rate limit: 10 requests/minute (sufficient for CI)
 - No monthly cap with free models
 - No credit card required
 
 ### Optional Paid Model Upgrades
 
-| Model | Cost/Review | Monthly (100 PRs) | Quality | Best For |
-|-------|------------|------------------|---------|----------|
-| **FREE (default)** | **$0.00** | **$0.00** | Good | All reviews |
-| gpt-4o-mini | $0.06 | $6 | Very Good | Better accuracy |
-| gpt-4o | $0.21 | $21 | High | Complex PRs |
-| claude-3-haiku | $0.08 | $8 | Good | Fast feedback |
-| claude-3.5-sonnet | $0.24 | $24 | Excellent | Architecture |
-| **Hybrid** | $0.03-0.12 | $3-12 | Balanced | Cost optimization |
+| Model              | Cost/Review | Monthly (100 PRs) | Quality   | Best For          |
+| ------------------ | ----------- | ----------------- | --------- | ----------------- |
+| **FREE (default)** | **$0.00**   | **$0.00**         | Good      | All reviews       |
+| gpt-4o-mini        | $0.06       | $6                | Very Good | Better accuracy   |
+| gpt-4o             | $0.21       | $21               | High      | Complex PRs       |
+| claude-3-haiku     | $0.08       | $8                | Good      | Fast feedback     |
+| claude-3.5-sonnet  | $0.24       | $24               | Excellent | Architecture      |
+| **Hybrid**         | $0.03-0.12  | $3-12             | Balanced  | Cost optimization |
 
 **Hybrid strategy example**:
+
 - Use FREE models for small PRs (<50 lines)
 - Use gpt-4o-mini for medium PRs (50-200 lines)
 - Use gpt-4o for complex PRs (>200 lines or architectural changes)
 
 **ROI Comparison**:
+
 - **Free models**: $0 vs ~5 hours of human review time/month
 - **Paid models**: $6-24/month vs ~5 hours of human review time/month
 - Either way: **Massive time savings**
@@ -405,6 +423,7 @@ pytest --cov=. --cov-report=html
 ### "OPENROUTER_API_KEY not found"
 
 **Solution:**
+
 - Ensure secret is added in GitHub Settings → Secrets
 - Secret name must be exactly `OPENROUTER_API_KEY`
 - Re-run workflow after adding secret
@@ -413,6 +432,7 @@ pytest --cov=. --cov-report=html
 ### "OpenRouter rate limit exceeded"
 
 **Solution:**
+
 - Free tier: 10 requests/minute (usually sufficient)
 - For higher volume: upgrade to paid tier on OpenRouter
 - Implement exponential backoff (future enhancement)
@@ -421,6 +441,7 @@ pytest --cov=. --cov-report=html
 ### "Review not posted to PR"
 
 **Solution:**
+
 - Check GitHub Actions logs for errors
 - Verify `pull-requests: write` permission in workflow
 - Ensure `GITHUB_TOKEN` has correct scopes
@@ -428,6 +449,7 @@ pytest --cov=. --cov-report=html
 ### "Timeout after 15 minutes"
 
 **Solution:**
+
 - Large PRs may hit timeout
 - Reduce diff size (chunk files >500 lines)
 - Free models are already fast (~3-5 min)
@@ -436,6 +458,7 @@ pytest --cov=. --cov-report=html
 ### "Model unavailable"
 
 **Solution:**
+
 - Check [OpenRouter Status](https://status.openrouter.ai/)
 - Try alternative free model:
   - `mistralai/mistral-7b-instruct` (FREE)
@@ -445,6 +468,7 @@ pytest --cov=. --cov-report=html
 ### "Poor review quality with free models"
 
 **Solution:**
+
 - Free models work well for most reviews
 - For complex PRs, consider upgrading specific agents:
   - Architecture → `anthropic/claude-3.5-sonnet` ($0.24)
@@ -481,6 +505,7 @@ pytest --cov=. --cov-report=html
 ## Support
 
 **For issues or questions:**
+
 - Check `IMPLEMENTATION_PLAN.md` for detailed design decisions
 - Review GitHub Actions logs for errors
 - Verify secret configuration in repository settings
