@@ -84,7 +84,7 @@ def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
             clean_outputs = []
 
             for i, task in enumerate(tasks[:5], 1):  # Tasks 1-5 only
-                if hasattr(task, 'output') and task.output:
+                if hasattr(task, "output") and task.output:
                     output_str = str(task.output).strip()
                     # Clean up any wrapper text
                     if "Final Answer:" in output_str:
