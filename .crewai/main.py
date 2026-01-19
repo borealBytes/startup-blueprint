@@ -4,6 +4,7 @@
 import logging
 import os
 import sys
+import time
 from pathlib import Path
 
 from crew import CodeReviewCrew
@@ -13,9 +14,67 @@ from dotenv import load_dotenv
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler("crewai_review.log")],
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler("crewai_review.log"),
+    ],
 )
 logger = logging.getLogger(__name__)
+
+
+def execute_with_retry(crew, inputs, max_retries=2):
+    """
+    Execute crew with retry logic for rate limit errors.
+
+    Args:
+        crew: Initialized CrewAI crew
+        inputs: Input parameters for crew execution
+        max_retries: Number of retry attempts (default: 2)
+
+    Returns:
+        Crew execution result
+
+    Raises:
+        Exception: After exhausting all retries
+    """
+    attempt = 0
+    last_error = None
+
+    while attempt <= max_retries:
+        try:
+            if attempt > 0:
+                logger.info(f"🔄 Retry attempt {attempt}/{max_retries}")
+
+            result = crew.crew().kickoff(inputs=inputs)
+            return result
+
+        except Exception as e:
+            last_error = e
+            error_str = str(e).lower()
+
+            # Check if it's a rate limit error
+            is_rate_limit = (
+                "rate limit" in error_str
+                or "ratelimit" in error_str
+                or "429" in error_str
+            )
+
+            if is_rate_limit and attempt < max_retries:
+                # Exponential backoff: 5s, 15s
+                wait_time = 5 * (3**attempt)
+                logger.warning(
+                    f"⚠️  Rate limit hit on attempt {attempt + 1}. "
+                    f"Waiting {wait_time}s before retry..."
+                )
+                time.sleep(wait_time)
+                attempt += 1
+            else:
+                # Either not a rate limit error, or we're out of retries
+                raise
+
+    # Should not reach here, but just in case
+    if last_error:
+        raise last_error
 
 
 def main():
@@ -58,9 +117,13 @@ def main():
 
         # Show configuration
         logger.info("🔧 Model Configuration:")
-        logger.info(f"   1️⃣ Code Quality: {crew.model_config['code_quality']}")
+        logger.info(
+            f"   1️⃣ Code Quality: {crew.model_config['code_quality']}"
+        )
         logger.info(f"   2️⃣ Security: {crew.model_config['security']}")
-        logger.info(f"   3️⃣ Architecture: {crew.model_config['architecture']}")
+        logger.info(
+            f"   3️⃣ Architecture: {crew.model_config['architecture']}"
+        )
         logger.info("")
 
         # Show agents
@@ -72,7 +135,9 @@ def main():
 
         # Show workflow
         logger.info("📋 Review Workflow:")
-        logger.info("   1. Analyze commit changes (code quality, tests, docs)")
+        logger.info(
+            "   1. Analyze commit changes (code quality, tests, docs)"
+        )
         logger.info("   2. Security & performance review")
         logger.info("   3. Find related files (import analysis)")
         logger.info("   4. Analyze impact on related files")
@@ -97,8 +162,8 @@ def main():
         logger.info("🚀 Crew executing...")
         logger.info("")
 
-        # Execute crew
-        result = crew.crew().kickoff(inputs=inputs)
+        # Execute crew with retry logic
+        result = execute_with_retry(crew, inputs, max_retries=2)
 
         logger.info("")
         logger.info("-" * 70)
@@ -116,9 +181,13 @@ def main():
                 f.write(f"**Pull Request:** #{pr_number}\n\n")
                 f.write(f"**Commit:** {sha[:8]}\n\n")
                 f.write("**Models Used:**\n")
-                f.write(f"- Code Quality: {crew.model_config['code_quality']}\n")
+                f.write(
+                    f"- Code Quality: {crew.model_config['code_quality']}\n"
+                )
                 f.write(f"- Security: {crew.model_config['security']}\n")
-                f.write(f"- Architecture: {crew.model_config['architecture']}\n\n")
+                f.write(
+                    f"- Architecture: {crew.model_config['architecture']}\n\n"
+                )
                 f.write("**Status:** ✅ Review Complete\n\n")
                 if result:
                     f.write(f"**Review Output:**\n\n{result}\n")
