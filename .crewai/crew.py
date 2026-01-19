@@ -37,16 +37,20 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
-        # Model configuration per agent (using verified free OpenRouter models)
-        # Important: Use 'openrouter/' prefix to force routing through LiteLLM/OpenRouter
-        # Without the prefix, CrewAI tries to use native provider SDKs (google-genai, etc.)
+        # Model configuration per agent (using verified free models)
+        # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
             "code_quality": os.getenv(
-                "MODEL_CODE_QUALITY", "openrouter/meta-llama/llama-3.3-70b-instruct:free"
+                "MODEL_CODE_QUALITY",
+                "openrouter/meta-llama/llama-3.3-70b-instruct:free",
             ),
-            "security": os.getenv("MODEL_SECURITY", "openrouter/google/gemini-2.0-flash-exp:free"),
+            "security": os.getenv(
+                "MODEL_SECURITY",
+                "openrouter/google/gemini-2.0-flash-exp:free",
+            ),
             "architecture": os.getenv(
-                "MODEL_ARCHITECTURE", "openrouter/mistralai/devstral-2512:free"
+                "MODEL_ARCHITECTURE",
+                "openrouter/mistralai/devstral-2512:free",
             ),
         }
 
@@ -61,7 +65,12 @@ class CodeReviewCrew:
         """Code quality reviewer agent."""
         return Agent(
             config=self.agents_config["code_quality_reviewer"],
-            tools=[CommitDiffTool, CommitInfoTool, FileContentTool, PRCommentTool],
+            tools=[
+                CommitDiffTool,
+                CommitInfoTool,
+                FileContentTool,
+                PRCommentTool,
+            ],
             llm=self.model_config["code_quality"],
             verbose=True,
         )
@@ -91,7 +100,8 @@ class CodeReviewCrew:
     def analyze_commit_changes(self) -> Task:
         """Task: Analyze commit changes."""
         return Task(
-            config=self.tasks_config["analyze_commit_changes"], agent=self.code_quality_reviewer()
+            config=self.tasks_config["analyze_commit_changes"],
+            agent=self.code_quality_reviewer(),
         )
 
     @task
@@ -106,7 +116,8 @@ class CodeReviewCrew:
     def find_related_files(self) -> Task:
         """Task: Find related files."""
         return Task(
-            config=self.tasks_config["find_related_files"], agent=self.architecture_impact_analyst()
+            config=self.tasks_config["find_related_files"],
+            agent=self.architecture_impact_analyst(),
         )
 
     @task

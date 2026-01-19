@@ -4,7 +4,7 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Set
 
 from crewai.tools import tool
 
@@ -40,8 +40,8 @@ def parse_imports(content: str, file_path: str) -> Set[str]:
     elif ext in [".js", ".ts", ".jsx", ".tsx"]:
         # JavaScript/TypeScript imports
         patterns = [
-            r"from\s+['\"]([^'\"]+)['\"]\s+import",
-            r"import\s+.*?\s+from\s+['\"]([^'\"]+)['\"]",
+            r"from\s+['\"]([ ^'\"]+)['\"]\s+import",
+            r"import\s+.*?\s+from\s+['\"]([ ^'\"]+)['\"]",
             r"require\(['\"]([^'\"]+)['\"]\)",
         ]
         for pattern in patterns:
@@ -93,20 +93,38 @@ def find_files_importing(repo_path: str, target_modules: Set[str]) -> List[str]:
                 d
                 for d in dirs
                 if d
-                not in [".git", ".crewai", "node_modules", "__pycache__", ".venv", "dist", "build"]
+                not in [
+                    ".git",
+                    ".crewai",
+                    "node_modules",
+                    "__pycache__",
+                    ".venv",
+                    "dist",
+                    "build",
+                ]
             ]
 
             for file in files:
                 # Only check code files
                 if not any(
                     file.endswith(ext)
-                    for ext in [".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".go"]
+                    for ext in [
+                        ".py",
+                        ".js",
+                        ".ts",
+                        ".tsx",
+                        ".jsx",
+                        ".java",
+                        ".go",
+                    ]
                 ):
                     continue
 
                 filepath = os.path.join(root, file)
                 try:
-                    with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                    with open(
+                        filepath, "r", encoding="utf-8", errors="ignore"
+                    ) as f:
                         content = f.read(50000)  # Limit read size
                         imports = parse_imports(content, filepath)
 
@@ -123,7 +141,9 @@ def find_files_importing(repo_path: str, target_modules: Set[str]) -> List[str]:
 
 
 @tool
-def RelatedFilesTool(changed_files: List[str], repository: str) -> Dict[str, Any]:
+def RelatedFilesTool(
+    changed_files: List[str], repository: str
+) -> Dict[str, Any]:
     """
     Find files related to changed files based on imports and dependencies.
 
@@ -135,8 +155,10 @@ def RelatedFilesTool(changed_files: List[str], repository: str) -> Dict[str, Any
         Dictionary with related files and relationship details
     """
     try:
-        # Try to use repository parameter as local path first (for GitHub Actions)
-        repo_path = repository if os.path.isdir(repository) else os.getcwd()
+        # Try to use repository parameter as local path first
+        repo_path = (
+            repository if os.path.isdir(repository) else os.getcwd()
+        )
 
         related = {
             "changed_files": changed_files,
@@ -151,7 +173,12 @@ def RelatedFilesTool(changed_files: List[str], repository: str) -> Dict[str, Any
                 # Extract module/package name from file path
                 parts = Path(changed_file).parts
                 if parts:
-                    module_name = parts[0].replace(".py", "").replace(".js", "").replace(".ts", "")
+                    module_name = (
+                        parts[0]
+                        .replace(".py", "")
+                        .replace(".js", "")
+                        .replace(".ts", "")
+                    )
                     if not module_name.startswith("."):
                         target_modules_from_changes.add(module_name)
             except Exception as e:
@@ -159,7 +186,9 @@ def RelatedFilesTool(changed_files: List[str], repository: str) -> Dict[str, Any
 
         # Find files that import the changed modules
         if target_modules_from_changes:
-            importing_files = find_files_importing(repo_path, target_modules_from_changes)
+            importing_files = find_files_importing(
+                repo_path, target_modules_from_changes
+            )
 
             # Build detailed response
             for rel_file in importing_files:
@@ -169,18 +198,21 @@ def RelatedFilesTool(changed_files: List[str], repository: str) -> Dict[str, Any
                             "path": rel_file,
                             "relationship": "imports_changed_module",
                             "relatedness_score": 85,
-                            "reason": f"Imports from changed modules",
+                            "reason": "Imports from changed modules",
                         }
                     )
 
             related["summary"] = {
                 "total_related_files": len(related["related_files"]),
                 "relationship_types": ["imports_changed_module"],
-                "requires_additional_testing": len(related["related_files"]) > 0,
+                "requires_additional_testing": (
+                    len(related["related_files"]) > 0
+                ),
             }
 
         logger.info(
-            f"Found {len(related['related_files'])} related files for {len(changed_files)} changed files"
+            f"Found {len(related['related_files'])} related files for "
+            f"{len(changed_files)} changed files"
         )
         return related
 
