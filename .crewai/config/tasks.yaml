@@ -1,0 +1,102 @@
+analyze_commit_changes:
+  description: >
+    Analyze all files changed in this commit.
+    Focus on: diff content (lines added/removed), new files, removed files.
+    Evaluate: code style, readability, test coverage, documentation.
+    Assess commit message: does it clearly explain what and why?
+
+    Provide specific line references from the diff.
+  expected_output: >
+    A structured report with:
+    - Commit message assessment (clear/unclear, follows conventions)
+    - Files changed breakdown (new, modified, removed)
+    - Code quality issues by file (severity: high/medium/low)
+    - Missing tests for new functionality
+    - Documentation gaps
+    - Specific recommendations with line numbers
+  agent: code_quality_reviewer
+
+security_performance_review:
+  description: >
+    Review commit diff for security and performance issues.
+    Focus on lines added (new attack surface) and removed (breaking changes).
+    Check for: SQL injection, XSS, auth bypasses, hardcoded secrets,
+    N+1 queries, memory leaks, inefficient algorithms.
+
+    Flag CRITICAL issues that block merge.
+  expected_output: >
+    A report with:
+    - Security vulnerabilities (CRITICAL/HIGH/MEDIUM) with CVE references
+    - Performance bottlenecks with estimated impact
+    - Hardcoded secrets or credentials (immediate block)
+    - Remediation steps for each issue
+  agent: security_performance_analyst
+
+find_related_files:
+  description: >
+    Identify files functionally or logically related to changed files,
+    even if NOT modified in this commit.
+
+    Analyze: imports, dependencies, shared patterns, architectural layers.
+    This finds hidden impacts not visible in the commit diff.
+  expected_output: >
+    A list of related files with:
+    - File path
+    - Relationship type (imports, imported by, shared dependency, pattern)
+    - Relatedness score (0-100)
+    - Why it's related and potential impact
+  agent: architecture_impact_analyst
+
+analyze_related_files:
+  description: >
+    Analyze the related files identified in the previous task.
+    Assess potential impacts of this commit's changes on those files.
+
+    Consider: breaking changes, interface modifications, shared contracts.
+  expected_output: >
+    An impact assessment with:
+    - Affected components and their criticality
+    - Potential breaking changes (with migration steps)
+    - Integration risks (API changes, data format changes)
+    - Recommendations for additional testing
+  agent: architecture_impact_analyst
+
+architecture_review:
+  description: >
+    Evaluate architectural implications of this commit.
+    Consider: design patterns, SOLID principles, coupling, cohesion,
+    scalability, and alignment with existing architecture.
+
+    Reference insights from all previous tasks to provide holistic view.
+  expected_output: >
+    An architectural assessment with:
+    - Design pattern evaluation (appropriate/inappropriate)
+    - Coupling and cohesion analysis
+    - Scalability considerations (will this scale?)
+    - Alignment with project architecture (consistent/divergent)
+    - Long-term maintainability impact (tech debt introduced/reduced)
+  agent: architecture_impact_analyst
+
+generate_executive_summary:
+  description: >
+    Synthesize all agent findings into executive summary + detailed review.
+
+    Format as markdown:
+    1. Executive Summary (4-5 sentences, overall assessment, top 3 actions)
+    2. Detailed Findings:
+       - 🚨 Critical Issues (must fix before merge)
+       - ⚠️ Warnings (should fix soon)
+       - 💡 Suggestions (nice to have)
+       - ✅ Positive Observations (good patterns found)
+
+    Use emojis, code snippets with line numbers, and clear action items.
+    Post the complete review to PR using PRCommentTool.
+  expected_output: >
+    Posted PR comment with:
+    - Executive summary (overall assessment, metrics, top actions)
+    - Detailed findings (critical/warning/suggestion/positive)
+    - Code snippets with file:line references
+    - Clear next steps for developer
+
+    Also return markdown for GitHub Actions summary.
+  agent: code_quality_reviewer
