@@ -124,10 +124,17 @@ class CodeReviewCrew:
 
     @task
     def analyze_related_files(self) -> Task:
-        """Task: Analyze related files."""
+        """Task: Analyze related files.
+        
+        Note: context=[] prevents automatic injection of previous task outputs
+        as system messages, which causes 'Unexpected role system after assistant'
+        errors with Mistral API. Task can still access find_related_files output
+        via explicit task references.
+        """
         return Task(
             config=self.tasks_config["analyze_related_files"],
             agent=self.architecture_impact_analyst(),
+            context=[],  # Disable automatic context passing to avoid message ordering issues
         )
 
     @task
@@ -136,6 +143,7 @@ class CodeReviewCrew:
         return Task(
             config=self.tasks_config["architecture_review"],
             agent=self.architecture_impact_analyst(),
+            context=[],  # Disable automatic context passing
         )
 
     @task
@@ -144,6 +152,7 @@ class CodeReviewCrew:
         return Task(
             config=self.tasks_config["generate_executive_summary"],
             agent=self.code_quality_reviewer(),
+            context=[],  # Disable automatic context passing
         )
 
     @crew
