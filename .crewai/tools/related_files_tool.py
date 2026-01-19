@@ -1,11 +1,12 @@
 """Tool to find files related to changed files in commit."""
 
+import logging
 import os
 import re
-from typing import Dict, List, Any, Set, Tuple
 from pathlib import Path
+from typing import Any, Dict, List, Set, Tuple
+
 from crewai.tools import tool
-import logging
 
 logger = logging.getLogger(__name__)
 
