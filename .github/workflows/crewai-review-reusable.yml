@@ -56,6 +56,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
           COMMIT_SHA: ${{ inputs.commit_sha }}
+          CREWAI_TRACING_ENABLED: 'true'
         run: |
           python main.py 2>&1 | tee crewai_review.log
         continue-on-error: true
@@ -70,42 +71,15 @@ jobs:
           retention-days: 7
 
       - name: Check review success
+        if: always()
         run: |
           if [ -f .crewai/crewai_review.log ]; then
             if grep -q "ERROR" .crewai/crewai_review.log; then
               echo "::warning::CrewAI review completed with errors. Check logs for details."
-              exit 0
+            else
+              echo "✅ CrewAI review completed successfully"
             fi
-            echo "CrewAI review completed successfully"
           else
             echo "::error::CrewAI review log not found"
             exit 1
           fi
-
-      - name: Post review summary
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const logPath = '.crewai/crewai_review.log';
-
-            if (!fs.existsSync(logPath)) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: ${{ inputs.pr_number }},
-                body: '## 🤖 CrewAI Code Review\n\n❌ Review failed to generate. Check workflow logs.'
-              });
-              return;
-            }
-
-            const log = fs.readFileSync(logPath, 'utf8');
-            const summary = log.substring(0, 65000);
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ inputs.pr_number }},
-              body: `## 🤖 CrewAI Code Review\n\n${summary}`
-            });

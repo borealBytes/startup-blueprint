@@ -72,19 +72,22 @@ generate_executive_summary:
   description: >
     Synthesize all agent findings into executive summary + detailed review.
 
-    Format as markdown: 1. Executive Summary (4-5 sentences, overall assessment,
-    top 3 actions) 2. Detailed Findings:
+    Format as markdown:
+    1. Executive Summary (4-5 sentences, overall assessment, top 3 actions)
+    2. Detailed Findings:
        - 🚨 Critical Issues (must fix before merge)
        - ⚠️ Warnings (should fix soon)
        - 💡 Suggestions (nice to have)
        - ✅ Positive Observations (good patterns found)
 
-    Use emojis, code snippets with line numbers, and clear action items. Post
-    the complete review to PR using PRCommentTool.
+    Use emojis, code snippets with line numbers, and clear action items.
+    Return markdown suitable for GitHub Actions summary display.
   expected_output: >
-    Posted PR comment with: - Executive summary (overall assessment, metrics,
-    top actions) - Detailed findings (critical/warning/suggestion/positive) -
-    Code snippets with file:line references - Clear next steps for developer
+    Markdown-formatted review with:
+    - Executive summary (overall assessment, metrics, top actions)
+    - Detailed findings (critical/warning/suggestion/positive)
+    - Code snippets with file:line references
+    - Clear next steps for developer
 
-    Also return markdown for GitHub Actions summary.
+    Output will be displayed in GitHub Actions summary page.
   agent: code_quality_reviewer
