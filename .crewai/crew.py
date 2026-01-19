@@ -38,22 +38,23 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
         # Model configuration per agent
-        # Qwen 2.5 Coder 32B: 32B params, code-specialized, supports function calling
-        # Free on OpenRouter, proven accuracy for code review tasks
-        # 4x larger than Qwen3-VL-8B, eliminates hallucinations
+        # DeepSeek V3.2 Speciale: 685B params, optimized for agentic tool-use
+        # High-compute variant with maximum reasoning and function calling reliability
+        # Free on OpenRouter, proven for code review and agent workflows
+        # Eliminates empty response issues seen with Qwen models
         # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
             "code_quality": os.getenv(
                 "MODEL_CODE_QUALITY",
-                "openrouter/qwen/qwen-2.5-coder-32b-instruct",
+                "openrouter/deepseek/deepseek-v3.2-speciale",
             ),
             "security": os.getenv(
                 "MODEL_SECURITY",
-                "openrouter/qwen/qwen-2.5-coder-32b-instruct",
+                "openrouter/deepseek/deepseek-v3.2-speciale",
             ),
             "architecture": os.getenv(
                 "MODEL_ARCHITECTURE",
-                "openrouter/qwen/qwen-2.5-coder-32b-instruct",
+                "openrouter/deepseek/deepseek-v3.2-speciale",
             ),
         }
 
