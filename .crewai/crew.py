@@ -77,7 +77,7 @@ class CodeReviewCrew:
         """Code quality reviewer agent."""
         return Agent(
             config=self.agents_config["code_quality_reviewer"],
-            tools=[CommitDiffTool(), CommitInfoTool(), FileContentTool(), PRCommentTool()],
+            tools=[CommitDiffTool, CommitInfoTool, FileContentTool, PRCommentTool],
             llm=self.llm_code_quality,
             verbose=True,
         )
@@ -87,7 +87,7 @@ class CodeReviewCrew:
         """Security and performance analyst agent."""
         return Agent(
             config=self.agents_config["security_performance_analyst"],
-            tools=[CommitDiffTool(), FileContentTool()],
+            tools=[CommitDiffTool, FileContentTool],
             llm=self.llm_security,
             verbose=True,
         )
@@ -97,7 +97,7 @@ class CodeReviewCrew:
         """Architecture and impact analyst agent."""
         return Agent(
             config=self.agents_config["architecture_impact_analyst"],
-            tools=[CommitDiffTool(), FileContentTool(), RelatedFilesTool()],
+            tools=[CommitDiffTool, FileContentTool, RelatedFilesTool],
             llm=self.llm_architecture,
             verbose=True,
         )
