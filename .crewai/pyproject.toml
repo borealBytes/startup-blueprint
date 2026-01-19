@@ -8,7 +8,7 @@ authors = [{name = "Clayton Young", email = "claytoneyoung+github@gmail.com"}]
 dependencies = [
     "crewai>=0.86.0",
     "crewai-tools>=0.12.0",
-    "litellm>=1.0.0",
+    "litellm[proxy]>=1.0.0",  # [proxy] includes fastapi, orjson for logging
     "PyGithub>=2.1.1",
     "python-dotenv>=1.0.0",
     "langchain-openai>=0.2.0",
