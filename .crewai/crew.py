@@ -41,7 +41,7 @@ class CodeReviewCrew:
         # - Xiaomi Mimo V2 Flash: Fast, efficient for simple analysis tasks
         # - ByteDance SEED 1.6: Better for complex reasoning and larger context
         # - Qwen Plus Thinking: Fallback for context overflow (400 errors)
-        
+
         # Use 'openrouter/' prefix to force routing through LiteLLM
         self.model_config = {
             # Quick tasks: code quality, security, summary
@@ -75,10 +75,7 @@ class CodeReviewCrew:
 
     def _create_llm_config(self, model_key: str) -> dict:
         """Create LLM configuration with fallback support."""
-        config = {
-            "model": self.model_config[model_key],
-            **self.llm_config
-        }
+        config = {"model": self.model_config[model_key], **self.llm_config}
         return config
 
     # Agents
