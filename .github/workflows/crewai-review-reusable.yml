@@ -46,7 +46,7 @@ jobs:
       - name: Install CrewAI dependencies
         working-directory: .crewai
         run: |
-          uv pip install --system -r pyproject.toml
+          uv pip install --system .
 
       - name: Run CrewAI code review
         working-directory: .crewai
