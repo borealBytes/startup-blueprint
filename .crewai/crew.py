@@ -2,16 +2,73 @@
 
 import logging
 import os
+import time
 from pathlib import Path
 
 import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from tools.cost_tracker import get_tracker
 from tools.github_tools import (CommitDiffTool, CommitInfoTool,
                                 FileContentTool, PRCommentTool)
 from tools.related_files_tool import RelatedFilesTool
 
 logger = logging.getLogger(__name__)
+
+# Store request start times
+_request_start_times = {}
+
+
+def litellm_success_callback(kwargs, completion_response, start_time, end_time):
+    """Callback for successful LiteLLM API calls.
+
+    Args:
+        kwargs: Request arguments
+        completion_response: Response object
+        start_time: Request start time
+        end_time: Request end time
+    """
+    try:
+        tracker = get_tracker()
+
+        # Extract metrics from response
+        model = kwargs.get("model", "unknown")
+        usage = completion_response.get("usage", {})
+        tokens_in = usage.get("prompt_tokens", 0)
+        tokens_out = usage.get("completion_tokens", 0)
+
+        # Get cost from response (LiteLLM calculates this)
+        cost = getattr(completion_response, "_hidden_params", {}).get("response_cost", 0)
+
+        # Calculate duration
+        duration = end_time - start_time
+
+        # Log the call
+        tracker.log_api_call(
+            model=model,
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
+            cost=cost,
+            duration_seconds=duration,
+        )
+
+    except Exception as e:
+        logger.warning(f"Error in cost tracking callback: {e}")
+
+
+def litellm_failure_callback(kwargs, completion_response, start_time, end_time):
+    """Callback for failed LiteLLM API calls.
+
+    Args:
+        kwargs: Request arguments
+        completion_response: Error response
+        start_time: Request start time
+        end_time: Request end time
+    """
+    # Log failure but don't track cost
+    model = kwargs.get("model", "unknown")
+    duration = end_time - start_time
+    logger.warning(f"API call failed for {model} after {duration:.2f}s")
 
 
 @CrewBase
@@ -36,6 +93,13 @@ class CodeReviewCrew:
         # Set LiteLLM base URL for OpenRouter
         os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
+
+        # Register cost tracking callbacks
+        import litellm
+
+        litellm.success_callback = [litellm_success_callback]
+        litellm.failure_callback = [litellm_failure_callback]
+        logger.info("📊 Cost tracking callbacks registered")
 
         # Simplified model strategy using Xiaomi Mimo V2 family:
         # - Mimo V2 Flash: Fast, efficient, 128k context (default for all tasks)
@@ -132,6 +196,9 @@ class CodeReviewCrew:
         Note: This is the first task, so it has no previous context.
         No need for context=[] here.
         """
+        tracker = get_tracker()
+        tracker.set_current_task("Task 1: Analyze Commit Changes")
+
         return Task(
             config=self.tasks_config["analyze_commit_changes"],
             agent=self.code_quality_reviewer(),
@@ -145,6 +212,9 @@ class CodeReviewCrew:
         as system messages, which causes 'Unexpected role system after assistant'
         errors with Mistral API. Task still has full access to commit data via tools.
         """
+        tracker = get_tracker()
+        tracker.set_current_task("Task 2: Security & Performance Review")
+
         return Task(
             config=self.tasks_config["security_performance_review"],
             agent=self.security_performance_analyst(),
@@ -158,6 +228,9 @@ class CodeReviewCrew:
         Note: context=[] prevents automatic context injection.
         Task uses RelatedFilesTool to analyze imports directly.
         """
+        tracker = get_tracker()
+        tracker.set_current_task("Task 3: Find Related Files")
+
         return Task(
             config=self.tasks_config["find_related_files"],
             agent=self.architecture_impact_analyst(),
@@ -173,6 +246,9 @@ class CodeReviewCrew:
         errors with Mistral API. Task can still access find_related_files output
         via explicit task references.
         """
+        tracker = get_tracker()
+        tracker.set_current_task("Task 4: Analyze Related Files")
+
         return Task(
             config=self.tasks_config["analyze_related_files"],
             agent=self.architecture_impact_analyst(),
@@ -186,6 +262,9 @@ class CodeReviewCrew:
         Note: context=[] prevents automatic context injection.
         Task uses FileContentTool to analyze architecture directly.
         """
+        tracker = get_tracker()
+        tracker.set_current_task("Task 5: Architecture Review")
+
         return Task(
             config=self.tasks_config["architecture_review"],
             agent=self.architecture_impact_analyst(),
@@ -202,6 +281,9 @@ class CodeReviewCrew:
         The dedicated executive_summary_agent has NO tools, preventing it from
         trying to re-fetch data and hitting iteration limits.
         """
+        tracker = get_tracker()
+        tracker.set_current_task("Task 6: Generate Executive Summary")
+
         return Task(
             config=self.tasks_config["generate_executive_summary"],
             agent=self.executive_summary_agent(),
