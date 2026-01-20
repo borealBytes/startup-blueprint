@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class CILogAnalysisCrew:
-    """Analyzes CI logs and correlates with code changes."""
+    """Analyzes CI logs for errors, warnings, and suggestions."""
 
     # Paths relative to this file (.crewai/crews/) → go up to .crewai/config/
     agents_config = "../config/agents.yaml"
-    tasks_config = "../config/tasks/ci_log_tasks.yaml"
+    tasks_config = "../config/tasks/ci_log_analysis_tasks.yaml"
 
     def __init__(self):
-        """Initialize CI analysis crew."""
+        """Initialize CI log analysis crew."""
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
@@ -33,8 +33,7 @@ class CILogAnalysisCrew:
             import litellm
 
             try:
-                from crew import (litellm_failure_callback,
-                                  litellm_success_callback)
+                from crew import litellm_failure_callback, litellm_success_callback
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
@@ -44,7 +43,7 @@ class CILogAnalysisCrew:
         except ImportError:
             pass
 
-        # Use openrouter/ prefix for all models
+        # Use openrouter/ prefix
         default_model = "openrouter/xiaomi/mimo-v2-flash"
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
@@ -53,8 +52,8 @@ class CILogAnalysisCrew:
         """Create CI analyst agent."""
         return Agent(
             config=self.agents_config["ci_analyst"],
-            # Tools are classes, not instances
-            tools=[CIOutputParserTool, WorkspaceTool],
+            # BaseTool subclasses need instantiation
+            tools=[CIOutputParserTool(), WorkspaceTool()],
             llm=self.model_name,
             max_iter=3,
             verbose=True,
@@ -62,15 +61,15 @@ class CILogAnalysisCrew:
 
     @task
     def analyze_ci_logs(self) -> Task:
-        """Analyze CI logs and save summary."""
+        """Analyze CI logs."""
         return Task(
-            config=self.tasks_config["analyze_ci_logs"],
+            config=self.tasks_config["parse_ci_output"],
             agent=self.ci_analyst(),
         )
 
     @crew
     def crew(self) -> Crew:
-        """Create CI analysis crew."""
+        """Create CI log analysis crew."""
         return Crew(
             agents=[self.ci_analyst()],
             tasks=[self.analyze_ci_logs()],

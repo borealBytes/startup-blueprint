@@ -1,4 +1,4 @@
-"""Quick review crew for fast, lightweight code review."""
+"""Quick review crew for fast code checks."""
 
 import logging
 import os
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class QuickReviewCrew:
-    """Fast code quality review (~1 minute)."""
+    """Quick code quality review crew."""
 
     # Paths relative to this file (.crewai/crews/) → go up to .crewai/config/
     agents_config = "../config/agents.yaml"
@@ -32,8 +32,7 @@ class QuickReviewCrew:
             import litellm
 
             try:
-                from crew import (litellm_failure_callback,
-                                  litellm_success_callback)
+                from crew import litellm_failure_callback, litellm_success_callback
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
@@ -52,8 +51,8 @@ class QuickReviewCrew:
         """Create quick reviewer agent."""
         return Agent(
             config=self.agents_config["quick_reviewer"],
-            # Tools are classes, not instances
-            tools=[WorkspaceTool],
+            # BaseTool subclasses need instantiation
+            tools=[WorkspaceTool()],
             llm=self.model_name,
             max_iter=3,
             verbose=True,
@@ -61,9 +60,9 @@ class QuickReviewCrew:
 
     @task
     def quick_code_review(self) -> Task:
-        """Perform quick code review."""
+        """Quick code review task."""
         return Task(
-            config=self.tasks_config["quick_code_review"],
+            config=self.tasks_config["quick_code_check"],
             agent=self.quick_reviewer(),
         )
 

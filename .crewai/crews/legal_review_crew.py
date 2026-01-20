@@ -1,4 +1,4 @@
-"""Legal compliance review crew (future implementation)."""
+"""Legal compliance review crew (stub for future)."""
 
 import logging
 import os
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class LegalReviewCrew:
-    """Legal compliance review (license, copyright, terms)."""
+    """Legal compliance review (stub - not yet implemented)."""
 
     # Paths relative to this file (.crewai/crews/) → go up to .crewai/config/
     agents_config = "../config/agents.yaml"
@@ -32,8 +32,7 @@ class LegalReviewCrew:
             import litellm
 
             try:
-                from crew import (litellm_failure_callback,
-                                  litellm_success_callback)
+                from crew import litellm_failure_callback, litellm_success_callback
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
@@ -48,31 +47,31 @@ class LegalReviewCrew:
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
     @agent
-    def legal_reviewer(self) -> Agent:
-        """Create legal reviewer agent."""
+    def legal_compliance_reviewer(self) -> Agent:
+        """Create legal compliance reviewer."""
         return Agent(
-            config=self.agents_config["legal_reviewer"],
-            # Tools are classes, not instances
-            tools=[WorkspaceTool],
+            config=self.agents_config["legal_compliance_reviewer"],
+            # BaseTool subclasses need instantiation
+            tools=[WorkspaceTool()],
             llm=self.model_name,
             max_iter=3,
             verbose=True,
         )
 
     @task
-    def legal_compliance_review(self) -> Task:
-        """Perform legal compliance review."""
+    def review_legal_compliance(self) -> Task:
+        """Review legal compliance (stub)."""
         return Task(
-            config=self.tasks_config["legal_compliance_review"],
-            agent=self.legal_reviewer(),
+            config=self.tasks_config["review_legal_compliance"],
+            agent=self.legal_compliance_reviewer(),
         )
 
     @crew
     def crew(self) -> Crew:
         """Create legal review crew."""
         return Crew(
-            agents=[self.legal_reviewer()],
-            tasks=[self.legal_compliance_review()],
+            agents=[self.legal_compliance_reviewer()],
+            tasks=[self.review_legal_compliance()],
             process=Process.sequential,
             verbose=True,
         )

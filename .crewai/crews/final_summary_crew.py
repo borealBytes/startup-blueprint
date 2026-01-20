@@ -32,8 +32,7 @@ class FinalSummaryCrew:
             import litellm
 
             try:
-                from crew import (litellm_failure_callback,
-                                  litellm_success_callback)
+                from crew import litellm_failure_callback, litellm_success_callback
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
@@ -50,13 +49,13 @@ class FinalSummaryCrew:
     @agent
     def executive_summary_agent(self) -> Agent:
         """Create executive summary agent.
-
+        
         IMPORTANT: Method name must match the agent key in agents.yaml.
         """
         return Agent(
             config=self.agents_config["executive_summary_agent"],
-            # Tools are classes, not instances
-            tools=[WorkspaceTool],
+            # BaseTool subclasses need instantiation
+            tools=[WorkspaceTool()],
             llm=self.model_name,
             max_iter=3,
             verbose=True,
@@ -65,7 +64,7 @@ class FinalSummaryCrew:
     @task
     def synthesize_summary(self) -> Task:
         """Synthesize final summary.
-
+        
         IMPORTANT: Method name must match the task key in tasks YAML.
         """
         return Task(
