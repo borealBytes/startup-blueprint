@@ -1,28 +1,29 @@
-name: CrewAI Review (Reusable)
+name: CrewAI Code Review (Reusable)
 
 on:
   workflow_call:
     inputs:
       pr_number:
         required: true
-        type: number
-        description: 'Pull request number'
+        type: string
+        description: "Pull request number"
       commit_sha:
         required: true
         type: string
-        description: 'Commit SHA to review'
+        description: "Commit SHA to review"
+      core_ci_result:
+        required: false
+        type: string
+        default: "success"
+        description: "Result from core-ci job (success/failure)"
     secrets:
       OPENROUTER_API_KEY:
         required: true
-        description: 'OpenRouter API key for CrewAI LLM access'
-
-permissions:
-  contents: read
-  pull-requests: write
+        description: "OpenRouter API key for AI models"
 
 jobs:
   crewai-review:
-    name: AI Code Review
+    name: AI Review
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -31,55 +32,61 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
+          fetch-depth: 0  # Full history for commit analysis
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup UV (Python Package Manager)
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.11'
-
-      - name: Install UV
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          enable-cache: true
+          cache-dependency-glob: ".crewai/pyproject.toml"
 
       - name: Install CrewAI dependencies
         working-directory: .crewai
         run: |
-          uv pip install --system .
+          uv sync --frozen
 
-      - name: Run CrewAI code review
+      - name: Run CrewAI Router-Based Review
         working-directory: .crewai
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # API Keys
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+          # GitHub Context
           PR_NUMBER: ${{ inputs.pr_number }}
           COMMIT_SHA: ${{ inputs.commit_sha }}
-          CREWAI_TRACING_ENABLED: 'true'
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          
+          # CI Context (NEW: from core-ci job)
+          CORE_CI_RESULT: ${{ inputs.core_ci_result }}
+          
+          # GitHub Actions Context
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
         run: |
-          python main.py 2>&1 | tee crewai_review.log
-        continue-on-error: true
+          echo "🚀 Starting CrewAI Router-Based Review System"
+          echo "📦 Repository: $GITHUB_REPOSITORY"
+          echo "🔗 PR: #$PR_NUMBER"
+          echo "📝 Commit: ${COMMIT_SHA:0:8}"
+          echo "✅ Core CI: $CORE_CI_RESULT"
+          echo ""
+          
+          uv run main.py
 
-      # Upload logs as artifact (only if review ran)
-      - name: Upload CrewAI logs
+      - name: Upload Review Trace
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crewai-review-logs
-          path: .crewai/crewai_review.log
-          retention-days: 7
+          name: crewai-review-trace-pr-${{ inputs.pr_number }}
+          path: .crewai/workspace/trace/
+          retention-days: 30
+          if-no-files-found: warn
 
-      - name: Check review success
-        if: always()
-        run: |
-          if [ -f .crewai/crewai_review.log ]; then
-            if grep -q "ERROR" .crewai/crewai_review.log; then
-              echo "::warning::CrewAI review completed with errors. Check logs for details."
-            else
-              echo "✅ CrewAI review completed successfully"
-            fi
-          else
-            echo "::error::CrewAI review log not found"
-            exit 1
-          fi
+      - name: Upload Workspace (Debug)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crewai-workspace-debug-pr-${{ inputs.pr_number }}
+          path: .crewai/workspace/
+          retention-days: 7
+          if-no-files-found: warn
