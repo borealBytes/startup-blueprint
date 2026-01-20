@@ -320,12 +320,15 @@ def main():
         logger.info("   6. Generate executive summary (CLEAN CONTEXT ONLY)")
         logger.info("")
         logger.info("⏱️ Estimated time: 3-5 minutes")
-        logger.info("💰 Cost: Tracked per API call")
+        logger.info("💰 Cost: Tracked per API call via LiteLLM callbacks + OpenRouter enrichment")
         logger.info("🔍 Tracing: Enabled")
         logger.info("🧹 Context: Manual clean extraction for Task 6")
         logger.info("")
         logger.info("-" * 70)
         logger.info("")
+
+        # Get tracker for monitoring
+        tracker = get_tracker()
 
         # Prepare inputs for crew
         inputs = {
@@ -353,8 +356,27 @@ def main():
         logger.info("✅ Code review completed successfully!")
         logger.info("")
 
+        # Check if callbacks captured data
+        logger.info("=" * 70)
+        logger.info("🔍 Cost Tracking Status Check")
+        logger.info("=" * 70)
+        logger.info(f"API calls captured by LiteLLM callbacks: {len(tracker.calls)}")
+        logger.info("")
+
+        # If no calls captured, try OpenRouter enrichment
+        if len(tracker.calls) == 0:
+            logger.warning("⚠️  No API calls captured by LiteLLM callbacks!")
+            logger.info("🔄 Attempting to retrieve usage data from OpenRouter API...")
+            tracker.enrich_from_openrouter()
+            logger.info(f"After enrichment: {len(tracker.calls)} calls")
+        else:
+            logger.info("✅ LiteLLM callbacks successfully captured API calls")
+            logger.info("🔄 Enriching with OpenRouter API for precise costs...")
+            tracker.enrich_from_openrouter()
+
+        logger.info("")
+
         # Display cost breakdown in logs
-        tracker = get_tracker()
         logger.info("=" * 70)
         logger.info("💰 COST BREAKDOWN")
         logger.info("=" * 70)
