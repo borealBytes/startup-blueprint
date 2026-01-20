@@ -2,14 +2,13 @@ quick_code_review:
   description: >
     Perform fast code quality check focusing on common issues and patterns.
 
-    INPUTS FROM WORKSPACE (already cached by router): - diff.txt: Full
-    commit diff (fetched once by router) - ci_summary.json: CI
-    analysis results - commits.json: Commit history (last 10)
+    INPUTS FROM WORKSPACE (already cached by router): - diff.txt: Full commit
+    diff (fetched once by router) - ci_summary.json: CI analysis results -
+    commits.json: Commit history (last 10)
 
-    YOUR TASKS: 1. Use WorkspaceTool to read diff.txt 2. Use
-    WorkspaceTool to read ci_summary.json for context 3. Use
-    WorkspaceTool to read commits.json for context 4. Scan for common code
-    smells:
+    YOUR TASKS: 1. Use WorkspaceTool to read diff.txt 2. Use WorkspaceTool to
+    read ci_summary.json for context 3. Use WorkspaceTool to read commits.json
+    for context 4. Scan for common code smells:
        - Long functions (>50 lines)
        - Deep nesting (>3 levels)
        - Magic numbers (hardcoded constants)
@@ -37,8 +36,7 @@ quick_code_review:
     functionality - **Warning**: Code smells, maintainability issues, style
     violations - **Info**: Suggestions for improvement, best practices
 
-    OUTPUT FORMAT: Use WorkspaceTool to write JSON to quick_review.json:
-    {
+    OUTPUT FORMAT: Use WorkspaceTool to write JSON to quick_review.json: {
       "critical": [
         {
           "type": "potential_bug",
@@ -57,7 +55,8 @@ quick_code_review:
           "line_start": 10,
           "line_end": 75,
           "issue": "Function 'processData' is 65 lines long",
-          "fix_suggestion": "Extract helper functions for parsing, validation, and formatting",
+          "fix_suggestion": "Extract helper functions for parsing, validation,
+    and formatting",
           "severity": "warning"
         },
         {
@@ -86,7 +85,7 @@ quick_code_review:
     }
 
   expected_output: >
-    Quick code review results saved to quick_review.json with: -
-    Categorized findings (critical, warning, info) - Specific line numbers and
-    code snippets - Clear issue descriptions - Actionable fix suggestions - File
-    and LOC statistics
+    Quick code review results saved to quick_review.json with: - Categorized
+    findings (critical, warning, info) - Specific line numbers and code snippets
+    - Clear issue descriptions - Actionable fix suggestions - File and LOC
+    statistics

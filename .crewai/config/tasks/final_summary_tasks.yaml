@@ -3,10 +3,10 @@ synthesize_summary:
     Synthesize all review outputs into a final GitHub-flavored markdown summary.
 
     CRITICAL INSTRUCTIONS: **FIRST**, check if critical workspace files exist
-    using WorkspaceTool.exists(): - router_decision.json (REQUIRED) -
-    diff.txt (REQUIRED - if missing, indicates router failed) -
-    ci_summary.json (REQUIRED) - quick_review.json (REQUIRED) -
-    full_review.json (optional - only if full-review ran)
+    using WorkspaceTool.exists(): - router_decision.json (REQUIRED) - diff.txt
+    (REQUIRED - if missing, indicates router failed) - ci_summary.json
+    (REQUIRED) - quick_review.json (REQUIRED) - full_review.json (optional -
+    only if full-review ran)
 
     IF ANY REQUIRED FILE IS MISSING: Create a CRITICAL ERROR summary explaining
     which files are missing and what likely went wrong. Example: ## 🚨 CrewAI
@@ -14,12 +14,12 @@ synthesize_summary:
 
     **Critical Error**: Review workflow did not complete successfully.
 
-    ### Missing Files: - ❌ `diff.txt` - Router failed to fetch commit
-    diff - ❌ `quick_review.json` - Quick review did not run
+    ### Missing Files: - ❌ `diff.txt` - Router failed to fetch commit diff - ❌
+    `quick_review.json` - Quick review did not run
 
     ### Root Cause: The router agent failed to fetch the commit diff, which
-    prevented all downstream reviews from running. Check the router crew logs for
-    errors.
+    prevented all downstream reviews from running. Check the router crew logs
+    for errors.
 
     ### Action Required: 1. Check GitHub Actions logs for the Router step 2.
     Verify `COMMIT_SHA` environment variable is set 3. Verify GitHub API
@@ -27,13 +27,12 @@ synthesize_summary:
 
     **THEN STOP** - Do not attempt to create a normal summary.
 
-    WORKSPACE INPUTS (read all that exist): - router_decision.json:
-    Router suggestions and metadata - diff.txt: Commit diff (if missing =
-    CRITICAL ERROR) - ci_summary.json: CI analysis results -
-    quick_review.json: Quick code review findings -
-    ci_correlation.json: CI issue correlations - full_review.json: Full
-    technical review (if ran) - legal_review.json: Legal review (if ran -
-    future) - commits.json: Commit history context
+    WORKSPACE INPUTS (read all that exist): - router_decision.json: Router
+    suggestions and metadata - diff.txt: Commit diff (if missing = CRITICAL
+    ERROR) - ci_summary.json: CI analysis results - quick_review.json: Quick
+    code review findings - ci_correlation.json: CI issue correlations -
+    full_review.json: Full technical review (if ran) - legal_review.json: Legal
+    review (if ran - future) - commits.json: Commit history context
 
     YOUR TASK: Create ONE cohesive GitHub-flavored markdown report that
     synthesizes all findings into a scannable, actionable summary.
@@ -46,7 +45,8 @@ synthesize_summary:
     Use these GitHub-flavored markdown elements: 1. **HEADINGS**: Use `##` for
     main sections, `###` for subsections
        - CORRECT: `## Review Summary`
-       - WRONG: `# Review Summary` (too big) or `#### Review Summary` (too small)
+       - WRONG: `# Review Summary` (too big) or `#### Review Summary` (too
+    small)
 
     2. **EMPHASIS**:
        - Bold: `**text**` for important items
@@ -104,14 +104,15 @@ synthesize_summary:
     findings from workspace files
 
     TONE: - Direct and factual - Encouraging when appropriate - Never apologetic
-    or uncertain - Use "we" for team perspective ("We found...", "We suggest...")
+    or uncertain - Use "we" for team perspective ("We found...", "We
+    suggest...")
 
-    OUTPUT FORMAT: Use WorkspaceTool to write markdown to
-    final_summary.md (NOT in a code block!)
+    OUTPUT FORMAT: Use WorkspaceTool to write markdown to final_summary.md (NOT
+    in a code block!)
 
   expected_output: >
-    A complete, GitHub-flavored markdown summary saved to final_summary.md
-    that: - Starts with clear status emoji and verdict - Synthesizes all review
+    A complete, GitHub-flavored markdown summary saved to final_summary.md that:
+    - Starts with clear status emoji and verdict - Synthesizes all review
     findings into a scannable report - Deduplicates and prioritizes issues by
     severity - Provides actionable fix suggestions for every finding - Uses
     proper GitHub markdown (NOT wrapped in code blocks) - Ends with timestamp

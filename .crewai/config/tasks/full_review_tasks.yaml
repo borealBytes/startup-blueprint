@@ -3,10 +3,9 @@ full_technical_review:
     Perform comprehensive technical review focusing on architecture, design
     patterns, and code quality.
 
-    WORKSPACE INPUTS (already cached - do NOT re-fetch): - diff.txt:
-    Full commit diff (fetched once by router) - quick_review.json:
-    Quick review findings (build on this) - ci_summary.json: CI
-    context - commits.json: Commit history
+    WORKSPACE INPUTS (already cached - do NOT re-fetch): - diff.txt: Full commit
+    diff (fetched once by router) - quick_review.json: Quick review findings
+    (build on this) - ci_summary.json: CI context - commits.json: Commit history
 
     YOUR TASKS: 1. Use WorkspaceTool to read diff (do NOT use CommitDiffTool
     again) 2. Read quick_review.json to see what was already flagged 3. Perform
@@ -34,8 +33,10 @@ full_technical_review:
           "severity": "warning",
           "file": "src/services/auth.ts",
           "title": "Tight coupling between auth and database layers",
-          "description": "Auth service directly imports DB models, making testing difficult",
-          "suggestion": "Inject repository interface to enable mocking and separation",
+          "description": "Auth service directly imports DB models, making
+    testing difficult",
+          "suggestion": "Inject repository interface to enable mocking and
+    separation",
           "impact": "high"
         }
       ],
@@ -45,8 +46,10 @@ full_technical_review:
           "severity": "critical",
           "file": "src/api/users.ts",
           "title": "Missing input sanitization on user endpoints",
-          "description": "User input passed directly to SQL query without validation",
-          "suggestion": "Use parameterized queries or ORM to prevent SQL injection",
+          "description": "User input passed directly to SQL query without
+    validation",
+          "suggestion": "Use parameterized queries or ORM to prevent SQL
+    injection",
           "impact": "critical"
         }
       ],
@@ -58,12 +61,14 @@ full_technical_review:
           "file": "src/utils/parser.ts",
           "title": "New parser utility lacks unit tests",
           "description": "Complex parsing logic added without test coverage",
-          "suggestion": "Add tests covering edge cases (empty input, malformed data)",
+          "suggestion": "Add tests covering edge cases (empty input, malformed
+    data)",
           "impact": "medium"
         }
       ],
       "maintainability": [],
-      "summary": "1 critical security issue, 1 architectural warning, testing gap identified"
+      "summary": "1 critical security issue, 1 architectural warning, testing
+    gap identified"
     }
 
   expected_output: >
@@ -76,10 +81,11 @@ full_technical_review:
 
 security_deep_dive:
   description: >
-    Specialized security analysis focusing on vulnerabilities and attack vectors.
+    Specialized security analysis focusing on vulnerabilities and attack
+    vectors.
 
-    WORKSPACE INPUTS: - diff.txt: Focus on lines added (new attack
-    surface) - quick_review.json: Basic security flags from quick review -
+    WORKSPACE INPUTS: - diff.txt: Focus on lines added (new attack surface) -
+    quick_review.json: Basic security flags from quick review -
     full_review.json: General security patterns
 
     YOUR TASKS: 1. Read diff to identify security-sensitive changes 2. Perform
@@ -101,13 +107,13 @@ security_deep_dive:
        - Inadequate input validation
        - Insufficient error handling (info leakage)
 
-    OUTPUT FORMAT: Use WorkspaceTool to write JSON to security_review.json:
-    {
+    OUTPUT FORMAT: Use WorkspaceTool to write JSON to security_review.json: {
       "critical_vulnerabilities": [],
       "warnings": [],
       "recommendations": [],
       "owasp_categories": ["injection", "auth"],
-      "summary": "No critical vulnerabilities found, 2 hardening recommendations"
+      "summary": "No critical vulnerabilities found, 2 hardening
+    recommendations"
     }
 
   expected_output: >
