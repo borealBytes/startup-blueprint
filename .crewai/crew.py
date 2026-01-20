@@ -43,32 +43,43 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
             if usage:
                 tokens_in = getattr(usage, "prompt_tokens", 0)
                 tokens_out = getattr(usage, "completion_tokens", 0)
-                logger.debug(f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out")
+                # FIX 1: Check for cost in usage object first
+                cost = getattr(usage, "cost", None)
+                logger.debug(f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out, cost={cost}")
 
-        # Try to get cost from LiteLLM's cost calculation
-        if hasattr(completion_response, "_hidden_params"):
+        # FIX 1: Check for cost attribute directly on response (most common location)
+        if cost is None and hasattr(completion_response, "cost"):
+            cost = completion_response.cost
+            logger.debug(f"🔍 Got cost from response.cost: {cost}")
+
+        # FIX 1: Check for cost in _hidden_params (legacy fallback)
+        if cost is None and hasattr(completion_response, "_hidden_params"):
             hidden = completion_response._hidden_params
             if isinstance(hidden, dict):
                 cost = hidden.get("response_cost", None)
                 # OpenRouter may provide generation_id
                 generation_id = hidden.get("generation_id")
-                logger.debug(f"🔍 Hidden params cost: {cost}")
+                if cost is not None:
+                    logger.debug(f"🔍 Got cost from _hidden_params: {cost}")
 
         # Fallback: try to access as dict
         if tokens_in == 0 and isinstance(completion_response, dict):
             usage_dict = completion_response.get("usage", {})
             tokens_in = usage_dict.get("prompt_tokens", 0)
             tokens_out = usage_dict.get("completion_tokens", 0)
-            if "cost" in usage_dict:
+            if cost is None and "cost" in usage_dict:
                 cost = usage_dict.get("cost")
+                logger.debug(f"🔍 Got cost from dict usage: {cost}")
 
-        # FIX: Handle None cost to prevent formatting errors
+        # Handle None cost to prevent formatting errors
         if cost is None:
             logger.warning(
                 f"⚠️  Cost data missing from LiteLLM response for model {model}. "
                 f"Enrichment fallback will be used."
             )
             cost = 0.0  # Default to zero, enrichment will fill it
+        else:
+            logger.debug(f"✅ Cost captured: ${cost:.6f}")
 
         # Calculate duration in seconds (FIX: convert timedelta to float)
         duration = end_time - start_time
@@ -250,6 +261,9 @@ class CodeReviewCrew:
         )
 
     # Tasks
+    # FIX 2: Remove tracker.set_current_task() from here - it runs at task DEFINITION time,
+    # not EXECUTION time. Task names will be inferred from task order or set via metadata.
+
     @task
     def analyze_commit_changes(self) -> Task:
         """Task: Analyze commit changes.
@@ -257,9 +271,6 @@ class CodeReviewCrew:
         Note: This is the first task, so it has no previous context.
         No need for context=[] here.
         """
-        tracker = get_tracker()
-        tracker.set_current_task("Task 1: Analyze Commit Changes")
-
         return Task(
             config=self.tasks_config["analyze_commit_changes"],
             agent=self.code_quality_reviewer(),
@@ -273,9 +284,6 @@ class CodeReviewCrew:
         as system messages, which causes 'Unexpected role system after assistant'
         errors with Mistral API. Task still has full access to commit data via tools.
         """
-        tracker = get_tracker()
-        tracker.set_current_task("Task 2: Security & Performance Review")
-
         return Task(
             config=self.tasks_config["security_performance_review"],
             agent=self.security_performance_analyst(),
@@ -289,9 +297,6 @@ class CodeReviewCrew:
         Note: context=[] prevents automatic context injection.
         Task uses RelatedFilesTool to analyze imports directly.
         """
-        tracker = get_tracker()
-        tracker.set_current_task("Task 3: Find Related Files")
-
         return Task(
             config=self.tasks_config["find_related_files"],
             agent=self.architecture_impact_analyst(),
@@ -307,9 +312,6 @@ class CodeReviewCrew:
         errors with Mistral API. Task can still access find_related_files output
         via explicit task references.
         """
-        tracker = get_tracker()
-        tracker.set_current_task("Task 4: Analyze Related Files")
-
         return Task(
             config=self.tasks_config["analyze_related_files"],
             agent=self.architecture_impact_analyst(),
@@ -323,9 +325,6 @@ class CodeReviewCrew:
         Note: context=[] prevents automatic context injection.
         Task uses FileContentTool to analyze architecture directly.
         """
-        tracker = get_tracker()
-        tracker.set_current_task("Task 5: Architecture Review")
-
         return Task(
             config=self.tasks_config["architecture_review"],
             agent=self.architecture_impact_analyst(),
@@ -342,9 +341,6 @@ class CodeReviewCrew:
         The dedicated executive_summary_agent has NO tools, preventing it from
         trying to re-fetch data and hitting iteration limits.
         """
-        tracker = get_tracker()
-        tracker.set_current_task("Task 6: Generate Executive Summary")
-
         return Task(
             config=self.tasks_config["generate_executive_summary"],
             agent=self.executive_summary_agent(),
