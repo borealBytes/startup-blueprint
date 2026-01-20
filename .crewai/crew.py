@@ -76,8 +76,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
         # Only log if we got meaningful data
         if tokens_in > 0 or tokens_out > 0:
             logger.info(
-                f"✅ Captured API call: {model} "
-                f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
+                f"✅ Captured API call: {model} " f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
             )
 
             tracker.log_api_call(
