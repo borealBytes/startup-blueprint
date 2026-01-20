@@ -71,10 +71,10 @@ class RouterCrew:
             # - @tool decorated functions: WITHOUT () (CommitDiffTool)
             # - BaseTool subclasses: WITH () (PRMetadataTool())
             tools=[
-                PRMetadataTool(),   # BaseTool subclass
-                CommitDiffTool,     # @tool function
-                CommitInfoTool,     # @tool function
-                WorkspaceTool(),    # BaseTool subclass
+                PRMetadataTool(),  # BaseTool subclass
+                CommitDiffTool,  # @tool function
+                CommitInfoTool,  # @tool function
+                WorkspaceTool(),  # BaseTool subclass
             ],
             llm=self.model_name,
             max_iter=5,
