@@ -23,9 +23,7 @@ class WorkspaceTool(BaseTool):
 
     # Pydantic v2 requires fields to be declared
     # Use absolute path to avoid CWD issues when workflow sets working-directory
-    workspace_dir: Path = Field(
-        default_factory=lambda: Path(__file__).parent.parent / "workspace"
-    )
+    workspace_dir: Path = Field(default_factory=lambda: Path(__file__).parent.parent / "workspace")
     trace_dir: Optional[Path] = Field(default=None)
 
     def model_post_init(self, __context: Any) -> None:
