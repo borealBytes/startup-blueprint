@@ -15,7 +15,6 @@ from crews.legal_review_crew import LegalReviewCrew
 from crews.quick_review_crew import QuickReviewCrew
 from crews.router_crew import RouterCrew
 from tools.cost_tracker import get_tracker
-from tools.github_tools import PRCommentTool
 from tools.workspace_tool import WorkspaceTool
 
 # Configure logging
@@ -67,9 +66,9 @@ def get_env_vars():
 
 def run_router(env_vars):
     """Run router crew to decide workflows."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("🔀 STEP 1: Router - Analyzing PR and deciding workflows")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         router = RouterCrew()
@@ -111,13 +110,15 @@ def run_router(env_vars):
 
 def run_ci_analysis(env_vars):
     """Run CI log analysis crew."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("📊 STEP 2: CI Log Analysis - Parsing core-ci results")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         ci_crew = CILogAnalysisCrew()
-        result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
+        result = ci_crew.crew().kickoff(
+            inputs={"core_ci_result": env_vars["core_ci_result"]}
+        )
         logger.info("✅ CI analysis complete")
         return result
     except Exception as e:
@@ -136,9 +137,9 @@ def run_ci_analysis(env_vars):
 
 def run_quick_review():
     """Run quick review crew."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("⚡ STEP 3: Quick Review - Fast code quality check")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         quick_crew = QuickReviewCrew()
@@ -160,9 +161,9 @@ def run_quick_review():
 
 def run_full_review(env_vars):
     """Run full technical review crew."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("🔍 STEP 4: Full Technical Review - Deep analysis")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         full_crew = FullReviewCrew()
@@ -190,9 +191,9 @@ def run_full_review(env_vars):
 
 def run_legal_review():
     """Run legal review crew (stub)."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("⚖️ STEP 5: Legal Review - Compliance check (STUB)")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         legal_crew = LegalReviewCrew()
@@ -205,9 +206,9 @@ def run_legal_review():
 
 def run_final_summary(env_vars):
     """Run final summary crew."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("📝 STEP 6: Final Summary - Synthesizing all reviews")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         summary_crew = FinalSummaryCrew()
@@ -227,12 +228,12 @@ def run_final_summary(env_vars):
 
 
 def post_results(env_vars, final_markdown):
-    """Post results to PR and GitHub Actions summary."""
-    logger.info("=" * 60)
-    logger.info("📤 STEP 7: Posting Results")
-    logger.info("=" * 60)
+    """Post results to GitHub Actions summary."""
+    logger.info("="*60)
+    logger.info("📤 STEP 7: Posting Results to GitHub Actions")
+    logger.info("="*60)
 
-    # Post to GitHub Actions summary
+    # Post to GitHub Actions summary (ONLY output location)
     step_summary_file = os.getenv("GITHUB_STEP_SUMMARY")
     if step_summary_file:
         try:
@@ -240,32 +241,19 @@ def post_results(env_vars, final_markdown):
                 f.write(final_markdown)
                 f.write("\n")
             logger.info("✅ Posted to GitHub Actions summary")
+            logger.info(f"📊 View results in Actions tab for this workflow run")
         except Exception as e:
             logger.error(f"❌ Failed to write to step summary: {e}")
     else:
         logger.warning("⚠️ GITHUB_STEP_SUMMARY not set - skipping Actions summary")
-
-    # Post to PR comment
-    if env_vars["pr_number"] != "999":  # Skip if mock mode
-        try:
-            pr_comment_tool = PRCommentTool()
-            pr_comment_tool._run(
-                pr_number=env_vars["pr_number"],
-                repository=env_vars["repository"],
-                comment=final_markdown,
-            )
-            logger.info(f"✅ Posted to PR #{env_vars['pr_number']}")
-        except Exception as e:
-            logger.error(f"❌ Failed to post PR comment: {e}")
-    else:
-        logger.info("🚧 Mock mode - skipping PR comment")
+        logger.info("ℹ️ In local testing mode, review saved to workspace/final_summary.md")
 
 
 def save_trace(workspace_dir):
     """Save execution trace for artifacts."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("💾 STEP 8: Saving Execution Trace")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     trace_dir = workspace_dir / "trace"
 
@@ -284,9 +272,9 @@ def save_trace(workspace_dir):
 
 def print_cost_summary():
     """Print cost tracking summary."""
-    logger.info("=" * 60)
+    logger.info("="*60)
     logger.info("💰 Cost Summary")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         tracker = get_tracker()
@@ -306,7 +294,7 @@ def print_cost_summary():
 def main():
     """Main orchestration function."""
     logger.info("🚀 CrewAI Router-Based Review System Starting")
-    logger.info("=" * 60)
+    logger.info("="*60)
 
     try:
         # Setup
@@ -346,11 +334,9 @@ def main():
             final_markdown = workspace.read("final_summary.md")
         else:
             logger.warning("⚠️ final_summary.md not found - creating fallback")
-            final_markdown = (
-                "## ⚠️ Review Summary\n\nReview completed with warnings. Check logs for details."
-            )
+            final_markdown = "## ⚠️ Review Summary\n\nReview completed with warnings. Check logs for details."
 
-        # STEP 7: Post results
+        # STEP 7: Post results to GitHub Actions summary
         post_results(env_vars, final_markdown)
 
         # STEP 8: Save trace
@@ -359,9 +345,9 @@ def main():
         # Print cost summary
         print_cost_summary()
 
-        logger.info("=" * 60)
+        logger.info("="*60)
         logger.info("✅ CrewAI Review Complete!")
-        logger.info("=" * 60)
+        logger.info("="*60)
 
         return 0
 
