@@ -1,9 +1,12 @@
 """Cost tracking for LiteLLM API calls during CrewAI execution."""
 
 import logging
+import os
 import time
-from dataclasses import dataclass, field
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import Dict, List, Optional
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,7 @@ class APICallMetrics:
     duration_seconds: float
     tokens_per_second: float
     timestamp: float
+    generation_id: Optional[str] = None
 
     def __str__(self) -> str:
         """Format metrics as a table row."""
@@ -45,7 +49,7 @@ class CostTracker:
         self.calls: List[APICallMetrics] = []
         self.current_task: Optional[str] = None
         self.call_counter = 0
-        self.start_times = {}  # Track start time per call
+        self.generation_ids: Dict[str, int] = {}  # Track generation_id -> call_number
         logger.info("📊 Cost tracker initialized")
 
     def set_current_task(self, task_name: str):
@@ -60,6 +64,7 @@ class CostTracker:
         tokens_out: int,
         cost: float,
         duration_seconds: float,
+        generation_id: Optional[str] = None,
     ):
         """Log metrics for a single API call.
 
@@ -69,6 +74,7 @@ class CostTracker:
             tokens_out: Output tokens (completion)
             cost: Cost in USD
             duration_seconds: Call duration in seconds
+            generation_id: OpenRouter generation ID for async retrieval
         """
         self.call_counter += 1
         total_tokens = tokens_in + tokens_out
@@ -90,15 +96,74 @@ class CostTracker:
             duration_seconds=duration_seconds,
             tokens_per_second=tokens_per_second,
             timestamp=time.time(),
+            generation_id=generation_id,
         )
 
         self.calls.append(metrics)
 
-        logger.debug(
+        # Track generation ID for later enrichment
+        if generation_id:
+            self.generation_ids[generation_id] = self.call_counter
+
+        logger.info(
             f"💸 Call #{self.call_counter}: {model} "
             f"({tokens_in:,} in, {tokens_out:,} out, "
             f"${cost:.6f}, {tokens_per_second:.1f} tok/s)"
         )
+
+    def enrich_from_openrouter(self):
+        """Enrich metrics by fetching data from OpenRouter API using generation IDs.
+
+        This is a fallback method when LiteLLM callbacks don't provide complete data.
+        """
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            logger.warning("⚠️  No OPENROUTER_API_KEY, skipping enrichment")
+            return
+
+        enriched_count = 0
+        for call in self.calls:
+            if not call.generation_id:
+                continue
+
+            try:
+                # Fetch detailed usage from OpenRouter
+                response = requests.get(
+                    f"https://openrouter.ai/api/v1/generation?id={call.generation_id}",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                    timeout=5,
+                )
+
+                if response.status_code == 200:
+                    data = response.json().get("data", {})
+
+                    # Update with precise OpenRouter data
+                    if "tokens_prompt" in data:
+                        call.tokens_in = data["tokens_prompt"]
+                    if "tokens_completion" in data:
+                        call.tokens_out = data["tokens_completion"]
+                    if "native_tokens_prompt" in data:
+                        call.tokens_in = data["native_tokens_prompt"]
+                    if "native_tokens_completion" in data:
+                        call.tokens_out = data["native_tokens_completion"]
+
+                    # Recalculate derived fields
+                    call.total_tokens = call.tokens_in + call.tokens_out
+                    if call.duration_seconds > 0:
+                        call.tokens_per_second = call.total_tokens / call.duration_seconds
+
+                    # Update cost if available
+                    if "total_cost" in data:
+                        call.cost = float(data["total_cost"])
+
+                    enriched_count += 1
+                    logger.debug(f"✅ Enriched call #{call.call_number} from OpenRouter")
+
+            except Exception as e:
+                logger.warning(f"⚠️  Failed to enrich call #{call.call_number}: {e}")
+
+        if enriched_count > 0:
+            logger.info(f"✅ Enriched {enriched_count} calls from OpenRouter API")
 
     def get_total_cost(self) -> float:
         """Get total cost across all API calls."""
