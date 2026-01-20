@@ -38,7 +38,8 @@ class RouterCrew:
 
             # Import callbacks if they exist
             try:
-                from crew import litellm_failure_callback, litellm_success_callback
+                from crew import (litellm_failure_callback,
+                                  litellm_success_callback)
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
