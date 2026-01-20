@@ -54,11 +54,11 @@ synthesize_summary:
 
     **Status**: ✅ Approved / ⚠️ Needs Attention / 🚨 Critical Issues
 
-    **Workflows Executed**: {count} workflow(s) completed (Router → CI Analysis → Quick Review [→ Full Review])
+    **Workflows Executed**: {count} workflow(s) completed (Router → CI Analysis
+    → Quick Review [→ Full Review])
 
-    ### 📊 Key Metrics
-    - **Files Changed**: See CI Analysis for details
-    - **CI Status**: ✅ Passed / ⚠️ Warnings / ❌ Failed
+    ### 📊 Key Metrics - **Files Changed**: See CI Analysis for details - **CI
+    Status**: ✅ Passed / ⚠️ Warnings / ❌ Failed
 
     ---
 
@@ -97,22 +97,19 @@ synthesize_summary:
 
     ## 📝 Review Details
 
-    ### CI Analysis
-    {Summary from ci_summary.json}
+    ### CI Analysis {Summary from ci_summary.json}
 
-    ### Code Review
-    {Summary from quick_review.json}
+    ### Code Review {Summary from quick_review.json}
 
-    {If full review ran:}
-    ### Technical Deep Dive
-    {Summary from full_review.json}
+    {If full review ran:} ### Technical Deep Dive {Summary from
+    full_review.json}
 
     ---
 
-    ### 🔗 Quick Links
-    - [View Commit](https://github.com/{repository}/commit/{commit_sha})
-    - [View Pull Request](https://github.com/{repository}/pull/{pr_number})
-    - [CI Logs](https://github.com/{repository}/actions)
+    ### 🔗 Quick Links - [View
+    Commit](https://github.com/{repository}/commit/{commit_sha}) - [View Pull
+    Request](https://github.com/{repository}/pull/{pr_number}) - [CI
+    Logs](https://github.com/{repository}/actions)
 
     ---
 
@@ -120,30 +117,23 @@ synthesize_summary:
 
     === IMPORTANT REMINDERS ===
 
-    1. DO NOT wrap output in ```markdown code blocks
-    2. DO NOT try to fetch more data - synthesize what's in workspace
-    3. DO use proper markdown headings (##, ###), lists, bold
-    4. DO include emojis for visual clarity
-    5. DO make it scannable with clear sections
-    6. DO write in complete, professional sentences
-    7. DO prioritize critical issues at the top
-    8. DO include positive observations to balance feedback
+    1. DO NOT wrap output in ```markdown code blocks 2. DO NOT try to fetch more
+    data - synthesize what's in workspace 3. DO use proper markdown headings
+    (##, ###), lists, bold 4. DO include emojis for visual clarity 5. DO make it
+    scannable with clear sections 6. DO write in complete, professional
+    sentences 7. DO prioritize critical issues at the top 8. DO include positive
+    observations to balance feedback
 
     Your output will be posted to GitHub Actions summary and PR comments. It
     MUST render as beautiful, formatted markdown!
 
   expected_output: >
     Complete GitHub-flavored markdown report saved to
-    workspace/final_summary.md:
-    - Clear heading hierarchy (##, ###)
-    - Proper emphasis (bold, italic)
-    - Clean lists (numbered and bulleted)
-    - Inline code for file/function names
-    - Code blocks ONLY for actual code snippets
-    - Horizontal rules for section breaks
-    - Working links to commit and PR
-    - Emojis for visual clarity
-    - NO wrapper code blocks around entire output
+    workspace/final_summary.md: - Clear heading hierarchy (##, ###) - Proper
+    emphasis (bold, italic) - Clean lists (numbered and bulleted) - Inline code
+    for file/function names - Code blocks ONLY for actual code snippets -
+    Horizontal rules for section breaks - Working links to commit and PR -
+    Emojis for visual clarity - NO wrapper code blocks around entire output
 
     The output will render beautifully on GitHub.
   agent: executive_summary_agent
