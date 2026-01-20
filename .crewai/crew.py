@@ -45,7 +45,9 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
                 tokens_out = getattr(usage, "completion_tokens", 0)
                 # FIX 1: Check for cost in usage object first
                 cost = getattr(usage, "cost", None)
-                logger.debug(f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out, cost={cost}")
+                logger.debug(
+                    f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out, cost={cost}"
+                )
 
         # FIX 1: Check for cost attribute directly on response (most common location)
         if cost is None and hasattr(completion_response, "cost"):
