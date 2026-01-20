@@ -126,11 +126,11 @@ def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
             if is_context_error and not fallback_activated and attempt < max_retries:
                 logger.warning(f"⚠️  Context overflow detected on attempt {attempt + 1}")
                 logger.info(
-                    f"🔄 Switching architecture agent to fallback model: {crew_wrapper.model_config['fallback']}"
+                    f"🔄 Switching all agents to fallback model: {crew_wrapper.model_config['fallback']}"
                 )
 
-                # Switch architecture agent to fallback model
-                crew_wrapper.model_config["complex"] = crew_wrapper.model_config["fallback"]
+                # Switch all agents to fallback model (mimo-v2 with 1M context)
+                crew_wrapper.model_config["default"] = crew_wrapper.model_config["fallback"]
                 fallback_activated = True
 
                 # Brief pause before retry
@@ -167,7 +167,7 @@ def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
         raise last_error
 
 
-def write_actions_summary(crew, pr_number, repo, sha, result):
+def write_actions_summary(crew, pr_number, repo, sha, result, fallback_used=False):
     """
     Write formatted review to GitHub Actions summary page.
 
@@ -177,6 +177,7 @@ def write_actions_summary(crew, pr_number, repo, sha, result):
         repo: Repository name
         sha: Commit SHA
         result: Crew execution result
+        fallback_used: Whether fallback model was activated
     """
     summary_file = os.getenv("GITHUB_STEP_SUMMARY")
     if not summary_file:
@@ -202,9 +203,8 @@ def write_actions_summary(crew, pr_number, repo, sha, result):
             f.write("### 🤖 AI Models Used\n\n")
             f.write("| Task | Model |\n")
             f.write("|------|-------|\n")
-            f.write(f"| Quick Analysis (Tasks 1,2,6) | `{crew.model_config['fast']}` |\n")
-            f.write(f"| Complex Analysis (Tasks 3-5) | `{crew.model_config['complex']}` |\n")
-            if crew.model_config["complex"] == crew.model_config["fallback"]:
+            f.write(f"| All Tasks | `{crew.model_config['default']}` |\n")
+            if fallback_used:
                 f.write("| **Note** | ⚠️  Fallback model activated for context overflow |\n")
             f.write("\n")
 
@@ -277,6 +277,8 @@ def main():
     logger.info(f"📝 Commit SHA: {sha[:8]}")
     logger.info("")
 
+    fallback_used = False
+
     try:
         # Initialize crew
         logger.info("🤖 Initializing CrewAI crew...")
@@ -286,10 +288,10 @@ def main():
 
         # Show configuration
         logger.info("🔧 Model Configuration:")
-        logger.info(f"   ⚡ Fast (Tasks 1,2,6): {crew.model_config['fast']}")
-        logger.info(f"   🧠 Complex (Tasks 3-5): {crew.model_config['complex']}")
-        logger.info(f"   🔄 Fallback: {crew.model_config['fallback']}")
+        logger.info(f"   🤖 Default (All Tasks): {crew.model_config['default']}")
+        logger.info(f"   🔄 Fallback (Overflow): {crew.model_config['fallback']}")
         logger.info(f"   🎯 Max Tokens: {crew.llm_config['max_tokens']}")
+        logger.info(f"   🌡️  Temperature: {crew.llm_config['temperature']}")
         logger.info("")
 
         # Show agents
@@ -330,7 +332,12 @@ def main():
         logger.info("")
 
         # Execute crew with clean context extraction
-        result = execute_crew_with_clean_context(crew, inputs, max_retries=2)
+        try:
+            result = execute_crew_with_clean_context(crew, inputs, max_retries=2)
+        except BadRequestError:
+            # Fallback was activated during execution
+            fallback_used = True
+            raise
 
         logger.info("")
         logger.info("-" * 70)
@@ -339,7 +346,7 @@ def main():
         logger.info("")
 
         # Write to GitHub Actions summary
-        write_actions_summary(crew, pr_number, repo, sha, result)
+        write_actions_summary(crew, pr_number, repo, sha, result, fallback_used)
 
         logger.info("")
         logger.info("=" * 70)
