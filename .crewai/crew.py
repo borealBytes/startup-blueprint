@@ -34,7 +34,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
         # LiteLLM returns a ModelResponse object with usage attribute
         tokens_in = 0
         tokens_out = 0
-        cost = 0.0
+        cost = None  # Initialize as None to detect missing data
         generation_id = None
 
         # Try to get usage from response object
@@ -49,15 +49,26 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
         if hasattr(completion_response, "_hidden_params"):
             hidden = completion_response._hidden_params
             if isinstance(hidden, dict):
-                cost = hidden.get("response_cost", 0.0)
+                cost = hidden.get("response_cost", None)
                 # OpenRouter may provide generation_id
                 generation_id = hidden.get("generation_id")
+                logger.debug(f"🔍 Hidden params cost: {cost}")
 
         # Fallback: try to access as dict
         if tokens_in == 0 and isinstance(completion_response, dict):
             usage_dict = completion_response.get("usage", {})
             tokens_in = usage_dict.get("prompt_tokens", 0)
             tokens_out = usage_dict.get("completion_tokens", 0)
+            if "cost" in usage_dict:
+                cost = usage_dict.get("cost")
+
+        # FIX: Handle None cost to prevent formatting errors
+        if cost is None:
+            logger.warning(
+                f"⚠️  Cost data missing from LiteLLM response for model {model}. "
+                f"Enrichment fallback will be used."
+            )
+            cost = 0.0  # Default to zero, enrichment will fill it
 
         # Calculate duration
         duration = end_time - start_time
@@ -65,7 +76,8 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
         # Only log if we got meaningful data
         if tokens_in > 0 or tokens_out > 0:
             logger.info(
-                f"✅ Captured API call: {model} " f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
+                f"✅ Captured API call: {model} "
+                f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
             )
 
             tracker.log_api_call(
