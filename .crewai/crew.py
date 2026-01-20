@@ -37,41 +37,32 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
-        # Multi-model strategy for optimal performance and reliability
-        # - Xiaomi Mimo V2 Flash: Fast, efficient for simple analysis tasks
-        # - ByteDance SEED 1.6: Better for complex reasoning and larger context
-        # - Qwen Plus Thinking: Fallback for context overflow (400 errors)
+        # Simplified model strategy using Xiaomi Mimo V2 family:
+        # - Mimo V2 Flash: Fast, efficient, 128k context (default for all tasks)
+        # - Mimo V2: Full model with 1M context (fallback for overflow)
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
+        default_model = "openrouter/xiaomi/mimo-v2-flash"
+        fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
+
         self.model_config = {
-            # Quick tasks: code quality, security, summary
-            "fast": os.getenv(
-                "MODEL_FAST",
-                "openrouter/xiaomi/mimo-v2-flash",
-            ),
-            # Complex tasks: related files, architecture
-            "complex": os.getenv(
-                "MODEL_COMPLEX",
-                "openrouter/bytedance-seed/seed-1.6",
-            ),
-            # Fallback for context overflow
-            "fallback": os.getenv(
-                "MODEL_FALLBACK",
-                "openrouter/qwen/qwen-plus-2025-07-28:thinking",
-            ),
+            # Primary model for all tasks
+            "default": os.getenv("MODEL_DEFAULT", default_model),
+            # Fallback for context overflow (uses full 1M context)
+            "fallback": os.getenv("MODEL_FALLBACK", fallback_model),
         }
 
         # Add max_tokens to prevent oversized responses
         self.llm_config = {
             "max_tokens": 4000,
-            "temperature": 0.1,  # Lower temperature for more focused responses
+            "temperature": 0.05,  # Very low temperature for consistent, focused output
         }
 
         logger.info("Model Configuration:")
-        logger.info(f"  Fast (Tasks 1,2,6): {self.model_config['fast']}")
-        logger.info(f"  Complex (Tasks 3-5): {self.model_config['complex']}")
-        logger.info(f"  Fallback: {self.model_config['fallback']}")
+        logger.info(f"  Default (All Tasks): {self.model_config['default']}")
+        logger.info(f"  Fallback (Overflow): {self.model_config['fallback']}")
         logger.info(f"  Max Tokens: {self.llm_config['max_tokens']}")
+        logger.info(f"  Temperature: {self.llm_config['temperature']}")
 
     def _create_llm_config(self, model_key: str) -> dict:
         """Create LLM configuration with fallback support."""
@@ -81,7 +72,7 @@ class CodeReviewCrew:
     # Agents
     @agent
     def code_quality_reviewer(self) -> Agent:
-        """Code quality reviewer agent - uses fast model."""
+        """Code quality reviewer agent - uses default model."""
         return Agent(
             config=self.agents_config["code_quality_reviewer"],
             tools=[
@@ -90,29 +81,29 @@ class CodeReviewCrew:
                 FileContentTool,
                 PRCommentTool,
             ],
-            llm=self.model_config["fast"],
+            llm=self.model_config["default"],
             max_iter=5,  # Limit iterations to prevent runaway loops
             verbose=True,
         )
 
     @agent
     def security_performance_analyst(self) -> Agent:
-        """Security and performance analyst agent - uses fast model."""
+        """Security and performance analyst agent - uses default model."""
         return Agent(
             config=self.agents_config["security_performance_analyst"],
             tools=[CommitDiffTool, FileContentTool],
-            llm=self.model_config["fast"],
+            llm=self.model_config["default"],
             max_iter=5,
             verbose=True,
         )
 
     @agent
     def architecture_impact_analyst(self) -> Agent:
-        """Architecture and impact analyst agent - uses complex model for deep analysis."""
+        """Architecture and impact analyst agent - uses default model."""
         return Agent(
             config=self.agents_config["architecture_impact_analyst"],
             tools=[CommitDiffTool, FileContentTool, RelatedFilesTool],
-            llm=self.model_config["complex"],
+            llm=self.model_config["default"],
             max_iter=5,
             verbose=True,
         )
@@ -128,7 +119,7 @@ class CodeReviewCrew:
         return Agent(
             config=self.agents_config["code_quality_reviewer"],  # Reuse config
             tools=[],  # NO TOOLS - only synthesize previous outputs
-            llm=self.model_config["fast"],
+            llm=self.model_config["default"],
             max_iter=10,  # Higher limit for synthesis iterations
             verbose=True,
         )
@@ -166,7 +157,6 @@ class CodeReviewCrew:
 
         Note: context=[] prevents automatic context injection.
         Task uses RelatedFilesTool to analyze imports directly.
-        Uses complex model (ByteDance SEED) for better reasoning.
         """
         return Task(
             config=self.tasks_config["find_related_files"],
@@ -182,7 +172,6 @@ class CodeReviewCrew:
         as system messages, which causes 'Unexpected role system after assistant'
         errors with Mistral API. Task can still access find_related_files output
         via explicit task references.
-        Uses complex model for deep analysis.
         """
         return Task(
             config=self.tasks_config["analyze_related_files"],
@@ -196,7 +185,6 @@ class CodeReviewCrew:
 
         Note: context=[] prevents automatic context injection.
         Task uses FileContentTool to analyze architecture directly.
-        Uses complex model for architectural reasoning.
         """
         return Task(
             config=self.tasks_config["architecture_review"],
