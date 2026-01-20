@@ -2,37 +2,43 @@ analyze_pr_and_route:
   description: >
     Analyze the pull request and determine which review workflows to execute.
 
-    YOU HAVE ACCESS TO: - PR metadata from PRMetadataTool (labels, files
-    changed, LOC) - Commit diff via CommitDiffTool (fetch once, cache to
-    workspace) - Commit history via CommitInfoTool (last 10 commits)
+    YOU HAVE ACCESS TO:
+    - PR metadata from PRMetadataTool (labels, files changed, LOC, commit_sha, repository)
+    - Commit diff via CommitDiffTool (fetch once, cache to workspace)
+    - Commit history via CommitInfoTool (last 10 commits)
 
-    YOUR TASKS: 1. Use PRMetadataTool to get PR labels and metadata (no API call
-    - reads from environment) 2. Use CommitDiffTool to fetch the commit diff
-    ONCE 3. Use WorkspaceTool to save diff to workspace/diff.txt for reuse by
-    other agents 4. Use CommitInfoTool to get last 10 commits 5. Use
-    WorkspaceTool to save commits to workspace/commits.json 6. Analyze changeset
-    complexity (files, LOC, file types) 7. Decide which workflows should run
-    based on labels 8. Suggest additional labels if appropriate
+    YOUR TASKS:
+    1. Use PRMetadataTool to get PR labels and metadata (no API call - reads from environment)
+       IMPORTANT: This returns commit_sha and repository - save these for steps 2-4
+    2. Use CommitDiffTool(commit_sha=<sha_from_metadata>, repository=<repo_from_metadata>) to fetch the commit diff ONCE
+    3. Use WorkspaceTool to save diff to workspace/diff.txt for reuse by other agents
+       IMPORTANT: Save the entire diff object as JSON string using json.dumps() before writing to workspace
+    4. Use CommitInfoTool(commit_sha=<sha_from_metadata>, repository=<repo_from_metadata>) to get last 10 commits
+    5. Use WorkspaceTool to save commits to workspace/commits.json
+    6. Analyze changeset complexity (files, LOC, file types)
+    7. Decide which workflows should run based on labels
+    8. Suggest additional labels if appropriate
 
-    WORKFLOW DECISION RULES: - ALWAYS include: ["ci-log-analysis",
-    "quick-review"] (these are the default) - IF "crewai:full-review" label
-    present → add "full-review" to workflows - IF "crewai:legal" label present →
-    add "legal-review" to workflows
+    WORKFLOW DECISION RULES:
+    - ALWAYS include: ["ci-log-analysis", "quick-review"] (these are the default)
+    - IF "crewai:full-review" label present → add "full-review" to workflows
+    - IF "crewai:legal" label present → add "legal-review" to workflows
 
-    SUGGESTION RULES (suggest labels even if not present): - IF files_changed >
-    20 OR lines_changed > 500 → suggest "crewai:full-review" - IF legal files
-    detected (LICENSE, TERMS, PRIVACY, CONTRIBUTING) → suggest "crewai:legal" -
-    IF security-sensitive files (.env, secrets, auth) → warn immediately in
-    suggestions - IF test files modified without code changes → suggest testing
-    review
+    SUGGESTION RULES (suggest labels even if not present):
+    - IF files_changed > 20 OR lines_changed > 500 → suggest "crewai:full-review"
+    - IF legal files detected (LICENSE, TERMS, PRIVACY, CONTRIBUTING) → suggest "crewai:legal"
+    - IF security-sensitive files (.env, secrets, auth) → warn immediately in suggestions
+    - IF test files modified without code changes → suggest testing review
 
-    FILE TYPE DETECTION: - Legal: LICENSE*, TERMS*, PRIVACY*, CONTRIBUTING*,
-    COPYRIGHT* - Security: .env*, *secret*, *key*, auth*, credential* - Config:
-    *.yml, *.yaml, *.json, *.toml, Dockerfile* - Documentation: *.md, docs/*,
-    README*
+    FILE TYPE DETECTION:
+    - Legal: LICENSE*, TERMS*, PRIVACY*, CONTRIBUTING*, COPYRIGHT*
+    - Security: .env*, *secret*, *key*, auth*, credential*
+    - Config: *.yml, *.yaml, *.json, *.toml, Dockerfile*
+    - Documentation: *.md, docs/*, README*
 
-    OUTPUT FORMAT: Use WorkspaceTool to write JSON to
-    workspace/router_decision.json: {
+    OUTPUT FORMAT:
+    Use WorkspaceTool to write JSON to workspace/router_decision.json:
+    {
       "workflows": ["ci-log-analysis", "quick-review", "full-review"],
       "suggestions": [
         "💡 Large changeset (25 files) - crewai:full-review recommended",
@@ -48,7 +54,8 @@ analyze_pr_and_route:
     }
 
   expected_output: >
-    Complete routing decision saved to workspace/router_decision.json with: -
-    List of workflows to execute - Intelligent suggestions for additional labels
-    - PR metadata and analysis - Diff and commits cached to workspace for other
-    agents
+    Complete routing decision saved to workspace/router_decision.json with:
+    - List of workflows to execute
+    - Intelligent suggestions for additional labels
+    - PR metadata and analysis
+    - Diff and commits cached to workspace for other agents
