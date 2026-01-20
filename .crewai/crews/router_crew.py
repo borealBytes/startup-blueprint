@@ -3,7 +3,7 @@
 import logging
 import os
 
-from crewai import Agent, Crew, Process, Task, LLM
+from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from tools.github_tools import CommitDiffTool, CommitInfoTool
 from tools.pr_metadata_tool import PRMetadataTool
@@ -38,10 +38,8 @@ class RouterCrew:
 
             # Import callbacks if they exist
             try:
-                from crew import (
-                    litellm_failure_callback,
-                    litellm_success_callback,
-                )
+                from crew import (litellm_failure_callback,
+                                  litellm_success_callback)
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
