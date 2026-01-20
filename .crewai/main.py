@@ -30,8 +30,13 @@ os.environ["CREWAI_TRACING_ENABLED"] = "false"
 
 
 def setup_workspace():
-    """Setup workspace directories."""
-    workspace_dir = Path(".crewai/workspace")
+    """Setup workspace directories.
+    
+    Uses absolute path based on this file's location to avoid CWD issues
+    when workflow sets working-directory.
+    """
+    # Use absolute path: this file is in .crewai/, so workspace is .crewai/workspace
+    workspace_dir = (Path(__file__).parent / "workspace").resolve()
     workspace_dir.mkdir(parents=True, exist_ok=True)
     (workspace_dir / "trace").mkdir(exist_ok=True)
     logger.info(f"📁 Workspace initialized: {workspace_dir}")
