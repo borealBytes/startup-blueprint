@@ -12,12 +12,12 @@ analyze_pr_and_route:
        IMPORTANT: This returns commit_sha and repository - save these for steps
     2-4 2. Use CommitDiffTool(commit_sha=<sha_from_metadata>,
     repository=<repo_from_metadata>) to fetch the commit diff ONCE 3. Use
-    WorkspaceTool to save diff to workspace/diff.txt for reuse by other agents
+    WorkspaceTool to save diff to diff.txt for reuse by other agents
        IMPORTANT: Save the entire diff object as JSON string using json.dumps()
     before writing to workspace 4. Use
     CommitInfoTool(commit_sha=<sha_from_metadata>,
     repository=<repo_from_metadata>) to get last 10 commits 5. Use WorkspaceTool
-    to save commits to workspace/commits.json 6. Analyze changeset complexity
+    to save commits to commits.json 6. Analyze changeset complexity
     (files, LOC, file types) 7. Decide which workflows should run based on
     labels 8. Suggest additional labels if appropriate
 
@@ -39,7 +39,7 @@ analyze_pr_and_route:
     README*
 
     OUTPUT FORMAT: Use WorkspaceTool to write JSON to
-    workspace/router_decision.json: {
+    router_decision.json: {
       "workflows": ["ci-log-analysis", "quick-review", "full-review"],
       "suggestions": [
         "💡 Large changeset (25 files) - crewai:full-review recommended",
@@ -55,7 +55,7 @@ analyze_pr_and_route:
     }
 
   expected_output: >
-    Complete routing decision saved to workspace/router_decision.json with: -
+    Complete routing decision saved to router_decision.json with: -
     List of workflows to execute - Intelligent suggestions for additional labels
     - PR metadata and analysis - Diff and commits cached to workspace for other
     agents
