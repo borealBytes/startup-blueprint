@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def validate_environment():
     """Validate required environment variables at startup.
-    
+
     Raises:
         ValueError: If required variables are missing or invalid
     """
@@ -39,44 +39,44 @@ def validate_environment():
         "PR_NUMBER": "Pull request number",
         "COMMIT_SHA": "Commit SHA",
     }
-    
+
     missing = []
     invalid = []
-    
+
     for var, purpose in required_vars.items():
         value = os.getenv(var)
         if not value:
             missing.append(f"{var} ({purpose})")
         elif var == "OPENROUTER_API_KEY" and not value.startswith("sk-or-"):
             invalid.append(f"{var} (invalid format - must start with 'sk-or-')")
-    
+
     if missing or invalid:
         error_parts = []
         if missing:
             error_parts.append(f"Missing: {', '.join(missing)}")
         if invalid:
             error_parts.append(f"Invalid: {', '.join(invalid)}")
-        
+
         error_msg = "; ".join(error_parts)
         logger.error(f"❌ Environment validation failed: {error_msg}")
         raise ValueError(f"Environment validation failed: {error_msg}")
-    
+
     logger.info("✅ Environment variables validated")
 
 
 def safe_enrich_costs(tracker, timeout_seconds: int = 30) -> bool:
     """Safely enrich cost tracking data from OpenRouter API.
-    
+
     This function:
     - Validates API key before making requests
     - Skips enrichment if callbacks already captured data
     - Implements timeout protection
     - Handles all error cases gracefully
-    
+
     Args:
         tracker: CostTracker instance
         timeout_seconds: Maximum time to wait for enrichment (default: 30)
-    
+
     Returns:
         bool: True if enrichment succeeded or wasn't needed, False on failure
     """
@@ -85,33 +85,33 @@ def safe_enrich_costs(tracker, timeout_seconds: int = 30) -> bool:
     if not api_key or not api_key.startswith("sk-or-"):
         logger.error("❌ Invalid or missing OPENROUTER_API_KEY")
         return False
-    
+
     # Check if enrichment is even needed
     if len(tracker.calls) > 0:
         logger.info("✅ Callbacks captured data, enriching for precise costs...")
     else:
         logger.warning("⚠️  No API calls captured by callbacks!")
         logger.info("🔄 Attempting to retrieve usage data from OpenRouter API...")
-    
+
     try:
         # Try enrichment with basic timeout handling
         # Note: For production, consider using timeout_decorator or signals
         start_time = time.time()
-        
+
         tracker.enrich_from_openrouter()
-        
+
         elapsed = time.time() - start_time
-        
+
         if elapsed > timeout_seconds:
             logger.warning(f"⚠️  Enrichment took {elapsed:.1f}s (timeout: {timeout_seconds}s)")
-        
+
         if len(tracker.calls) > 0:
             logger.info(f"✅ Enrichment completed: {len(tracker.calls)} calls tracked")
             return True
         else:
             logger.warning("⚠️  Enrichment returned no data")
             return False
-            
+
     except Exception as e:
         logger.error(f"❌ Enrichment failed: {e}", exc_info=True)
         logger.warning("⚠️  Proceeding without complete cost data")
@@ -455,7 +455,7 @@ def main():
 
         # Use safe enrichment function
         enrichment_success = safe_enrich_costs(tracker, timeout_seconds=30)
-        
+
         if not enrichment_success and len(tracker.calls) == 0:
             logger.warning("⚠️  Proceeding without cost data - check API key and OpenRouter status")
 
