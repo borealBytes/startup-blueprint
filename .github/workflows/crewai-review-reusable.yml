@@ -82,11 +82,11 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-      - name: Upload Workspace (Debug)
-        if: failure()
+      - name: Upload Complete Workspace
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crewai-workspace-debug-pr-${{ inputs.pr_number }}
+          name: crewai-workspace-pr-${{ inputs.pr_number }}
           path: .crewai/workspace/
           retention-days: 7
           if-no-files-found: warn
