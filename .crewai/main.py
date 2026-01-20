@@ -25,6 +25,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Disable CrewAI tracing to prevent interactive prompts in CI
+os.environ["CREWAI_TRACING_ENABLED"] = "false"
+
 
 def setup_workspace():
     """Setup workspace directories."""
@@ -263,18 +266,46 @@ def save_trace(workspace_dir):
     logger.info("=" * 60)
 
     trace_dir = workspace_dir / "trace"
+    import shutil
+
+    files_copied = 0
 
     # Copy all workspace JSON files to trace
     for json_file in workspace_dir.glob("*.json"):
         try:
-            import shutil
-
             shutil.copy(json_file, trace_dir / json_file.name)
             logger.info(f"✅ Saved {json_file.name} to trace")
+            files_copied += 1
         except Exception as e:
             logger.warning(f"⚠️ Could not copy {json_file.name}: {e}")
 
-    logger.info(f"📊 Trace saved to {trace_dir}")
+    # Copy final_summary.md to trace (this is the key file)
+    summary_file = workspace_dir / "final_summary.md"
+    if summary_file.exists():
+        try:
+            shutil.copy(summary_file, trace_dir / "final_summary.md")
+            logger.info(f"✅ Saved final_summary.md to trace")
+            files_copied += 1
+        except Exception as e:
+            logger.warning(f"⚠️ Could not copy final_summary.md: {e}")
+    else:
+        logger.warning(f"⚠️ final_summary.md not found at {summary_file}")
+
+    # Create a trace index file with metadata
+    try:
+        trace_index = {
+            "timestamp": datetime.now().isoformat(),
+            "files_copied": files_copied,
+            "workspace_files": [f.name for f in workspace_dir.iterdir() if f.is_file()],
+        }
+        with open(trace_dir / "trace_index.json", "w") as f:
+            json.dump(trace_index, f, indent=2)
+        logger.info(f"✅ Created trace index")
+        files_copied += 1
+    except Exception as e:
+        logger.warning(f"⚠️ Could not create trace index: {e}")
+
+    logger.info(f"📊 Trace saved to {trace_dir} ({files_copied} files)")
 
 
 def print_cost_summary():
@@ -342,12 +373,21 @@ def main():
         # STEP 6: Final summary (always run) - pass workflow count
         final_result = run_final_summary(env_vars, workflows_executed)
 
-        # Read final markdown from workspace
+        # Read final markdown from workspace with better detection
         workspace = WorkspaceTool()
+        
+        # Debug: List all files in workspace
+        logger.info("📂 Workspace files:")
+        for f in workspace_dir.iterdir():
+            if f.is_file():
+                logger.info(f"  - {f.name} ({f.stat().st_size} bytes)")
+        
+        # Try to read final_summary.md
         if workspace.exists("final_summary.md"):
             final_markdown = workspace.read("final_summary.md")
+            logger.info(f"✅ Read final_summary.md ({len(final_markdown)} chars)")
         else:
-            logger.warning("⚠️ final_summary.md not found - creating fallback")
+            logger.warning("⚠️ final_summary.md not found in workspace - creating fallback")
             final_markdown = (
                 "## ⚠️ Review Summary\n\nReview completed with warnings. Check logs for details."
             )
