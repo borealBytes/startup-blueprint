@@ -83,33 +83,80 @@ class FullReviewCrew:
             verbose=True,
         )
 
+    # FIX: Task method names must match YAML keys in full_review_tasks.yaml
+    
     @task
-    def review_code_quality(self) -> Task:
-        """Review code quality."""
+    def analyze_commit_changes(self) -> Task:
+        """Analyze commit changes with deep technical review.
+        
+        FIX: Changed from review_code_quality to match YAML key.
+        """
         return Task(
-            config=self.tasks_config["review_code_quality"],
+            config=self.tasks_config["analyze_commit_changes"],
             agent=self.code_quality_reviewer(),
         )
 
     @task
-    def analyze_security_performance(self) -> Task:
-        """Analyze security and performance."""
+    def security_performance_review(self) -> Task:
+        """Review commit for security and performance issues.
+        
+        FIX: Changed from analyze_security_performance to match YAML key.
+        """
         return Task(
-            config=self.tasks_config["analyze_security_performance"],
+            config=self.tasks_config["security_performance_review"],
             agent=self.security_performance_analyst(),
         )
 
     @task
-    def analyze_architecture_impact(self) -> Task:
-        """Analyze architecture impact."""
+    def find_related_files(self) -> Task:
+        """Identify files related to changed files.
+        
+        FIX: Added missing task from YAML.
+        """
         return Task(
-            config=self.tasks_config["analyze_architecture_impact"],
+            config=self.tasks_config["find_related_files"],
             agent=self.architecture_impact_analyst(),
+        )
+
+    @task
+    def analyze_related_files(self) -> Task:
+        """Analyze related files for potential impact.
+        
+        FIX: Added missing task from YAML.
+        """
+        return Task(
+            config=self.tasks_config["analyze_related_files"],
+            agent=self.architecture_impact_analyst(),
+        )
+
+    @task
+    def architecture_review(self) -> Task:
+        """Evaluate architectural implications of commit.
+        
+        FIX: Changed from analyze_architecture_impact to match YAML key.
+        """
+        return Task(
+            config=self.tasks_config["architecture_review"],
+            agent=self.architecture_impact_analyst(),
+        )
+
+    @task
+    def generate_full_review_summary(self) -> Task:
+        """Synthesize findings from all analysis tasks.
+        
+        FIX: Added missing task from YAML.
+        """
+        return Task(
+            config=self.tasks_config["generate_full_review_summary"],
+            agent=self.code_quality_reviewer(),
         )
 
     @crew
     def crew(self) -> Crew:
-        """Create full review crew."""
+        """Create full review crew.
+        
+        FIX: Updated to include all 6 tasks in proper sequential order.
+        """
         return Crew(
             agents=[
                 self.code_quality_reviewer(),
@@ -117,9 +164,12 @@ class FullReviewCrew:
                 self.architecture_impact_analyst(),
             ],
             tasks=[
-                self.review_code_quality(),
-                self.analyze_security_performance(),
-                self.analyze_architecture_impact(),
+                self.analyze_commit_changes(),
+                self.security_performance_review(),
+                self.find_related_files(),
+                self.analyze_related_files(),
+                self.architecture_review(),
+                self.generate_full_review_summary(),
             ],
             process=Process.sequential,
             verbose=True,
