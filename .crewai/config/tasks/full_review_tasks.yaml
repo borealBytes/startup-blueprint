@@ -1,125 +1,114 @@
-# Full review tasks - moved from root tasks.yaml
-# These tasks run ONLY when crewai:full-review label is present
-
-analyze_commit_changes:
+full_technical_review:
   description: >
-    Analyze commit changes with deep technical review.
+    Perform comprehensive technical review focusing on architecture, design
+    patterns, and code quality.
 
-    WORKSPACE INPUTS (already cached - do NOT re-fetch): - workspace/diff.txt:
-    Full commit diff (fetched once by router) - workspace/quick_review.json:
-    Quick review findings (build on this) - workspace/ci_summary.json: CI
-    context - workspace/commits.json: Commit history
+    WORKSPACE INPUTS (already cached - do NOT re-fetch): - diff.txt:
+    Full commit diff (fetched once by router) - quick_review.json:
+    Quick review findings (build on this) - ci_summary.json: CI
+    context - commits.json: Commit history
 
-    Focus on DEEPER analysis than quick review: - Design patterns used (are they
-    appropriate?) - SOLID principles adherence - Code complexity and
-    maintainability - Test coverage for new functionality - API design quality -
-    Documentation completeness
+    YOUR TASKS: 1. Use WorkspaceTool to read diff (do NOT use CommitDiffTool
+    again) 2. Read quick_review.json to see what was already flagged 3. Perform
+    deep analysis on:
+       - Architecture decisions and patterns
+       - Design quality (SOLID, DRY, separation of concerns)
+       - Error handling and edge cases
+       - Performance implications (algorithmic complexity, caching)
+       - Maintainability (naming, structure, documentation)
+       - Testing coverage (are new features tested?)
+       - Security patterns (input validation, auth, secrets)
 
-    Build on quick review findings - don't repeat basic issues. Use
-    FileContentTool sparingly - prefer diff context.
+    FOCUS ON: - High-impact architectural issues - Design improvements that
+    affect multiple files - Advanced patterns (dependency injection, state
+    management) - Performance bottlenecks - Security vulnerabilities
+
+    AVOID DUPLICATING: - Code style issues (already in quick_review.json) - CI
+    errors (already in ci_summary.json) - Simple fixes (focus on systemic
+    improvements)
+
+    OUTPUT FORMAT: Use WorkspaceTool to write JSON to full_review.json: {
+      "architecture": [
+        {
+          "category": "design_pattern",
+          "severity": "warning",
+          "file": "src/services/auth.ts",
+          "title": "Tight coupling between auth and database layers",
+          "description": "Auth service directly imports DB models, making testing difficult",
+          "suggestion": "Inject repository interface to enable mocking and separation",
+          "impact": "high"
+        }
+      ],
+      "security": [
+        {
+          "category": "input_validation",
+          "severity": "critical",
+          "file": "src/api/users.ts",
+          "title": "Missing input sanitization on user endpoints",
+          "description": "User input passed directly to SQL query without validation",
+          "suggestion": "Use parameterized queries or ORM to prevent SQL injection",
+          "impact": "critical"
+        }
+      ],
+      "performance": [],
+      "testing": [
+        {
+          "category": "coverage",
+          "severity": "info",
+          "file": "src/utils/parser.ts",
+          "title": "New parser utility lacks unit tests",
+          "description": "Complex parsing logic added without test coverage",
+          "suggestion": "Add tests covering edge cases (empty input, malformed data)",
+          "impact": "medium"
+        }
+      ],
+      "maintainability": [],
+      "summary": "1 critical security issue, 1 architectural warning, testing gap identified"
+    }
 
   expected_output: >
-    A structured report with: - Commit message assessment (clear/unclear,
-    follows conventions) - Files changed breakdown (new, modified, removed) -
-    Code quality issues by file (severity: high/medium/low) - Missing tests for
-    new functionality - Documentation gaps - Specific recommendations with line
-    numbers
-  agent: code_quality_reviewer
+    Comprehensive technical review saved to full_review.json with: -
+    Architectural analysis (patterns, coupling, design quality) - Security
+    review (vulnerabilities, auth patterns, input validation) - Performance
+    considerations (complexity, caching opportunities) - Testing gaps (missing
+    tests for new features) - Maintainability assessment (naming, structure,
+    docs) - Focus on high-impact systemic improvements (NOT style/lint issues)
 
-security_performance_review:
+security_deep_dive:
   description: >
-    Review commit for security and performance issues.
+    Specialized security analysis focusing on vulnerabilities and attack vectors.
 
-    WORKSPACE INPUTS: - workspace/diff.txt: Focus on lines added (new attack
-    surface) - workspace/ci_summary.json: CI security checks
+    WORKSPACE INPUTS: - diff.txt: Focus on lines added (new attack
+    surface) - quick_review.json: Basic security flags from quick review -
+    full_review.json: General security patterns
 
-    Check for: - SQL injection vulnerabilities - XSS vulnerabilities -
-    Authentication/authorization bypasses - Hardcoded secrets or credentials -
-    N+1 query problems - Memory leaks - Inefficient algorithms - Missing input
-    validation
+    YOUR TASKS: 1. Read diff to identify security-sensitive changes 2. Perform
+    OWASP Top 10 analysis:
+       - Injection (SQL, NoSQL, command injection)
+       - Broken authentication (weak passwords, session issues)
+       - Sensitive data exposure (logs, error messages, env vars)
+       - XML External Entities (XXE)
+       - Broken access control (missing auth checks)
+       - Security misconfiguration (debug mode, default creds)
+       - Cross-Site Scripting (XSS)
+       - Insecure deserialization
+       - Using components with known vulnerabilities
+       - Insufficient logging & monitoring
+    3. Check for:
+       - Hardcoded secrets (API keys, passwords, tokens)
+       - Unsafe dependencies (known CVEs)
+       - Missing rate limiting on API endpoints
+       - Inadequate input validation
+       - Insufficient error handling (info leakage)
 
-    Flag CRITICAL issues that should block merge.
+    OUTPUT FORMAT: Use WorkspaceTool to write JSON to security_review.json:
+    {
+      "critical_vulnerabilities": [],
+      "warnings": [],
+      "recommendations": [],
+      "owasp_categories": ["injection", "auth"],
+      "summary": "No critical vulnerabilities found, 2 hardening recommendations"
+    }
 
   expected_output: >
-    A report with: - Security vulnerabilities (CRITICAL/HIGH/MEDIUM) with CVE
-    references - Performance bottlenecks with estimated impact - Hardcoded
-    secrets or credentials (immediate block) - Remediation steps for each issue
-  agent: security_performance_analyst
-
-find_related_files:
-  description: >
-    Identify files related to changed files (even if NOT modified in this
-    commit).
-
-    WORKSPACE INPUTS: - workspace/diff.txt: Changed files list
-
-    Analyze: - Import relationships - Dependency graphs - Shared patterns -
-    Architectural layers
-
-    This finds hidden impacts not visible in the commit diff. Use
-    RelatedFilesTool to discover related files.
-
-  expected_output: >
-    A list of related files with: - File path - Relationship type (imports,
-    imported by, shared dependency) - Relatedness score (0-100) - Why it's
-    related and potential impact
-  agent: architecture_impact_analyst
-
-analyze_related_files:
-  description: >
-    Analyze related files for potential impact of this commit's changes.
-
-    WORKSPACE INPUTS: - workspace/diff.txt: What changed - Related files from
-    previous task
-
-    Assess: - Breaking changes to interfaces - Contract modifications - Shared
-    data structure changes
-
-    Use FileContentTool to read related files and analyze dependencies.
-
-  expected_output: >
-    An impact assessment with: - Affected components and their criticality -
-    Potential breaking changes (with migration steps) - Integration risks (API
-    changes, data format changes) - Recommendations for additional testing
-  agent: architecture_impact_analyst
-
-architecture_review:
-  description: >
-    Evaluate architectural implications of commit.
-
-    WORKSPACE INPUTS: - workspace/diff.txt: Changes made - All previous task
-    findings
-
-    Consider: - Design patterns appropriateness - SOLID principles - Coupling
-    and cohesion - Scalability implications - Alignment with existing
-    architecture
-
-    Reference insights from all previous tasks.
-
-  expected_output: >
-    An architectural assessment with: - Design pattern evaluation
-    (appropriate/inappropriate) - Coupling and cohesion analysis - Scalability
-    considerations (will this scale?) - Alignment with project architecture
-    (consistent/divergent) - Long-term maintainability impact (tech debt
-    introduced/reduced)
-  agent: architecture_impact_analyst
-
-generate_full_review_summary:
-  description: >
-    Synthesize findings from all 5 deep analysis tasks.
-
-    WORKSPACE INPUTS: - All previous task outputs -
-    workspace/router_decision.json: Router suggestions -
-    workspace/ci_summary.json: CI results - workspace/quick_review.json: Quick
-    review findings
-
-    Create comprehensive markdown report following GitHub-flavored markdown.
-
-    DO NOT wrap output in code blocks. Use proper markdown headings (##, ###),
-    lists, bold, emojis.
-
-  expected_output: >
-    Complete GitHub-flavored markdown saved to workspace/full_review.json with:
-    - Security findings - Architecture assessment - Related files impact -
-    Performance considerations - Detailed recommendations
-  agent: code_quality_reviewer
+    Security analysis saved to security_review.json with OWASP-based findings

@@ -3,11 +3,11 @@ analyze_ci_logs:
     Parse CI outputs from the core-ci job and identify errors/warnings.
 
     INPUTS AVAILABLE: - CI job status from CIOutputParserTool (reads from
-    environment) - Workspace diff from workspace/diff.txt (what files changed) -
-    Workspace commits from workspace/commits.json (commit context)
+    environment) - Workspace diff from diff.txt (what files changed) -
+    Workspace commits from commits.json (commit context)
 
     YOUR TASKS: 1. Use CIOutputParserTool to get CI job status and outputs 2.
-    Use WorkspaceTool to read workspace/diff.txt for context 3. Parse and
+    Use WorkspaceTool to read diff.txt for context 3. Parse and
     categorize CI issues by severity:
        - CRITICAL: Build failures, type errors, syntax errors (blocks merge)
        - WARNING: Lint warnings, format issues, style violations (should fix)
@@ -20,13 +20,12 @@ analyze_ci_logs:
     large) - Match errors to files in the diff for correlation - Keep context
     minimal - don't dump full logs
 
-    ERROR CATEGORIZATION: - Format errors (Prettier, Black): severity=warning -
-    Lint errors (ESLint, Ruff): severity=warning (or critical if many) - Type
-    errors (TypeScript, mypy): severity=critical - Link check failures:
-    severity=info - Build failures: severity=critical
+    ERROR CATEGORIZATION: - Format errors (Prettier, Black) → severity="warning"
+    - Lint errors (ESLint, Ruff) → severity="warning" or "critical" if many -
+    Type errors (TypeScript, mypy) → severity="critical" - Link check failures
+    → severity="info" - Build failures → severity="critical"
 
-    OUTPUT FORMAT: Use WorkspaceTool to write JSON to workspace/ci_summary.json:
-    {
+    OUTPUT FORMAT: Use WorkspaceTool to write JSON to ci_summary.json: {
       "status": "success" | "warning" | "failure",
       "passed": true | false,
       "critical_errors": [
@@ -55,7 +54,7 @@ analyze_ci_logs:
     }
 
   expected_output: >
-    Complete CI analysis saved to workspace/ci_summary.json with: - Overall CI
-    status (success/warning/failure) - Categorized issues
-    (critical/warning/info) - File and line references for each issue -
-    Actionable fix suggestions - Summary of what was checked
+    Complete CI analysis saved to ci_summary.json with: - Overall CI
+    status (success/warning/failure) - Categorized list of all errors and
+    warnings - Actionable fix suggestions for each issue - Root cause analysis
+    correlated with changed files - Summary of what CI jobs were checked

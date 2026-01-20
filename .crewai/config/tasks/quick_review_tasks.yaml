@@ -1,118 +1,92 @@
-# Quick Review Tasks
-# IMPORTANT: Task keys must match @task method names in quick_review_crew.py
-
-quick_code_check:
+quick_code_review:
   description: >
-    Quick code quality review using cached workspace data.
+    Perform fast code quality check focusing on common issues and patterns.
 
-    INPUTS FROM WORKSPACE (already cached by router): - workspace/diff.txt: Full
-    commit diff (fetched once by router) - workspace/ci_summary.json: CI
-    analysis results - workspace/commits.json: Commit history (last 10)
+    INPUTS FROM WORKSPACE (already cached by router): - diff.txt: Full
+    commit diff (fetched once by router) - ci_summary.json: CI
+    analysis results - commits.json: Commit history (last 10)
 
-    YOUR TASKS: 1. Use WorkspaceTool to read workspace/diff.txt 2. Use
-    WorkspaceTool to read workspace/ci_summary.json for context 3. Use
-    WorkspaceTool to read workspace/commits.json 4. Review code quality issues
-    NOT caught by CI:
-       - Logic errors or potential bugs
-       - Missing error handling (try/catch, null checks)
-       - Code duplication
-       - Unclear variable names
-       - Magic numbers or hardcoded values
-    5. Assess commit message quality:
-       - Do messages follow conventional commits?
-       - Are they clear and descriptive?
-       - Do they explain WHY, not just WHAT?
-    6. Check for missing documentation or comments 7. Identify areas that might
-    need tests
+    YOUR TASKS: 1. Use WorkspaceTool to read diff.txt 2. Use
+    WorkspaceTool to read ci_summary.json for context 3. Use
+    WorkspaceTool to read commits.json for context 4. Scan for common code
+    smells:
+       - Long functions (>50 lines)
+       - Deep nesting (>3 levels)
+       - Magic numbers (hardcoded constants)
+       - Duplicate code patterns
+       - TODO/FIXME comments
+       - Poor variable naming
+       - Missing error handling
+       - Console.log/print statements
+    5. Identify potential bugs:
+       - Off-by-one errors
+       - Null/undefined checks
+       - Resource leaks (unclosed files/connections)
+       - Race conditions (async/await issues)
+    6. Check for best practices:
+       - DRY (Don't Repeat Yourself)
+       - Single Responsibility Principle
+       - Proper error propagation
+       - Consistent code style
 
-    USE RAG FOR FILE CONTENT: - Only use FileContentTool if you need to see full
-    file context - Prefer using diff context over fetching full files - Keep
-    context minimal - fetch specific functions/classes only - Most issues should
-    be visible in the diff alone
+    IMPORTANT: - Focus on NEW code (lines with '+' in diff) - Skip CI errors
+    (already in ci_summary.json) - Be constructive and specific - Suggest fixes,
+    not just problems - Prioritize high-impact issues
 
-    FOCUS AREAS: - New functions without error handling - Complex logic without
-    comments - API changes without documentation updates - Database queries
-    without input validation - Async code without proper error handling
+    CATEGORIZATION: - **Critical**: Potential bugs, security issues, broken
+    functionality - **Warning**: Code smells, maintainability issues, style
+    violations - **Info**: Suggestions for improvement, best practices
 
-    OUTPUT FORMAT: Use WorkspaceTool to write JSON to
-    workspace/quick_review.json: {
-      "status": "looks_good" | "minor_issues" | "needs_attention",
-      "code_issues": [
+    OUTPUT FORMAT: Use WorkspaceTool to write JSON to quick_review.json:
+    {
+      "critical": [
         {
-          "severity": "medium",
+          "type": "potential_bug",
           "file": "src/api.ts",
-          "line": 15,
-          "issue": "Async fetch call without error handling",
-          "suggestion": "Wrap in try/catch block to handle network errors",
-          "code_snippet": "const data = await fetch(url);"
+          "line": 42,
+          "code_snippet": "if (user.id = req.params.id)",
+          "issue": "Assignment (=) instead of comparison (===)",
+          "fix_suggestion": "Change to: if (user.id === req.params.id)",
+          "severity": "critical"
         }
       ],
-      "commit_quality": "good" | "needs_improvement",
-      "commit_issues": [
-        "Commit message 'fix stuff' is too vague",
-        "Missing conventional commit prefix (feat/fix/docs)"
-      ],
-      "positive_observations": [
-        "Good error handling in auth module",
-        "Clear variable names and comments"
-      ],
-      "summary": "2 minor issues found, commit messages are clear"
-    }
-
-  expected_output: >
-    Quick code review saved to workspace/quick_review.json with: - Overall
-    status assessment - List of code quality issues with severity - Commit
-    message quality assessment - Positive observations (what was done well) -
-    Summary for quick scanning
-
-correlate_ci_and_code:
-  description: >
-    Correlate CI errors/warnings with code changes and provide fix guidance.
-
-    INPUTS FROM WORKSPACE: - workspace/ci_summary.json: All CI errors and
-    warnings - workspace/diff.txt: Code changes that caused issues -
-    workspace/quick_review.json: Code review findings
-
-    YOUR TASKS: 1. Use WorkspaceTool to read workspace/ci_summary.json 2. Use
-    WorkspaceTool to read workspace/diff.txt 3. For each CI error/warning:
-       - Find the specific code change that caused it
-       - Explain WHY the CI check failed
-       - Provide step-by-step fix instructions
-       - Show before/after code examples if helpful
-    4. Identify if multiple CI issues have a common root cause 5. Suggest
-    preventive measures for future commits
-
-    CORRELATION EXAMPLES: - Lint error "unused variable" → Show the line in diff
-    that added it - Format error "missing semicolon" → Show the formatted
-    version - Type error "wrong type" → Suggest correct type annotation
-
-    OUTPUT FORMAT: Use WorkspaceTool to write JSON to
-    workspace/ci_correlation.json: {
-      "correlations": [
+      "warnings": [
         {
-          "ci_issue": "Unused variable 'temp' in src/utils.ts:42",
-          "code_location": "src/utils.ts:42",
-          "root_cause": "Variable declared but never used in function",
-          "fix_steps": [
-            "Remove the line: const temp = getValue();",
-            "Or use the variable in the return statement"
-          ],
-          "diff_context": "+  const temp = getValue();\n   return result;"
+          "type": "code_smell",
+          "file": "src/utils.ts",
+          "line_start": 10,
+          "line_end": 75,
+          "issue": "Function 'processData' is 65 lines long",
+          "fix_suggestion": "Extract helper functions for parsing, validation, and formatting",
+          "severity": "warning"
+        },
+        {
+          "type": "best_practice",
+          "file": "src/db.ts",
+          "line": 23,
+          "code_snippet": "console.log(user.password)",
+          "issue": "Logging sensitive data (password)",
+          "fix_suggestion": "Remove console.log or redact sensitive fields",
+          "severity": "warning"
         }
       ],
-      "common_patterns": [
-        "Multiple lint errors in new API module - consider running linter
-    locally"
+      "info": [
+        {
+          "type": "suggestion",
+          "file": "src/parser.ts",
+          "line": 8,
+          "issue": "Magic number 86400 used without explanation",
+          "fix_suggestion": "Define as const SECONDS_IN_DAY = 86400",
+          "severity": "info"
+        }
       ],
-      "preventive_measures": [
-        "Run 'npm run lint' before committing",
-        "Enable ESLint in your editor"
-      ],
-      "summary": "3 CI issues correlated to 2 code changes"
+      "summary": "1 critical bug, 2 warnings, 1 suggestion",
+      "files_reviewed": 8,
+      "lines_reviewed": 342
     }
 
   expected_output: >
-    CI correlation analysis saved to workspace/ci_correlation.json with: - Each
-    CI issue mapped to specific code changes - Root cause explanations -
-    Step-by-step fix instructions - Common patterns identified - Preventive
-    measures for future commits
+    Quick code review results saved to quick_review.json with: -
+    Categorized findings (critical, warning, info) - Specific line numbers and
+    code snippets - Clear issue descriptions - Actionable fix suggestions - File
+    and LOC statistics
