@@ -11,6 +11,7 @@ from crew import CodeReviewCrew
 from crewai import Task
 from dotenv import load_dotenv
 from litellm import BadRequestError
+from tools.cost_tracker import get_tracker
 
 # Setup logging
 logging.basicConfig(
@@ -184,6 +185,8 @@ def write_actions_summary(crew, pr_number, repo, sha, result, fallback_used=Fals
         logger.warning("⚠️  GITHUB_STEP_SUMMARY not set, skipping summary")
         return
 
+    tracker = get_tracker()
+
     try:
         with open(summary_file, "a") as f:
             # Header
@@ -207,6 +210,11 @@ def write_actions_summary(crew, pr_number, repo, sha, result, fallback_used=Fals
             if fallback_used:
                 f.write("| **Note** | ⚠️  Fallback model activated for context overflow |\n")
             f.write("\n")
+
+            # Cost breakdown table
+            f.write("### 💰 Cost Breakdown\n\n")
+            f.write(tracker.format_as_markdown_table())
+            f.write("\n\n")
 
             # Review output
             f.write("---\n\n")
@@ -312,7 +320,7 @@ def main():
         logger.info("   6. Generate executive summary (CLEAN CONTEXT ONLY)")
         logger.info("")
         logger.info("⏱️ Estimated time: 3-5 minutes")
-        logger.info("💰 Cost: $0.00 (free OpenRouter models)")
+        logger.info("💰 Cost: Tracked per API call")
         logger.info("🔍 Tracing: Enabled")
         logger.info("🧹 Context: Manual clean extraction for Task 6")
         logger.info("")
@@ -343,6 +351,23 @@ def main():
         logger.info("-" * 70)
         logger.info("")
         logger.info("✅ Code review completed successfully!")
+        logger.info("")
+
+        # Display cost breakdown in logs
+        tracker = get_tracker()
+        logger.info("=" * 70)
+        logger.info("💰 COST BREAKDOWN")
+        logger.info("=" * 70)
+        logger.info("")
+        logger.info(tracker.format_summary())
+        logger.info("")
+        logger.info("Detailed breakdown:")
+        logger.info("")
+        # Print table to logs (will look better in GitHub Actions)
+        for line in tracker.format_as_markdown_table().split("\n"):
+            logger.info(line)
+        logger.info("")
+        logger.info("=" * 70)
         logger.info("")
 
         # Write to GitHub Actions summary
