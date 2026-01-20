@@ -6,46 +6,40 @@ synthesize_summary:
     === STEP 1: CHECK WORKSPACE FILES ===
 
     FIRST, check if critical workspace files exist using WorkspaceTool.exists():
-    - workspace/router_decision.json (REQUIRED)
-    - workspace/diff.txt (REQUIRED - if missing, indicates router failed)
-    - workspace/ci_summary.json (REQUIRED)
-    - workspace/quick_review.json (REQUIRED)
-    - workspace/full_review.json (optional - only if full-review ran)
+    - workspace/router_decision.json (REQUIRED) - workspace/diff.txt (REQUIRED -
+    if missing, indicates router failed) - workspace/ci_summary.json (REQUIRED)
+    - workspace/quick_review.json (REQUIRED) - workspace/full_review.json
+    (optional - only if full-review ran)
 
-    IF ANY REQUIRED FILE IS MISSING:
-    Create a CRITICAL ERROR summary explaining which files are missing and
-    what likely went wrong. Example:
+    IF ANY REQUIRED FILE IS MISSING: Create a CRITICAL ERROR summary explaining
+    which files are missing and what likely went wrong. Example:
 
     ## 🚨 CrewAI Review FAILED
 
     **Critical Error**: Review workflow did not complete successfully.
 
-    ### Missing Files:
-    - ❌ `workspace/diff.txt` - Router failed to fetch commit diff
-    - ❌ `workspace/quick_review.json` - Quick review did not run
+    ### Missing Files: - ❌ `workspace/diff.txt` - Router failed to fetch commit
+    diff - ❌ `workspace/quick_review.json` - Quick review did not run
 
-    ### Root Cause:
-    The router agent failed to fetch the commit diff, which prevented all
-    downstream reviews from running. Check the router crew logs for errors.
+    ### Root Cause: The router agent failed to fetch the commit diff, which
+    prevented all downstream reviews from running. Check the router crew logs
+    for errors.
 
-    ### Action Required:
-    1. Check GitHub Actions logs for the Router step
-    2. Verify COMMIT_SHA environment variable is set
-    3. Verify GitHub API credentials are valid
+    ### Action Required: 1. Check GitHub Actions logs for the Router step 2.
+    Verify COMMIT_SHA environment variable is set 3. Verify GitHub API
+    credentials are valid
 
-    WORKSPACE INPUTS (read all that exist):
-    - workspace/router_decision.json: Router suggestions and metadata
-    - workspace/diff.txt: Commit diff (if missing = CRITICAL ERROR)
-    - workspace/ci_summary.json: CI analysis results
-    - workspace/quick_review.json: Quick code review findings
-    - workspace/ci_correlation.json: CI issue correlations
-    - workspace/full_review.json: Full technical review (if ran)
-    - workspace/legal_review.json: Legal review (if ran - future)
-    - workspace/commits.json: Commit history context
+    WORKSPACE INPUTS (read all that exist): - workspace/router_decision.json:
+    Router suggestions and metadata - workspace/diff.txt: Commit diff (if
+    missing = CRITICAL ERROR) - workspace/ci_summary.json: CI analysis results -
+    workspace/quick_review.json: Quick code review findings -
+    workspace/ci_correlation.json: CI issue correlations -
+    workspace/full_review.json: Full technical review (if ran) -
+    workspace/legal_review.json: Legal review (if ran - future) -
+    workspace/commits.json: Commit history context
 
-    YOUR TASK:
-    Create ONE cohesive GitHub-flavored markdown report that synthesizes all
-    findings into a scannable, actionable summary.
+    YOUR TASK: Create ONE cohesive GitHub-flavored markdown report that
+    synthesizes all findings into a scannable, actionable summary.
 
     === GITHUB MARKDOWN FORMATTING RULES ===
 
@@ -90,37 +84,35 @@ synthesize_summary:
     **Workflows Executed**: {count} workflow(s) completed (Router → CI Analysis
     → Quick Review [→ Full Review])
 
-    ### 📊 Key Metrics
-    - **Files Changed**: See CI Analysis for details
-    - **CI Status**: ✅ Passed / ⚠️ Warnings / ❌ Failed
+    ### 📊 Key Metrics - **Files Changed**: See CI Analysis for details - **CI
+    Status**: ✅ Passed / ⚠️ Warnings / ❌ Failed
 
     ---
 
     ## 🤖 Router Suggestions
 
-    {Include suggestions from router_decision.json if any}
-    {If none: "No additional workflows recommended ✅"}
+    {Include suggestions from router_decision.json if any} {If none: "No
+    additional workflows recommended ✅"}
 
     ---
 
     ## 🚨 Critical Issues (Must Fix Before Merge)
 
-    {List critical issues from ALL sources: CI, quick review, full review}
-    {If none: "None found ✅"}
+    {List critical issues from ALL sources: CI, quick review, full review} {If
+    none: "None found ✅"}
 
     ---
 
     ## ⚠️ Warnings (Should Fix Soon)
 
-    {List medium-priority warnings from ALL sources}
-    {If none: "None found ✅"}
+    {List medium-priority warnings from ALL sources} {If none: "None found ✅"}
 
     ---
 
     ## 💡 Suggestions (Nice to Have)
 
-    {List improvement suggestions from ALL sources}
-    {If none: "Code follows best practices ✅"}
+    {List improvement suggestions from ALL sources} {If none: "Code follows best
+    practices ✅"}
 
     ---
 
@@ -132,22 +124,19 @@ synthesize_summary:
 
     ## 📝 Review Details
 
-    ### CI Analysis
-    {Summary from ci_summary.json}
+    ### CI Analysis {Summary from ci_summary.json}
 
-    ### Code Review
-    {Summary from quick_review.json}
+    ### Code Review {Summary from quick_review.json}
 
-    {If full review ran:}
-    ### Technical Deep Dive
-    {Summary from full_review.json}
+    {If full review ran:} ### Technical Deep Dive {Summary from
+    full_review.json}
 
     ---
 
-    ### 🔗 Quick Links
-    - [View Commit](https://github.com/{repository}/commit/{commit_sha})
-    - [View Pull Request](https://github.com/{repository}/pull/{pr_number})
-    - [CI Logs](https://github.com/{repository}/actions)
+    ### 🔗 Quick Links - [View
+    Commit](https://github.com/{repository}/commit/{commit_sha}) - [View Pull
+    Request](https://github.com/{repository}/pull/{pr_number}) - [CI
+    Logs](https://github.com/{repository}/actions)
 
     ---
 
@@ -155,31 +144,25 @@ synthesize_summary:
 
     === IMPORTANT REMINDERS ===
 
-    1. DO NOT wrap output in ```markdown code blocks
-    2. DO NOT try to fetch more data - synthesize what's in workspace
-    3. DO use proper markdown headings (##, ###), lists, bold
-    4. DO include emojis for visual clarity
-    5. DO make it scannable with clear sections
-    6. DO write in complete, professional sentences
-    7. DO prioritize critical issues at the top
-    8. DO include positive observations to balance feedback
-    9. IF REQUIRED FILES ARE MISSING: Report as CRITICAL ERROR with explanation
+    1. DO NOT wrap output in ```markdown code blocks 2. DO NOT try to fetch more
+    data - synthesize what's in workspace 3. DO use proper markdown headings
+    (##, ###), lists, bold 4. DO include emojis for visual clarity 5. DO make it
+    scannable with clear sections 6. DO write in complete, professional
+    sentences 7. DO prioritize critical issues at the top 8. DO include positive
+    observations to balance feedback 9. IF REQUIRED FILES ARE MISSING: Report as
+    CRITICAL ERROR with explanation
 
     Your output will be posted to GitHub Actions summary and PR comments. It
     MUST render as beautiful, formatted markdown!
 
   expected_output: >
-    Complete GitHub-flavored markdown report saved to workspace/final_summary.md:
-    - Clear heading hierarchy (##, ###)
-    - Proper emphasis (bold, italic)
-    - Clean lists (numbered and bulleted)
-    - Inline code for file/function names
-    - Code blocks ONLY for actual code snippets
-    - Horizontal rules for section breaks
-    - Working links to commit and PR
-    - Emojis for visual clarity
-    - NO wrapper code blocks around entire output
-    - IF files missing: Clear error report explaining what went wrong
+    Complete GitHub-flavored markdown report saved to
+    workspace/final_summary.md: - Clear heading hierarchy (##, ###) - Proper
+    emphasis (bold, italic) - Clean lists (numbered and bulleted) - Inline code
+    for file/function names - Code blocks ONLY for actual code snippets -
+    Horizontal rules for section breaks - Working links to commit and PR -
+    Emojis for visual clarity - NO wrapper code blocks around entire output - IF
+    files missing: Clear error report explaining what went wrong
 
     The output will render beautifully on GitHub.
   agent: executive_summary_agent

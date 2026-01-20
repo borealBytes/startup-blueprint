@@ -10,13 +10,12 @@ analyze_pr_and_route:
     YOUR TASKS: 1. Use PRMetadataTool to get PR labels and metadata (no API call
     - reads from environment)
        IMPORTANT: This returns commit_sha and repository - save these for steps
-    2-4
-    2. Use CommitDiffTool(commit_sha=<sha_from_metadata>,
+    2-4 2. Use CommitDiffTool(commit_sha=<sha_from_metadata>,
     repository=<repo_from_metadata>) to fetch the commit diff ONCE 3. Use
     WorkspaceTool to save diff to workspace/diff.txt for reuse by other agents
        IMPORTANT: Save the entire diff object as JSON string using json.dumps()
-    before writing to workspace
-    4. Use CommitInfoTool(commit_sha=<sha_from_metadata>,
+    before writing to workspace 4. Use
+    CommitInfoTool(commit_sha=<sha_from_metadata>,
     repository=<repo_from_metadata>) to get last 10 commits 5. Use WorkspaceTool
     to save commits to workspace/commits.json 6. Analyze changeset complexity
     (files, LOC, file types) 7. Decide which workflows should run based on
