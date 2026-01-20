@@ -70,13 +70,15 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
             )
             cost = 0.0  # Default to zero, enrichment will fill it
 
-        # Calculate duration
+        # Calculate duration in seconds (FIX: convert timedelta to float)
         duration = end_time - start_time
+        duration_seconds = duration.total_seconds() if hasattr(duration, 'total_seconds') else float(duration)
 
         # Only log if we got meaningful data
         if tokens_in > 0 or tokens_out > 0:
             logger.info(
-                f"✅ Captured API call: {model} " f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
+                f"✅ Captured API call: {model} "
+                f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
             )
 
             tracker.log_api_call(
@@ -84,7 +86,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
                 tokens_in=tokens_in,
                 tokens_out=tokens_out,
                 cost=cost,
-                duration_seconds=duration,
+                duration_seconds=duration_seconds,
                 generation_id=generation_id,
             )
         else:
@@ -98,7 +100,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
                 tokens_in=0,
                 tokens_out=0,
                 cost=0.0,
-                duration_seconds=duration,
+                duration_seconds=duration_seconds,
                 generation_id=generation_id,
             )
 
@@ -117,7 +119,8 @@ def litellm_failure_callback(kwargs, completion_response, start_time, end_time):
     """
     model = kwargs.get("model", "unknown")
     duration = end_time - start_time
-    logger.warning(f"⚠️  API call failed for {model} after {duration:.2f}s")
+    duration_seconds = duration.total_seconds() if hasattr(duration, 'total_seconds') else float(duration)
+    logger.warning(f"⚠️  API call failed for {model} after {duration_seconds:.2f}s")
 
 
 @CrewBase
