@@ -1,4 +1,4 @@
-quick_code_review:
+quick_code_check:
   description: >
     Perform fast code quality check focusing on common issues and patterns.
 
