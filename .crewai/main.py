@@ -202,13 +202,21 @@ def run_legal_review():
         logger.error(f"❌ Legal review failed: {e}", exc_info=True)
 
 
-def run_final_summary(env_vars):
-    """Run final summary crew."""
+def run_final_summary(env_vars, workflows_executed):
+    """Run final summary crew.
+    
+    Args:
+        env_vars: Environment variables dictionary
+        workflows_executed: List of workflows that were executed
+    """
     logger.info("=" * 60)
     logger.info("📝 STEP 6: Final Summary - Synthesizing all reviews")
     logger.info("=" * 60)
 
     try:
+        # Count the number of reviews/workflows that were executed
+        workflow_count = len(workflows_executed)
+        
         summary_crew = FinalSummaryCrew()
         result = summary_crew.crew().kickoff(
             inputs={
@@ -216,6 +224,7 @@ def run_final_summary(env_vars):
                 "commit_sha": env_vars["commit_sha"],
                 "repository": env_vars["repository"],
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                "count": workflow_count,  # Add count parameter to fix template variable error
             }
         )
         logger.info("✅ Final summary complete")
@@ -299,6 +308,9 @@ def main():
         workspace_dir = setup_workspace()
         env_vars = get_env_vars()
 
+        # Track which workflows were executed
+        workflows_executed = []
+
         # STEP 1: Router decides workflows
         decision = run_router(env_vars)
         workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
@@ -306,25 +318,29 @@ def main():
         # STEP 2: Always run CI analysis (default)
         if "ci-log-analysis" in workflows:
             run_ci_analysis(env_vars)
+            workflows_executed.append("ci-log-analysis")
 
         # STEP 3: Always run quick review (default)
         if "quick-review" in workflows:
             run_quick_review()
+            workflows_executed.append("quick-review")
 
         # STEP 4: Conditional - Full review
         if "full-review" in workflows:
             run_full_review(env_vars)
+            workflows_executed.append("full-review")
         else:
             logger.info("⏩ Skipping full review (no crewai:full-review label)")
 
         # STEP 5: Conditional - Legal review (stub)
         if "legal-review" in workflows:
             run_legal_review()
+            workflows_executed.append("legal-review")
         else:
             logger.info("⏩ Skipping legal review (no crewai:legal label)")
 
-        # STEP 6: Final summary (always run)
-        final_result = run_final_summary(env_vars)
+        # STEP 6: Final summary (always run) - pass workflow count
+        final_result = run_final_summary(env_vars, workflows_executed)
 
         # Read final markdown from workspace
         workspace = WorkspaceTool()

@@ -1,4 +1,7 @@
-quick_code_review:
+# Quick Review Tasks
+# IMPORTANT: Task keys must match @task method names in quick_review_crew.py
+
+quick_code_check:
   description: >
     Quick code quality review using cached workspace data.
 
