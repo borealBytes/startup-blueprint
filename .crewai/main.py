@@ -31,7 +31,7 @@ os.environ["CREWAI_TRACING_ENABLED"] = "false"
 
 def setup_workspace():
     """Setup workspace directories.
-    
+
     Uses absolute path based on this file's location to avoid CWD issues
     when workflow sets working-directory.
     """
