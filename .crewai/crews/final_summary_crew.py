@@ -1,10 +1,8 @@
-"""Final summary crew - synthesizes all review outputs."""
+"""Final summary crew that synthesizes all review outputs."""
 
 import logging
 import os
-from pathlib import Path
 
-import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from tools.workspace_tool import WorkspaceTool
@@ -14,18 +12,14 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class FinalSummaryCrew:
-    """Final summary crew - reads all workspace outputs and creates report."""
+    """Synthesizes all review outputs into final markdown report."""
+
+    # Use CrewBase.load_yaml() - finds config relative to project root
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks/final_summary_tasks.yaml"
 
     def __init__(self):
         """Initialize final summary crew."""
-        config_dir = Path(__file__).parent.parent / "config"
-
-        with open(config_dir / "agents.yaml") as f:
-            self.agents_config = yaml.safe_load(f)
-        with open(config_dir / "tasks" / "final_summary_tasks.yaml") as f:
-            self.tasks_config = yaml.safe_load(f)
-
-        # LLM config
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
@@ -34,30 +28,30 @@ class FinalSummaryCrew:
         self.model_name = os.getenv("CREWAI_MODEL", "google/gemini-flash-1.5")
 
     @agent
-    def synthesizer(self) -> Agent:
-        """Create synthesizer agent."""
+    def summarizer(self) -> Agent:
+        """Create summarizer agent."""
         return Agent(
-            config=self.agents_config["executive_summary_agent"],
-            tools=[WorkspaceTool()],  # Only needs to read workspace
+            config=self.agents_config["summarizer"],
+            tools=[WorkspaceTool()],
             llm=self.model_name,
-            max_iter=10,  # Higher for synthesis
+            max_iter=3,
             verbose=True,
         )
 
     @task
-    def synthesize_all_reviews(self) -> Task:
-        """Synthesize all reviews into final report."""
+    def synthesize_summary(self) -> Task:
+        """Synthesize final summary."""
         return Task(
-            config=self.tasks_config["synthesize_all_reviews"],
-            agent=self.synthesizer(),
+            config=self.tasks_config["synthesize_summary"],
+            agent=self.summarizer(),
         )
 
     @crew
     def crew(self) -> Crew:
         """Create final summary crew."""
         return Crew(
-            agents=[self.synthesizer()],
-            tasks=[self.synthesize_all_reviews()],
+            agents=[self.summarizer()],
+            tasks=[self.synthesize_summary()],
             process=Process.sequential,
             verbose=True,
         )

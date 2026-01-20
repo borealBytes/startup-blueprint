@@ -1,11 +1,8 @@
 """Router crew for workflow orchestration."""
 
-import json
 import logging
 import os
-from pathlib import Path
 
-import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from tools.github_tools import CommitDiffTool, CommitInfoTool
@@ -19,15 +16,12 @@ logger = logging.getLogger(__name__)
 class RouterCrew:
     """Router crew that decides which review workflows to execute."""
 
+    # Use CrewBase.load_yaml() - finds config relative to project root
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks/router_tasks.yaml"
+
     def __init__(self):
         """Initialize router crew with config."""
-        config_dir = Path(__file__).parent.parent / "config"
-
-        with open(config_dir / "agents.yaml") as f:
-            self.agents_config = yaml.safe_load(f)
-        with open(config_dir / "tasks" / "router_tasks.yaml") as f:
-            self.tasks_config = yaml.safe_load(f)
-
         # LLM config
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:

@@ -1,10 +1,8 @@
-"""CI log analysis crew for parsing core-ci outputs."""
+"""CI log analysis crew."""
 
 import logging
 import os
-from pathlib import Path
 
-import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from tools.ci_output_parser_tool import CIOutputParserTool
@@ -15,18 +13,14 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class CILogAnalysisCrew:
-    """CI log analysis crew."""
+    """Analyzes CI logs and correlates with code changes."""
+
+    # Use CrewBase.load_yaml() - finds config relative to project root
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks/ci_log_tasks.yaml"
 
     def __init__(self):
-        """Initialize CI log analysis crew."""
-        config_dir = Path(__file__).parent.parent / "config"
-
-        with open(config_dir / "agents.yaml") as f:
-            self.agents_config = yaml.safe_load(f)
-        with open(config_dir / "tasks" / "ci_log_tasks.yaml") as f:
-            self.tasks_config = yaml.safe_load(f)
-
-        # LLM config
+        """Initialize CI analysis crew."""
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
@@ -47,7 +41,7 @@ class CILogAnalysisCrew:
 
     @task
     def analyze_ci_logs(self) -> Task:
-        """Analyze CI logs task."""
+        """Analyze CI logs and save summary."""
         return Task(
             config=self.tasks_config["analyze_ci_logs"],
             agent=self.ci_analyst(),
@@ -55,7 +49,7 @@ class CILogAnalysisCrew:
 
     @crew
     def crew(self) -> Crew:
-        """Create CI log analysis crew."""
+        """Create CI analysis crew."""
         return Crew(
             agents=[self.ci_analyst()],
             tasks=[self.analyze_ci_logs()],

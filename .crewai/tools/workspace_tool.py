@@ -3,9 +3,10 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from crewai.tools import BaseTool
+from pydantic import Field
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +21,13 @@ class WorkspaceTool(BaseTool):
         "Available operations: read(filename), write(filename, content), exists(filename)"
     )
 
-    def __init__(self):
-        super().__init__()
-        self.workspace_dir = Path(".crewai/workspace")
+    # Pydantic v2 requires fields to be declared
+    workspace_dir: Path = Field(default=Path(".crewai/workspace"))
+    trace_dir: Optional[Path] = Field(default=None)
+
+    def model_post_init(self, __context: Any) -> None:
+        """Initialize workspace directories after Pydantic validation."""
+        super().model_post_init(__context)
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
         self.trace_dir = self.workspace_dir / "trace"
         self.trace_dir.mkdir(exist_ok=True)

@@ -1,13 +1,10 @@
-"""Quick review crew for fast code quality checks."""
+"""Quick review crew for fast, lightweight code review."""
 
 import logging
 import os
-from pathlib import Path
 
-import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from tools.github_tools import FileContentTool
 from tools.workspace_tool import WorkspaceTool
 
 logger = logging.getLogger(__name__)
@@ -15,18 +12,14 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class QuickReviewCrew:
-    """Quick review crew (default workflow)."""
+    """Fast code quality review (~1 minute)."""
+
+    # Use CrewBase.load_yaml() - finds config relative to project root
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks/quick_review_tasks.yaml"
 
     def __init__(self):
         """Initialize quick review crew."""
-        config_dir = Path(__file__).parent.parent / "config"
-
-        with open(config_dir / "agents.yaml") as f:
-            self.agents_config = yaml.safe_load(f)
-        with open(config_dir / "tasks" / "quick_review_tasks.yaml") as f:
-            self.tasks_config = yaml.safe_load(f)
-
-        # LLM config
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
@@ -39,28 +32,17 @@ class QuickReviewCrew:
         """Create quick reviewer agent."""
         return Agent(
             config=self.agents_config["quick_reviewer"],
-            tools=[
-                WorkspaceTool(),
-                FileContentTool(),  # Only if needed for context
-            ],
+            tools=[WorkspaceTool()],
             llm=self.model_name,
-            max_iter=5,
+            max_iter=3,
             verbose=True,
         )
 
     @task
     def quick_code_review(self) -> Task:
-        """Quick code review task."""
+        """Perform quick code review."""
         return Task(
             config=self.tasks_config["quick_code_review"],
-            agent=self.quick_reviewer(),
-        )
-
-    @task
-    def correlate_ci_and_code(self) -> Task:
-        """Correlate CI issues with code changes."""
-        return Task(
-            config=self.tasks_config["correlate_ci_and_code"],
             agent=self.quick_reviewer(),
         )
 
@@ -69,7 +51,7 @@ class QuickReviewCrew:
         """Create quick review crew."""
         return Crew(
             agents=[self.quick_reviewer()],
-            tasks=[self.quick_code_review(), self.correlate_ci_and_code()],
+            tasks=[self.quick_code_review()],
             process=Process.sequential,
             verbose=True,
         )
