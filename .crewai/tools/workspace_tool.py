@@ -22,15 +22,21 @@ class WorkspaceTool(BaseTool):
     )
 
     # Pydantic v2 requires fields to be declared
-    workspace_dir: Path = Field(default=Path(".crewai/workspace"))
+    # Use absolute path to avoid CWD issues when workflow sets working-directory
+    workspace_dir: Path = Field(
+        default_factory=lambda: Path(__file__).parent.parent / "workspace"
+    )
     trace_dir: Optional[Path] = Field(default=None)
 
     def model_post_init(self, __context: Any) -> None:
         """Initialize workspace directories after Pydantic validation."""
         super().model_post_init(__context)
+        # Ensure we're using an absolute path
+        self.workspace_dir = self.workspace_dir.resolve()
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
         self.trace_dir = self.workspace_dir / "trace"
         self.trace_dir.mkdir(exist_ok=True)
+        logger.info(f"📁 WorkspaceTool initialized: {self.workspace_dir}")
 
     def _run(self, operation: str, filename: str, content: str = "") -> Any:
         """Execute workspace operation.
@@ -60,16 +66,16 @@ class WorkspaceTool(BaseTool):
         """Read file from workspace."""
         filepath = self.workspace_dir / filename
         if not filepath.exists():
-            logger.warning(f"Workspace file not found: {filename}")
+            logger.warning(f"⚠️ Workspace file not found: {filepath}")
             return ""
 
         try:
             with open(filepath) as f:
                 content = f.read()
-            logger.info(f"📖 Read {len(content)} bytes from workspace/{filename}")
+            logger.info(f"📖 Read {len(content)} bytes from {filepath}")
             return content
         except Exception as e:
-            logger.error(f"Error reading workspace/{filename}: {e}")
+            logger.error(f"❌ Error reading {filepath}: {e}")
             return ""
 
     def write(self, filename: str, content: str) -> str:
@@ -80,10 +86,10 @@ class WorkspaceTool(BaseTool):
         try:
             with open(filepath, "w") as f:
                 f.write(content)
-            logger.info(f"💾 Wrote {len(content)} bytes to workspace/{filename}")
-            return f"Successfully wrote to workspace/{filename}"
+            logger.info(f"💾 Wrote {len(content)} bytes to {filepath}")
+            return f"Successfully wrote to {filepath}"
         except Exception as e:
-            error_msg = f"Error writing to workspace/{filename}: {e}"
+            error_msg = f"❌ Error writing to {filepath}: {e}"
             logger.error(error_msg)
             return error_msg
 
@@ -91,7 +97,7 @@ class WorkspaceTool(BaseTool):
         """Check if file exists in workspace."""
         filepath = self.workspace_dir / filename
         exists = filepath.exists()
-        logger.debug(f"Check workspace/{filename}: {exists}")
+        logger.info(f"🔍 Check {filepath}: {'EXISTS' if exists else 'NOT FOUND'}")
         return exists
 
     def read_json(self, filename: str) -> dict:
@@ -102,7 +108,7 @@ class WorkspaceTool(BaseTool):
         try:
             return json.loads(content)
         except json.JSONDecodeError as e:
-            logger.error(f"Error parsing JSON from {filename}: {e}")
+            logger.error(f"❌ Error parsing JSON from {filename}: {e}")
             return {}
 
     def write_json(self, filename: str, data: dict) -> str:
@@ -111,6 +117,6 @@ class WorkspaceTool(BaseTool):
             content = json.dumps(data, indent=2)
             return self.write(filename, content)
         except Exception as e:
-            error_msg = f"Error serializing JSON to {filename}: {e}"
+            error_msg = f"❌ Error serializing JSON to {filename}: {e}"
             logger.error(error_msg)
             return error_msg
