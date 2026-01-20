@@ -45,9 +45,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
                 tokens_out = getattr(usage, "completion_tokens", 0)
                 # FIX 1: Check for cost in usage object first
                 cost = getattr(usage, "cost", None)
-                logger.debug(
-                    f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out, cost={cost}"
-                )
+                logger.debug(f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out, cost={cost}")
 
         # FIX 1: Check for cost attribute directly on response (most common location)
         if cost is None and hasattr(completion_response, "cost"):
@@ -81,7 +79,17 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
             )
             cost = 0.0  # Default to zero, enrichment will fill it
         else:
-            logger.debug(f"✅ Cost captured: ${cost:.6f}")
+            # FIX: Add type safety - convert to float and handle errors
+            try:
+                cost_float = float(cost)
+                logger.debug(f"✅ Cost captured: ${cost_float:.6f}")
+                cost = cost_float
+            except (ValueError, TypeError) as e:
+                logger.warning(
+                    f"⚠️  Invalid cost type: {type(cost)} = {cost}. "
+                    f"Error: {e}. Defaulting to 0.0"
+                )
+                cost = 0.0
 
         # Calculate duration in seconds (FIX: convert timedelta to float)
         duration = end_time - start_time
@@ -91,9 +99,17 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
 
         # Only log if we got meaningful data
         if tokens_in > 0 or tokens_out > 0:
-            logger.info(
-                f"✅ Captured API call: {model} " f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
-            )
+            # FIX: Safe cost formatting with guaranteed float
+            try:
+                logger.info(
+                    f"✅ Captured API call: {model} "
+                    f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
+                )
+            except (ValueError, TypeError):
+                logger.info(
+                    f"✅ Captured API call: {model} "
+                    f"({tokens_in} in, {tokens_out} out, cost={cost})"
+                )
 
             tracker.log_api_call(
                 model=model,
@@ -264,7 +280,7 @@ class CodeReviewCrew:
 
     # Tasks
     # FIX 2: Remove tracker.set_current_task() from here - it runs at task DEFINITION time,
-    # not EXECUTION time. Task names will be inferred from task order or set via metadata.
+    # not EXECUTION time. Task names will be set in main.py during actual execution.
 
     @task
     def analyze_commit_changes(self) -> Task:

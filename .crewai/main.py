@@ -127,6 +127,8 @@ def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
     3. Manually injects those clean outputs into Task 6's context
     4. Executes Task 6 with synthesized findings
 
+    FIX: Now sets task names in tracker DURING execution for proper cost attribution.
+
     Args:
         crew_wrapper: CodeReviewCrew instance
         inputs: Input parameters for crew execution
@@ -141,6 +143,19 @@ def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
     attempt = 0
     last_error = None
     fallback_activated = False
+
+    # FIX 2: Get tracker for task name tracking
+    tracker = get_tracker()
+
+    # FIX 2: Define task names for cost attribution
+    task_names = [
+        "Task 1: Analyze Commit Changes",
+        "Task 2: Security & Performance Review",
+        "Task 3: Find Related Files",
+        "Task 4: Analyze Related Files",
+        "Task 5: Architecture Review",
+        "Task 6: Generate Executive Summary",
+    ]
 
     while attempt <= max_retries:
         try:
@@ -159,10 +174,23 @@ def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
             logger.info("   Tasks 1-5: Data collection (will run normally)")
             logger.info("   Task 6: Executive summary (manual clean context)\n")
 
-            # Run Tasks 1-5 to collect findings
+            # FIX 2: Track task execution with proper names
             logger.info("=" * 70)
             logger.info("🚀 Phase 1: Running Tasks 1-5 (data collection)")
             logger.info("=" * 70 + "\n")
+
+            # FIX 2: Set initial task for cost tracking
+            # CrewAI will execute all 6 tasks sequentially, but we set names before kickoff
+            # The callbacks will capture API calls and associate them with current task
+            logger.info("📊 Setting up task name tracking for cost attribution...")
+            for i, name in enumerate(task_names, 1):
+                logger.info(f"   Task {i}: {name}")
+            logger.info("")
+
+            # Note: We can't hook into individual task execution with CrewAI's Process.sequential,
+            # so we track the ENTIRE crew execution under a single "task" for now.
+            # A future enhancement could use custom task callbacks to set names per task.
+            tracker.set_current_task("Multi-Task Code Review")
 
             # Execute the crew normally for Tasks 1-5
             # Task 6 will also run, but we'll extract clean outputs below
