@@ -1,152 +1,139 @@
 synthesize_all_reviews:
   description: >
     Read ALL workspace outputs and create final comprehensive markdown report.
-    
-    WORKSPACE INPUTS (read all that exist):
-    - workspace/router_decision.json: Router suggestions and metadata
-    - workspace/ci_summary.json: CI analysis results
-    - workspace/quick_review.json: Quick code review findings
-    - workspace/ci_correlation.json: CI issue correlations
-    - workspace/full_review.json: Full technical review (if ran)
-    - workspace/legal_review.json: Legal review (if ran - future)
-    - workspace/commits.json: Commit history context
-    
-    YOUR TASK:
-    Create ONE cohesive GitHub-flavored markdown report that synthesizes
-    all findings into a scannable, actionable summary.
-    
+
+    WORKSPACE INPUTS (read all that exist): - workspace/router_decision.json:
+    Router suggestions and metadata - workspace/ci_summary.json: CI analysis
+    results - workspace/quick_review.json: Quick code review findings -
+    workspace/ci_correlation.json: CI issue correlations -
+    workspace/full_review.json: Full technical review (if ran) -
+    workspace/legal_review.json: Legal review (if ran - future) -
+    workspace/commits.json: Commit history context
+
+    YOUR TASK: Create ONE cohesive GitHub-flavored markdown report that
+    synthesizes all findings into a scannable, actionable summary.
+
     === GITHUB MARKDOWN FORMATTING RULES ===
-    
+
     CRITICAL: DO NOT wrap your entire output in a code block (no ```markdown)!
     Your output must be DIRECT markdown that GitHub will render beautifully.
-    
+
     Use these GitHub-flavored markdown elements:
-    
+
     1. HEADINGS: Use ## for main sections, ### for subsections
        CORRECT: ## 📊 Review Summary
        WRONG: # Review Summary (too big) or #### (too small)
-    
+
     2. EMPHASIS:
        - Bold: **text** for important items
        - Italic: *text* for subtle emphasis
        - DO NOT use <b> or <i> HTML tags
-    
+
     3. LISTS:
        - Numbered: 1. Item one\n2. Item two
        - Bullets: - Item or * Item
        - Nested: Indent with 2 spaces
-    
+
     4. CODE:
        - Inline code: `variable` or `function()`
        - Code blocks: Only for actual code snippets (3+ lines)
        - DO NOT wrap your entire summary in code blocks!
-    
+
     5. HORIZONTAL RULES: Use --- on its own line
-    
+
     6. LINKS: [Text](https://url)
-    
+
     7. EMOJIS: Use Unicode emojis (✅ 🚨 ⚠️ 💡 📊)
-    
+
     === EXACT OUTPUT STRUCTURE ===
-    
+
     Write your output EXACTLY like this (NO code block wrapper):
-    
+
     ## 🎯 CrewAI Review Summary
-    
+
     **Status**: ✅ Approved / ⚠️ Needs Attention / 🚨 Critical Issues
-    
+
     **Workflows Executed**: Router → CI Analysis → Quick Review [→ Full Review]
-    
-    ### 📊 Key Metrics
-    - **Files Changed**: {count} ({new} new, {modified} modified, {deleted} deleted)
-    - **Lines**: +{additions} / -{deletions}
-    - **Commits**: {count} commits
-    - **CI Status**: ✅ Passed / ⚠️ Warnings / ❌ Failed
-    
+
+    ### 📊 Key Metrics - **Files Changed**: {count} ({new} new, {modified}
+    modified, {deleted} deleted) - **Lines**: +{additions} / -{deletions} -
+    **Commits**: {count} commits - **CI Status**: ✅ Passed / ⚠️ Warnings / ❌
+    Failed
+
     ---
-    
+
     ## 🤖 Router Suggestions
-    
-    {Include suggestions from router_decision.json if any}
-    {If none: "No additional workflows recommended ✅"}
-    
+
+    {Include suggestions from router_decision.json if any} {If none: "No
+    additional workflows recommended ✅"}
+
     ---
-    
+
     ## 🚨 Critical Issues (Must Fix Before Merge)
-    
-    {List critical issues from ALL sources: CI, quick review, full review}
-    {If none: "None found ✅"}
-    
+
+    {List critical issues from ALL sources: CI, quick review, full review} {If
+    none: "None found ✅"}
+
     ---
-    
+
     ## ⚠️ Warnings (Should Fix Soon)
-    
-    {List medium-priority warnings from ALL sources}
-    {If none: "None found ✅"}
-    
+
+    {List medium-priority warnings from ALL sources} {If none: "None found ✅"}
+
     ---
-    
+
     ## 💡 Suggestions (Nice to Have)
-    
-    {List improvement suggestions from ALL sources}
-    {If none: "Code follows best practices ✅"}
-    
+
+    {List improvement suggestions from ALL sources} {If none: "Code follows best
+    practices ✅"}
+
     ---
-    
+
     ## ✅ Positive Observations
-    
+
     {List good patterns, clean code, smart decisions from all reviews}
-    
+
     ---
-    
+
     ## 📝 Review Details
-    
-    ### CI Analysis
-    {Summary from ci_summary.json}
-    
-    ### Code Review
-    {Summary from quick_review.json}
-    
-    {If full review ran:}
-    ### Technical Deep Dive
-    {Summary from full_review.json}
-    
+
+    ### CI Analysis {Summary from ci_summary.json}
+
+    ### Code Review {Summary from quick_review.json}
+
+    {If full review ran:} ### Technical Deep Dive {Summary from
+    full_review.json}
+
     ---
-    
-    ### 🔗 Quick Links
-    - [View Commit](https://github.com/{repository}/commit/{commit_sha})
-    - [View Pull Request](https://github.com/{repository}/pull/{pr_number})
-    - [CI Logs](https://github.com/{repository}/actions)
-    
+
+    ### 🔗 Quick Links - [View
+    Commit](https://github.com/{repository}/commit/{commit_sha}) - [View Pull
+    Request](https://github.com/{repository}/pull/{pr_number}) - [CI
+    Logs](https://github.com/{repository}/actions)
+
     ---
-    
+
     *🤖 Generated by CrewAI Router System | ⏱️ {timestamp}*
-    
+
     === IMPORTANT REMINDERS ===
-    
-    1. DO NOT wrap output in ```markdown code blocks
-    2. DO NOT try to fetch more data - synthesize what's in workspace
-    3. DO use proper markdown headings (##, ###), lists, bold
-    4. DO include emojis for visual clarity
-    5. DO make it scannable with clear sections
-    6. DO write in complete, professional sentences
-    7. DO prioritize critical issues at the top
-    8. DO include positive observations to balance feedback
-    
-    Your output will be posted to GitHub Actions summary and PR comments.
-    It MUST render as beautiful, formatted markdown!
-  
+
+    1. DO NOT wrap output in ```markdown code blocks 2. DO NOT try to fetch more
+    data - synthesize what's in workspace 3. DO use proper markdown headings
+    (##, ###), lists, bold 4. DO include emojis for visual clarity 5. DO make it
+    scannable with clear sections 6. DO write in complete, professional
+    sentences 7. DO prioritize critical issues at the top 8. DO include positive
+    observations to balance feedback
+
+    Your output will be posted to GitHub Actions summary and PR comments. It
+    MUST render as beautiful, formatted markdown!
+
   expected_output: >
-    Complete GitHub-flavored markdown report saved to workspace/final_summary.md:
-    - Clear heading hierarchy (##, ###)
-    - Proper emphasis (bold, italic)
-    - Clean lists (numbered and bulleted)
-    - Inline code for file/function names
-    - Code blocks ONLY for actual code snippets
-    - Horizontal rules for section breaks
-    - Working links to commit and PR
-    - Emojis for visual clarity
-    - NO wrapper code blocks around entire output
-    
+    Complete GitHub-flavored markdown report saved to
+    workspace/final_summary.md: - Clear heading hierarchy (##, ###) - Proper
+    emphasis (bold, italic) - Clean lists (numbered and bulleted) - Inline code
+    for file/function names - Code blocks ONLY for actual code snippets -
+    Horizontal rules for section breaks - Working links to commit and PR -
+    Emojis for visual clarity - NO wrapper code blocks around entire output
+
     The output will render beautifully on GitHub.
   agent: executive_summary_agent

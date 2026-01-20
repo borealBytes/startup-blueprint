@@ -6,15 +6,15 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 
 ### Key Improvements
 
-| Feature | Old System | New Router System |
-|---------|------------|-------------------|
-| **Default Review Time** | 3-5 minutes | **1.5-2 minutes** (⚡ 50% faster) |
-| **Default Cost** | $0.21 (or $0.00 free) | **$0.13** (or $0.00 free) | 
-| **Customization** | One size fits all | **Label-based workflows** |
-| **CI Integration** | No CI context | **Analyzes CI logs** |
-| **Commit History** | Single commit only | **Last 10 commits** |
-| **Suggestions** | None | **Smart label recommendations** |
-| **Trace** | Logs only | **Full workspace artifacts** |
+| Feature                 | Old System            | New Router System                 |
+| ----------------------- | --------------------- | --------------------------------- |
+| **Default Review Time** | 3-5 minutes           | **1.5-2 minutes** (⚡ 50% faster) |
+| **Default Cost**        | $0.21 (or $0.00 free) | **$0.13** (or $0.00 free)         |
+| **Customization**       | One size fits all     | **Label-based workflows**         |
+| **CI Integration**      | No CI context         | **Analyzes CI logs**              |
+| **Commit History**      | Single commit only    | **Last 10 commits**               |
+| **Suggestions**         | None                  | **Smart label recommendations**   |
+| **Trace**               | Logs only             | **Full workspace artifacts**      |
 
 ---
 
@@ -92,6 +92,7 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 #### 🔍 `crewai:full-review`
 
 **Use when:**
+
 - Large changeset (20+ files or 500+ LOC)
 - Security-sensitive changes (auth, encryption, API keys)
 - Architecture refactoring
@@ -99,6 +100,7 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 - Third-party dependency updates
 
 **Provides:**
+
 - Security vulnerability scanning
 - Related files impact analysis (imports)
 - Architecture pattern evaluation
@@ -108,6 +110,7 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 #### ⚖️ `crewai:legal` (Future)
 
 **Use when:**
+
 - License file changes
 - Terms of Service updates
 - Privacy Policy modifications
@@ -115,6 +118,7 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 - Third-party attribution
 
 **Provides:**
+
 - License compatibility checks
 - Copyright compliance review
 - Terms consistency analysis
@@ -125,25 +129,25 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 
 ### Execution Time
 
-| Scenario | Workflows | Time | vs Old |
-|----------|-----------|------|--------|
+| Scenario                       | Workflows           | Time          | vs Old            |
+| ------------------------------ | ------------------- | ------------- | ----------------- |
 | **Simple commit** (90% of PRs) | Router + CI + Quick | **1.5-2 min** | ⚡ **50% faster** |
-| **Large commit** | + Full Review | **6-7 min** | 🔽 20% slower |
-| **Legal changes** | + Legal (stub) | **6.5-7 min** | New capability |
+| **Large commit**               | + Full Review       | **6-7 min**   | 🔽 20% slower     |
+| **Legal changes**              | + Legal (stub)      | **6.5-7 min** | New capability    |
 
 ### Cost (with free models)
 
-| Scenario | API Calls | Tokens | Cost |
-|----------|-----------|--------|------|
-| **Simple commit** | ~8 | ~50K | **$0.00** |
-| **Large commit** | ~20 | ~200K | **$0.00** |
+| Scenario          | API Calls | Tokens | Cost      |
+| ----------------- | --------- | ------ | --------- |
+| **Simple commit** | ~8        | ~50K   | **$0.00** |
+| **Large commit**  | ~20       | ~200K  | **$0.00** |
 
 ### Cost (with GPT-4o)
 
-| Scenario | API Calls | Tokens | Cost | vs Old |
-|----------|-----------|--------|------|--------|
-| **Simple commit** | ~8 | ~50K | **$0.13** | 💰 38% cheaper |
-| **Large commit** | ~20 | ~200K | **$0.34** | 🔽 62% more |
+| Scenario          | API Calls | Tokens | Cost      | vs Old         |
+| ----------------- | --------- | ------ | --------- | -------------- |
+| **Simple commit** | ~8        | ~50K   | **$0.13** | 💰 38% cheaper |
+| **Large commit**  | ~20       | ~200K  | **$0.34** | 🔽 62% more    |
 
 **ROI**: 90% of PRs use simple review → **massive savings**
 
@@ -213,7 +217,7 @@ files_changed > 50 OR lines_changed > 1000
 **Fix**: Check `CORE_CI_RESULT` is passed correctly in `.github/workflows/ci.yml`
 
 ```yaml
-core_ci_result: ${{ needs.core-ci.result }}  # Must be 'success' or 'failure'
+core_ci_result: ${{ needs.core-ci.result }} # Must be 'success' or 'failure'
 ```
 
 #### Quick review too slow
@@ -228,14 +232,14 @@ core_ci_result: ${{ needs.core-ci.result }}  # Must be 'success' or 'failure'
 
 ### What Changed?
 
-| Component | Old | New |
-|-----------|-----|-----|
-| **Entry point** | `crew.py` + `main.py` | `main.py` (orchestrator) |
-| **Crew structure** | Single `CodeReviewCrew` | Multiple crews in `crews/` |
-| **Tasks** | Single `tasks.yaml` | Split into `config/tasks/*.yaml` |
-| **Workflow** | Always 6 tasks | Router decides (2-6 tasks) |
-| **CI integration** | None | Reads `CORE_CI_RESULT` |
-| **Commit history** | Single commit | Last 10 commits |
+| Component          | Old                     | New                              |
+| ------------------ | ----------------------- | -------------------------------- |
+| **Entry point**    | `crew.py` + `main.py`   | `main.py` (orchestrator)         |
+| **Crew structure** | Single `CodeReviewCrew` | Multiple crews in `crews/`       |
+| **Tasks**          | Single `tasks.yaml`     | Split into `config/tasks/*.yaml` |
+| **Workflow**       | Always 6 tasks          | Router decides (2-6 tasks)       |
+| **CI integration** | None                    | Reads `CORE_CI_RESULT`           |
+| **Commit history** | Single commit           | Last 10 commits                  |
 
 ### Migration Steps
 
@@ -244,6 +248,7 @@ core_ci_result: ${{ needs.core-ci.result }}  # Must be 'success' or 'failure'
    - `.github/workflows/crewai-review-reusable.yml` updated
 
 2. **Create labels** (manual)
+
    ```bash
    # In your repo settings → Labels
    gh label create "crewai:full-review" --color "0366d6" --description "Trigger full technical review"
@@ -263,6 +268,7 @@ core_ci_result: ${{ needs.core-ci.result }}  # Must be 'success' or 'failure'
 The router analyzes your PR and suggests labels even if you forgot:
 
 **Example 1: Large Changeset**
+
 ```markdown
 ## 🤖 Router Suggestions
 
@@ -271,6 +277,7 @@ The router analyzes your PR and suggests labels even if you forgot:
 ```
 
 **Example 2: Legal Files**
+
 ```markdown
 ## 🤖 Router Suggestions
 
@@ -279,6 +286,7 @@ The router analyzes your PR and suggests labels even if you forgot:
 ```
 
 **Example 3: Security Files**
+
 ```markdown
 ## 🤖 Router Suggestions
 

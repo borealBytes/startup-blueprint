@@ -67,9 +67,9 @@ def get_env_vars():
 
 def run_router(env_vars):
     """Run router crew to decide workflows."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("🔀 STEP 1: Router - Analyzing PR and deciding workflows")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         router = RouterCrew()
@@ -111,15 +111,13 @@ def run_router(env_vars):
 
 def run_ci_analysis(env_vars):
     """Run CI log analysis crew."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("📊 STEP 2: CI Log Analysis - Parsing core-ci results")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         ci_crew = CILogAnalysisCrew()
-        result = ci_crew.crew().kickoff(
-            inputs={"core_ci_result": env_vars["core_ci_result"]}
-        )
+        result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
         logger.info("✅ CI analysis complete")
         return result
     except Exception as e:
@@ -138,9 +136,9 @@ def run_ci_analysis(env_vars):
 
 def run_quick_review():
     """Run quick review crew."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("⚡ STEP 3: Quick Review - Fast code quality check")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         quick_crew = QuickReviewCrew()
@@ -162,9 +160,9 @@ def run_quick_review():
 
 def run_full_review(env_vars):
     """Run full technical review crew."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("🔍 STEP 4: Full Technical Review - Deep analysis")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         full_crew = FullReviewCrew()
@@ -192,9 +190,9 @@ def run_full_review(env_vars):
 
 def run_legal_review():
     """Run legal review crew (stub)."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("⚖️ STEP 5: Legal Review - Compliance check (STUB)")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         legal_crew = LegalReviewCrew()
@@ -207,9 +205,9 @@ def run_legal_review():
 
 def run_final_summary(env_vars):
     """Run final summary crew."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("📝 STEP 6: Final Summary - Synthesizing all reviews")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         summary_crew = FinalSummaryCrew()
@@ -230,9 +228,9 @@ def run_final_summary(env_vars):
 
 def post_results(env_vars, final_markdown):
     """Post results to PR and GitHub Actions summary."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("📤 STEP 7: Posting Results")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     # Post to GitHub Actions summary
     step_summary_file = os.getenv("GITHUB_STEP_SUMMARY")
@@ -265,9 +263,9 @@ def post_results(env_vars, final_markdown):
 
 def save_trace(workspace_dir):
     """Save execution trace for artifacts."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("💾 STEP 8: Saving Execution Trace")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     trace_dir = workspace_dir / "trace"
 
@@ -286,9 +284,9 @@ def save_trace(workspace_dir):
 
 def print_cost_summary():
     """Print cost tracking summary."""
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("💰 Cost Summary")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         tracker = get_tracker()
@@ -308,7 +306,7 @@ def print_cost_summary():
 def main():
     """Main orchestration function."""
     logger.info("🚀 CrewAI Router-Based Review System Starting")
-    logger.info("="*60)
+    logger.info("=" * 60)
 
     try:
         # Setup
@@ -348,7 +346,9 @@ def main():
             final_markdown = workspace.read("final_summary.md")
         else:
             logger.warning("⚠️ final_summary.md not found - creating fallback")
-            final_markdown = "## ⚠️ Review Summary\n\nReview completed with warnings. Check logs for details."
+            final_markdown = (
+                "## ⚠️ Review Summary\n\nReview completed with warnings. Check logs for details."
+            )
 
         # STEP 7: Post results
         post_results(env_vars, final_markdown)
@@ -359,9 +359,9 @@ def main():
         # Print cost summary
         print_cost_summary()
 
-        logger.info("="*60)
+        logger.info("=" * 60)
         logger.info("✅ CrewAI Review Complete!")
-        logger.info("="*60)
+        logger.info("=" * 60)
 
         return 0
 

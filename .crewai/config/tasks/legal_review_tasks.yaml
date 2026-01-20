@@ -4,20 +4,16 @@
 analyze_legal_files:
   description: >
     Analyze legal and compliance files for issues.
-    
-    FUTURE IMPLEMENTATION:
-    - Scan for license files (LICENSE, COPYING, etc.)
-    - Check for license compatibility issues
-    - Review terms of service changes
-    - Check privacy policy updates
-    - Verify copyright statements
-    - Check for GPL vs MIT vs Apache conflicts
-    
+
+    FUTURE IMPLEMENTATION: - Scan for license files (LICENSE, COPYING, etc.) -
+    Check for license compatibility issues - Review terms of service changes -
+    Check privacy policy updates - Verify copyright statements - Check for GPL
+    vs MIT vs Apache conflicts
+
     For now, this is a stub that returns "not implemented".
-  
+
   expected_output: >
-    Legal compliance report (stub):
-    {
+    Legal compliance report (stub): {
       "status": "not_implemented",
       "message": "Legal review crew coming soon",
       "files_detected": [],

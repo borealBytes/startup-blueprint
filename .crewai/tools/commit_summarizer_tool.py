@@ -65,9 +65,9 @@ class CommitSummarizerTool(BaseTool):
         type_summary = ", ".join(
             [f"{count} {type}" for type, count in sorted(commit_types.items())]
         )
-        summary[
-            "summary"
-        ] = f"{len(commits)} commits by {len(authors)} author(s): {type_summary or 'mixed types'}"
+        summary["summary"] = (
+            f"{len(commits)} commits by {len(authors)} author(s): {type_summary or 'mixed types'}"
+        )
 
         logger.info(f"✅ Summary: {summary['summary']}")
         return summary

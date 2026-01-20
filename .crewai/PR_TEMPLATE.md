@@ -3,6 +3,7 @@
 ## 📝 Summary
 
 Implements an advanced router-based architecture for CrewAI code reviews with:
+
 - **Intelligent routing**: Analyzes PR and decides workflows
 - **Faster default reviews**: 50% reduction (2 min vs 4 min)
 - **Label-based customization**: `crewai:full-review`, `crewai:legal`
@@ -16,35 +17,41 @@ Implements an advanced router-based architecture for CrewAI code reviews with:
 ## ✨ Key Features
 
 ### 🔀 Router Agent
+
 - Analyzes PR labels, file types, changeset size
 - Decides which workflows to execute
 - Suggests additional labels (e.g., "consider full review")
 - Fetches diff **once**, caches to workspace
 
 ### 📊 CI Log Analysis
+
 - Reads `core-ci` job result from GitHub Actions
 - Parses format/lint/link check errors
 - Categorizes: critical, warning, info
 - Provides actionable fix suggestions
 
 ### ⚡ Quick Review (Default)
+
 - Fast code quality check (~1 minute)
 - Analyzes: diff, commit messages, CI errors
 - Uses workspace (no duplicate API calls)
 - Perfect for 90% of PRs
 
 ### 🔍 Full Technical Review (Optional)
+
 - Triggered by `crewai:full-review` label
 - 3 agents, 6 tasks (existing workflow)
 - Security, architecture, related files
 - Enhanced with CI context + commit history
 
 ### ⚖️ Legal Review (Future)
+
 - Triggered by `crewai:legal` label
 - License compliance, copyright checks
 - Currently returns "not implemented" stub
 
 ### 📝 Final Summary
+
 - Synthesizes all crew outputs
 - Includes router suggestions
 - Posts to PR + GitHub Actions summary
@@ -54,12 +61,12 @@ Implements an advanced router-based architecture for CrewAI code reviews with:
 
 ## 📊 Performance Improvements
 
-| Metric | Old System | New System | Improvement |
-|--------|------------|------------|-------------|
-| **Default Review Time** | 3-5 min | 1.5-2 min | ⚡ **50% faster** |
-| **Default Cost (GPT-4o)** | $0.21 | $0.13 | 💰 **38% cheaper** |
-| **API Calls (simple)** | 13 | 8 | **38% fewer** |
-| **Customization** | None | Label-based | **∞% better** 🚀 |
+| Metric                    | Old System | New System  | Improvement        |
+| ------------------------- | ---------- | ----------- | ------------------ |
+| **Default Review Time**   | 3-5 min    | 1.5-2 min   | ⚡ **50% faster**  |
+| **Default Cost (GPT-4o)** | $0.21      | $0.13       | 💰 **38% cheaper** |
+| **API Calls (simple)**    | 13         | 8           | **38% fewer**      |
+| **Customization**         | None       | Label-based | **∞% better** 🚀   |
 
 ---
 
@@ -89,18 +96,21 @@ Comprehensive guides added:
 ## 🧪 Testing Checklist
 
 ### Unit Tests
+
 - [ ] `WorkspaceTool` read/write operations
 - [ ] `PRMetadataTool` GitHub event parsing
 - [ ] `CIOutputParserTool` log parsing
 - [ ] Router decision logic
 
 ### Integration Tests
+
 - [ ] No labels → Default workflow (router + CI + quick)
 - [ ] `crewai:full-review` → All workflows
 - [ ] Large changeset → Router suggests full review
 - [ ] CI failure → CI analysis identifies errors
 
 ### Manual Verification
+
 - [ ] Workspace created in `.crewai/workspace/`
 - [ ] Trace uploaded to GitHub Actions artifacts
 - [ ] Final summary posted to PR comment
@@ -187,12 +197,14 @@ grep "workflows" .crewai/workspace/trace/router_decision.json
 ## ✅ Ready to Merge?
 
 **Prerequisites**:
+
 - [ ] All tests passing
 - [ ] Documentation reviewed
 - [ ] Integration tests completed
 - [ ] Team approval
 
 **Post-merge**:
+
 - [ ] Create PR labels
 - [ ] Test on real PR
 - [ ] Monitor first week
