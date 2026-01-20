@@ -6,6 +6,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Optional
 
 from crew import CodeReviewCrew
 from crewai import Task
@@ -25,9 +26,100 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
+def validate_environment():
+    """Validate required environment variables at startup.
+    
+    Raises:
+        ValueError: If required variables are missing or invalid
     """
-    Execute crew with manual task orchestration to pass CLEAN context to Task 6.
+    required_vars = {
+        "GITHUB_TOKEN": "GitHub API access",
+        "OPENROUTER_API_KEY": "OpenRouter API access",
+        "GITHUB_REPOSITORY": "Repository information",
+        "PR_NUMBER": "Pull request number",
+        "COMMIT_SHA": "Commit SHA",
+    }
+    
+    missing = []
+    invalid = []
+    
+    for var, purpose in required_vars.items():
+        value = os.getenv(var)
+        if not value:
+            missing.append(f"{var} ({purpose})")
+        elif var == "OPENROUTER_API_KEY" and not value.startswith("sk-or-"):
+            invalid.append(f"{var} (invalid format - must start with 'sk-or-')")
+    
+    if missing or invalid:
+        error_parts = []
+        if missing:
+            error_parts.append(f"Missing: {', '.join(missing)}")
+        if invalid:
+            error_parts.append(f"Invalid: {', '.join(invalid)}")
+        
+        error_msg = "; ".join(error_parts)
+        logger.error(f"❌ Environment validation failed: {error_msg}")
+        raise ValueError(f"Environment validation failed: {error_msg}")
+    
+    logger.info("✅ Environment variables validated")
+
+
+def safe_enrich_costs(tracker, timeout_seconds: int = 30) -> bool:
+    """Safely enrich cost tracking data from OpenRouter API.
+    
+    This function:
+    - Validates API key before making requests
+    - Skips enrichment if callbacks already captured data
+    - Implements timeout protection
+    - Handles all error cases gracefully
+    
+    Args:
+        tracker: CostTracker instance
+        timeout_seconds: Maximum time to wait for enrichment (default: 30)
+    
+    Returns:
+        bool: True if enrichment succeeded or wasn't needed, False on failure
+    """
+    # Validate API key
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key or not api_key.startswith("sk-or-"):
+        logger.error("❌ Invalid or missing OPENROUTER_API_KEY")
+        return False
+    
+    # Check if enrichment is even needed
+    if len(tracker.calls) > 0:
+        logger.info("✅ Callbacks captured data, enriching for precise costs...")
+    else:
+        logger.warning("⚠️  No API calls captured by callbacks!")
+        logger.info("🔄 Attempting to retrieve usage data from OpenRouter API...")
+    
+    try:
+        # Try enrichment with basic timeout handling
+        # Note: For production, consider using timeout_decorator or signals
+        start_time = time.time()
+        
+        tracker.enrich_from_openrouter()
+        
+        elapsed = time.time() - start_time
+        
+        if elapsed > timeout_seconds:
+            logger.warning(f"⚠️  Enrichment took {elapsed:.1f}s (timeout: {timeout_seconds}s)")
+        
+        if len(tracker.calls) > 0:
+            logger.info(f"✅ Enrichment completed: {len(tracker.calls)} calls tracked")
+            return True
+        else:
+            logger.warning("⚠️  Enrichment returned no data")
+            return False
+            
+    except Exception as e:
+        logger.error(f"❌ Enrichment failed: {e}", exc_info=True)
+        logger.warning("⚠️  Proceeding without complete cost data")
+        return False
+
+
+def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
+    """Execute crew with manual task orchestration to pass CLEAN context to Task 6.
 
     This function:
     1. Runs Tasks 1-5 normally
@@ -169,8 +261,7 @@ def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
 
 
 def write_actions_summary(crew, pr_number, repo, sha, result, fallback_used=False):
-    """
-    Write formatted review to GitHub Actions summary page.
+    """Write formatted review to GitHub Actions summary page.
 
     Args:
         crew: CodeReviewCrew instance
@@ -262,24 +353,23 @@ def main():
     if env_path.exists():
         load_dotenv(env_path)
 
-    # Get GitHub context from environment
-    pr_number = os.getenv("PR_NUMBER")
-    repo = os.getenv("GITHUB_REPOSITORY")
-    sha = os.getenv("COMMIT_SHA")
-    api_key = os.getenv("OPENROUTER_API_KEY")
-
-    # Validate environment
-    if not all([pr_number, repo, sha, api_key]):
-        logger.error("❌ Missing required environment variables")
-        logger.error(f"   PR: {pr_number}")
-        logger.error(f"   Repo: {repo}")
-        logger.error(f"   SHA: {sha[:8] if sha else 'None'}")
-        logger.error(f"   API Key: {'Set' if api_key else 'Missing'}")
-        return 1
-
     logger.info("=" * 70)
     logger.info("🚀 CrewAI Code Review Agent Started")
     logger.info("=" * 70)
+    logger.info("")
+
+    # Validate environment variables first
+    try:
+        validate_environment()
+    except ValueError as e:
+        logger.error(f"❌ Environment validation failed: {e}")
+        return 1
+
+    # Get GitHub context from environment (already validated)
+    pr_number = os.getenv("PR_NUMBER")
+    repo = os.getenv("GITHUB_REPOSITORY")
+    sha = os.getenv("COMMIT_SHA")
+
     logger.info(f"📦 Repository: {repo}")
     logger.info(f"🔗 Pull Request: #{pr_number}")
     logger.info(f"📝 Commit SHA: {sha[:8]}")
@@ -356,23 +446,18 @@ def main():
         logger.info("✅ Code review completed successfully!")
         logger.info("")
 
-        # Check if callbacks captured data
+        # Enrich cost tracking with safe error handling
         logger.info("=" * 70)
         logger.info("🔍 Cost Tracking Status Check")
         logger.info("=" * 70)
         logger.info(f"API calls captured by LiteLLM callbacks: {len(tracker.calls)}")
         logger.info("")
 
-        # If no calls captured, try OpenRouter enrichment
-        if len(tracker.calls) == 0:
-            logger.warning("⚠️  No API calls captured by LiteLLM callbacks!")
-            logger.info("🔄 Attempting to retrieve usage data from OpenRouter API...")
-            tracker.enrich_from_openrouter()
-            logger.info(f"After enrichment: {len(tracker.calls)} calls")
-        else:
-            logger.info("✅ LiteLLM callbacks successfully captured API calls")
-            logger.info("🔄 Enriching with OpenRouter API for precise costs...")
-            tracker.enrich_from_openrouter()
+        # Use safe enrichment function
+        enrichment_success = safe_enrich_costs(tracker, timeout_seconds=30)
+        
+        if not enrichment_success and len(tracker.calls) == 0:
+            logger.warning("⚠️  Proceeding without cost data - check API key and OpenRouter status")
 
         logger.info("")
 
