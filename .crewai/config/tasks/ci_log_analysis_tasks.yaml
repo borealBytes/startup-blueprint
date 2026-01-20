@@ -1,4 +1,4 @@
-analyze_ci_logs:
+parse_ci_output:
   description: >
     Parse CI outputs from the core-ci job and identify errors/warnings.
 
