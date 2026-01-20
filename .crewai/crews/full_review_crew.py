@@ -84,11 +84,11 @@ class FullReviewCrew:
         )
 
     # FIX: Task method names must match YAML keys in full_review_tasks.yaml
-    
+
     @task
     def analyze_commit_changes(self) -> Task:
         """Analyze commit changes with deep technical review.
-        
+
         FIX: Changed from review_code_quality to match YAML key.
         """
         return Task(
@@ -99,7 +99,7 @@ class FullReviewCrew:
     @task
     def security_performance_review(self) -> Task:
         """Review commit for security and performance issues.
-        
+
         FIX: Changed from analyze_security_performance to match YAML key.
         """
         return Task(
@@ -110,7 +110,7 @@ class FullReviewCrew:
     @task
     def find_related_files(self) -> Task:
         """Identify files related to changed files.
-        
+
         FIX: Added missing task from YAML.
         """
         return Task(
@@ -121,7 +121,7 @@ class FullReviewCrew:
     @task
     def analyze_related_files(self) -> Task:
         """Analyze related files for potential impact.
-        
+
         FIX: Added missing task from YAML.
         """
         return Task(
@@ -132,7 +132,7 @@ class FullReviewCrew:
     @task
     def architecture_review(self) -> Task:
         """Evaluate architectural implications of commit.
-        
+
         FIX: Changed from analyze_architecture_impact to match YAML key.
         """
         return Task(
@@ -143,7 +143,7 @@ class FullReviewCrew:
     @task
     def generate_full_review_summary(self) -> Task:
         """Synthesize findings from all analysis tasks.
-        
+
         FIX: Added missing task from YAML.
         """
         return Task(
@@ -154,7 +154,7 @@ class FullReviewCrew:
     @crew
     def crew(self) -> Crew:
         """Create full review crew.
-        
+
         FIX: Updated to include all 6 tasks in proper sequential order.
         """
         return Crew(
