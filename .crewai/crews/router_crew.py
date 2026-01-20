@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 class RouterCrew:
     """Router crew that decides which review workflows to execute."""
 
-    # Use CrewBase.load_yaml() - finds config relative to project root
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks/router_tasks.yaml"
+    # Paths relative to this file (.crewai/crews/) → go up to .crewai/config/
+    agents_config = "../config/agents.yaml"
+    tasks_config = "../config/tasks/router_tasks.yaml"
 
     def __init__(self):
         """Initialize router crew with config."""
