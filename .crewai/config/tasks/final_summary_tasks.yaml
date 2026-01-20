@@ -107,13 +107,9 @@ synthesize_summary:
     or uncertain - Use "we" for team perspective ("We found...", "We
     suggest...")
 
-    OUTPUT FORMAT: Use WorkspaceTool to write markdown to final_summary.md (NOT
-    in a code block!)
-
   expected_output: >
-    A complete, GitHub-flavored markdown summary saved to final_summary.md that:
-    - Starts with clear status emoji and verdict - Synthesizes all review
-    findings into a scannable report - Deduplicates and prioritizes issues by
-    severity - Provides actionable fix suggestions for every finding - Uses
-    proper GitHub markdown (NOT wrapped in code blocks) - Ends with timestamp
-    and review scope
+    Complete GitHub-flavored markdown summary synthesizing all review findings.
+    Should start with status emoji, include prioritized issues, and end with
+    timestamp.
+
+  output_file: final_summary.md
