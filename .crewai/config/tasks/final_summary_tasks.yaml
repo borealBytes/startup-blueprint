@@ -1,4 +1,5 @@
-synthesize_all_reviews:
+# IMPORTANT: Task key must match the @task method name in final_summary_crew.py
+synthesize_summary:
   description: >
     Read ALL workspace outputs and create final comprehensive markdown report.
 

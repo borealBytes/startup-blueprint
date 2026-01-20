@@ -32,8 +32,7 @@ class FinalSummaryCrew:
             import litellm
 
             try:
-                from crew import (litellm_failure_callback,
-                                  litellm_success_callback)
+                from crew import litellm_failure_callback, litellm_success_callback
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
@@ -48,10 +47,13 @@ class FinalSummaryCrew:
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
     @agent
-    def summarizer(self) -> Agent:
-        """Create summarizer agent."""
+    def executive_summary_agent(self) -> Agent:
+        """Create executive summary agent.
+        
+        IMPORTANT: Method name must match the agent key in agents.yaml.
+        """
         return Agent(
-            config=self.agents_config["summarizer"],
+            config=self.agents_config["executive_summary_agent"],
             # Tools are classes, not instances
             tools=[WorkspaceTool],
             llm=self.model_name,
@@ -61,17 +63,20 @@ class FinalSummaryCrew:
 
     @task
     def synthesize_summary(self) -> Task:
-        """Synthesize final summary."""
+        """Synthesize final summary.
+        
+        IMPORTANT: Method name must match the task key in tasks YAML.
+        """
         return Task(
             config=self.tasks_config["synthesize_summary"],
-            agent=self.summarizer(),
+            agent=self.executive_summary_agent(),
         )
 
     @crew
     def crew(self) -> Crew:
         """Create final summary crew."""
         return Crew(
-            agents=[self.summarizer()],
+            agents=[self.executive_summary_agent()],
             tasks=[self.synthesize_summary()],
             process=Process.sequential,
             verbose=True,
