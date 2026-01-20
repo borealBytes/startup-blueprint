@@ -24,15 +24,35 @@ class LegalReviewCrew:
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
 
+        os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
-        self.model_name = os.getenv("CREWAI_MODEL", "google/gemini-flash-1.5")
+
+        # Register cost tracking callbacks (if available)
+        try:
+            import litellm
+
+            try:
+                from crew import litellm_failure_callback, litellm_success_callback
+
+                litellm.success_callback = [litellm_success_callback]
+                litellm.failure_callback = [litellm_failure_callback]
+                litellm.set_verbose = True
+            except ImportError:
+                pass
+        except ImportError:
+            pass
+
+        # Use openrouter/ prefix
+        default_model = "openrouter/xiaomi/mimo-v2-flash"
+        self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
     @agent
     def legal_reviewer(self) -> Agent:
         """Create legal reviewer agent."""
         return Agent(
             config=self.agents_config["legal_reviewer"],
-            tools=[WorkspaceTool()],
+            # Tools are classes, not instances
+            tools=[WorkspaceTool],
             llm=self.model_name,
             max_iter=3,
             verbose=True,
