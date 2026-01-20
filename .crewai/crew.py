@@ -43,9 +43,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
             if usage:
                 tokens_in = getattr(usage, "prompt_tokens", 0)
                 tokens_out = getattr(usage, "completion_tokens", 0)
-                logger.debug(
-                    f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out"
-                )
+                logger.debug(f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out")
 
         # Try to get cost from LiteLLM's cost calculation
         if hasattr(completion_response, "_hidden_params"):
@@ -67,8 +65,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
         # Only log if we got meaningful data
         if tokens_in > 0 or tokens_out > 0:
             logger.info(
-                f"✅ Captured API call: {model} "
-                f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
+                f"✅ Captured API call: {model} " f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
             )
 
             tracker.log_api_call(
