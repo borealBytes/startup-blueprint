@@ -3,7 +3,7 @@
 import logging
 import os
 
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 from tools.github_tools import CommitDiffTool, CommitInfoTool
 from tools.pr_metadata_tool import PRMetadataTool
@@ -38,8 +38,10 @@ class RouterCrew:
 
             # Import callbacks if they exist
             try:
-                from crew import (litellm_failure_callback,
-                                  litellm_success_callback)
+                from crew import (
+                    litellm_failure_callback,
+                    litellm_success_callback,
+                )
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
@@ -62,23 +64,30 @@ class RouterCrew:
         logger.info(f"  Default: {self.model_name}")
         logger.info(f"  Fallback: {self.fallback_model}")
 
+        # Create LLM instance with function calling enabled
+        self.llm = LLM(
+            model=self.model_name,
+            api_key=api_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+
     @agent
     def router_agent(self) -> Agent:
-        """Create router agent."""
+        """Create router agent with function calling enabled."""
         return Agent(
             config=self.agents_config["router_agent"],
-            # Tool calling conventions:
-            # - @tool decorated functions: WITHOUT () (CommitDiffTool)
-            # - BaseTool subclasses: WITH () (PRMetadataTool())
+            # All tools must be instantiated (with parentheses)
             tools=[
-                PRMetadataTool(),  # BaseTool subclass
-                CommitDiffTool,  # @tool function
-                CommitInfoTool,  # @tool function
-                WorkspaceTool(),  # BaseTool subclass
+                PRMetadataTool(),
+                CommitDiffTool(),  # Ensure this is instantiated
+                CommitInfoTool(),  # Ensure this is instantiated
+                WorkspaceTool(),
             ],
-            llm=self.model_name,
-            max_iter=5,
+            llm=self.llm,  # Use LLM instance
+            function_calling_llm=self.llm,  # CRITICAL: Enable function calling
+            max_iter=10,  # Allow more iterations for tool use
             verbose=True,
+            allow_delegation=False,  # Don't delegate to other agents
         )
 
     @task
