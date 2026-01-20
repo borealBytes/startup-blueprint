@@ -16,7 +16,7 @@ class PRMetadataTool(BaseTool):
     name: str = "PR Metadata Tool"
     description: str = (
         "Parse PR metadata from GitHub Actions environment. "
-        "Returns: labels, files_changed, additions, deletions, draft status. "
+        "Returns: labels, files_changed, additions, deletions, draft status, commit_sha. "
         "No API calls needed - reads from GITHUB_EVENT_PATH."
     )
 
@@ -24,9 +24,10 @@ class PRMetadataTool(BaseTool):
         """Parse GitHub event JSON for PR metadata.
 
         Returns:
-            Dict with PR metadata: labels, files_changed, additions, deletions
+            Dict with PR metadata: labels, files_changed, additions, deletions, commit_sha
         """
         event_path = os.getenv("GITHUB_EVENT_PATH")
+        commit_sha = os.getenv("COMMIT_SHA", "")
 
         if not event_path:
             logger.warning("GITHUB_EVENT_PATH not set - not running in GitHub Actions")
@@ -48,12 +49,13 @@ class PRMetadataTool(BaseTool):
                 "title": pr.get("title", ""),
                 "base_ref": pr.get("base", {}).get("ref", "main"),
                 "head_ref": pr.get("head", {}).get("ref", ""),
+                "commit_sha": commit_sha,  # Add commit SHA from environment
             }
 
             logger.info(
                 f"📋 PR Metadata: {metadata['files_changed']} files, "
                 f"+{metadata['additions']}/-{metadata['deletions']}, "
-                f"labels: {metadata['labels']}"
+                f"labels: {metadata['labels']}, commit: {commit_sha[:7] if commit_sha else 'N/A'}"
             )
 
             return metadata
@@ -75,4 +77,5 @@ class PRMetadataTool(BaseTool):
             "title": "Test PR",
             "base_ref": "main",
             "head_ref": "test-branch",
+            "commit_sha": "mock-sha-1234567",
         }
