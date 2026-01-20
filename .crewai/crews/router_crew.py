@@ -67,13 +67,14 @@ class RouterCrew:
         """Create router agent."""
         return Agent(
             config=self.agents_config["router_agent"],
-            # CRITICAL: BaseTool subclasses must be INSTANTIATED with ()
-            # Only @tool decorated FUNCTIONS are passed without ()
+            # Tool calling conventions:
+            # - @tool decorated functions: WITHOUT () (CommitDiffTool)
+            # - BaseTool subclasses: WITH () (PRMetadataTool())
             tools=[
-                PRMetadataTool(),
-                CommitDiffTool(),
-                CommitInfoTool(),
-                WorkspaceTool(),
+                PRMetadataTool(),   # BaseTool subclass
+                CommitDiffTool,     # @tool function
+                CommitInfoTool,     # @tool function
+                WorkspaceTool(),    # BaseTool subclass
             ],
             llm=self.model_name,
             max_iter=5,
