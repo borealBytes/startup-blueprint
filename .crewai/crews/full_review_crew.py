@@ -5,7 +5,7 @@ import os
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from tools.github_tools import FileReaderTool
+from tools.github_tools import FileContentTool
 from tools.workspace_tool import WorkspaceTool
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class FullReviewCrew:
         """Create security reviewer agent."""
         return Agent(
             config=self.agents_config["security_reviewer"],
-            tools=[WorkspaceTool(), FileReaderTool()],
+            tools=[WorkspaceTool(), FileContentTool()],
             llm=self.model_name,
             max_iter=5,
             verbose=True,
