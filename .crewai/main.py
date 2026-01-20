@@ -375,13 +375,13 @@ def main():
 
         # Read final markdown from workspace with better detection
         workspace = WorkspaceTool()
-        
+
         # Debug: List all files in workspace
         logger.info("📂 Workspace files:")
         for f in workspace_dir.iterdir():
             if f.is_file():
                 logger.info(f"  - {f.name} ({f.stat().st_size} bytes)")
-        
+
         # Try to read final_summary.md
         if workspace.exists("final_summary.md"):
             final_markdown = workspace.read("final_summary.md")
