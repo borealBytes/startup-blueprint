@@ -1,528 +1,372 @@
 #!/usr/bin/env python3
-"""Entry point for CrewAI code review in GitHub Actions."""
+"""Main orchestrator for CrewAI router-based review system."""
 
+import json
 import logging
 import os
 import sys
-import time
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
-from crew import CodeReviewCrew
-from crewai import Task
-from dotenv import load_dotenv
-from litellm import BadRequestError
+from crews.ci_log_analysis_crew import CILogAnalysisCrew
+from crews.final_summary_crew import FinalSummaryCrew
+from crews.full_review_crew import FullReviewCrew
+from crews.legal_review_crew import LegalReviewCrew
+from crews.quick_review_crew import QuickReviewCrew
+from crews.router_crew import RouterCrew
 from tools.cost_tracker import get_tracker
+from tools.github_tools import PRCommentTool
+from tools.workspace_tool import WorkspaceTool
 
-# Setup logging
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler("crewai_review.log"),
-    ],
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger(__name__)
 
 
-def validate_environment():
-    """Validate required environment variables at startup.
+def setup_workspace():
+    """Setup workspace directories."""
+    workspace_dir = Path(".crewai/workspace")
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+    (workspace_dir / "trace").mkdir(exist_ok=True)
+    logger.info(f"📁 Workspace initialized: {workspace_dir}")
+    return workspace_dir
 
-    Raises:
-        ValueError: If required variables are missing or invalid
-    """
-    required_vars = {
-        "GITHUB_TOKEN": "GitHub API access",
-        "OPENROUTER_API_KEY": "OpenRouter API access",
-        "GITHUB_REPOSITORY": "Repository information",
-        "PR_NUMBER": "Pull request number",
-        "COMMIT_SHA": "Commit SHA",
+
+def get_env_vars():
+    """Get required environment variables."""
+    env_vars = {
+        "pr_number": os.getenv("PR_NUMBER"),
+        "commit_sha": os.getenv("COMMIT_SHA"),
+        "repository": os.getenv("GITHUB_REPOSITORY"),
+        "core_ci_result": os.getenv("CORE_CI_RESULT", "success"),
     }
 
-    missing = []
-    invalid = []
+    # Validate required vars
+    if not env_vars["pr_number"]:
+        logger.warning("PR_NUMBER not set - using mock mode")
+        env_vars["pr_number"] = "999"
 
-    for var, purpose in required_vars.items():
-        value = os.getenv(var)
-        if not value:
-            missing.append(f"{var} ({purpose})")
-        elif var == "OPENROUTER_API_KEY" and not value.startswith("sk-or-"):
-            invalid.append(f"{var} (invalid format - must start with 'sk-or-')")
+    if not env_vars["commit_sha"]:
+        logger.warning("COMMIT_SHA not set - using mock mode")
+        env_vars["commit_sha"] = "mock-sha"
 
-    if missing or invalid:
-        error_parts = []
-        if missing:
-            error_parts.append(f"Missing: {', '.join(missing)}")
-        if invalid:
-            error_parts.append(f"Invalid: {', '.join(invalid)}")
+    if not env_vars["repository"]:
+        logger.warning("GITHUB_REPOSITORY not set - using mock mode")
+        env_vars["repository"] = "owner/repo"
 
-        error_msg = "; ".join(error_parts)
-        logger.error(f"❌ Environment validation failed: {error_msg}")
-        raise ValueError(f"Environment validation failed: {error_msg}")
+    logger.info(f"🎯 Environment: PR #{env_vars['pr_number']}, SHA {env_vars['commit_sha'][:7]}")
+    logger.info(f"🎯 Repository: {env_vars['repository']}")
+    logger.info(f"🎯 Core CI Result: {env_vars['core_ci_result']}")
 
-    logger.info("✅ Environment variables validated")
+    return env_vars
 
 
-def safe_enrich_costs(tracker, timeout_seconds: int = 30) -> bool:
-    """Safely enrich cost tracking data from OpenRouter API.
-
-    This function:
-    - Validates API key before making requests
-    - Skips enrichment if callbacks already captured data
-    - Implements timeout protection
-    - Handles all error cases gracefully
-
-    Args:
-        tracker: CostTracker instance
-        timeout_seconds: Maximum time to wait for enrichment (default: 30)
-
-    Returns:
-        bool: True if enrichment succeeded or wasn't needed, False on failure
-    """
-    # Validate API key
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key or not api_key.startswith("sk-or-"):
-        logger.error("❌ Invalid or missing OPENROUTER_API_KEY")
-        return False
-
-    # Check if enrichment is even needed
-    if len(tracker.calls) > 0:
-        logger.info("✅ Callbacks captured data, enriching for precise costs...")
-    else:
-        logger.warning("⚠️  No API calls captured by callbacks!")
-        logger.info("🔄 Attempting to retrieve usage data from OpenRouter API...")
+def run_router(env_vars):
+    """Run router crew to decide workflows."""
+    logger.info("="*60)
+    logger.info("🔀 STEP 1: Router - Analyzing PR and deciding workflows")
+    logger.info("="*60)
 
     try:
-        # Try enrichment with basic timeout handling
-        # Note: For production, consider using timeout_decorator or signals
-        start_time = time.time()
+        router = RouterCrew()
+        result = router.crew().kickoff(
+            inputs={
+                "pr_number": env_vars["pr_number"],
+                "commit_sha": env_vars["commit_sha"],
+                "repository": env_vars["repository"],
+            }
+        )
 
-        tracker.enrich_from_openrouter()
-
-        elapsed = time.time() - start_time
-
-        if elapsed > timeout_seconds:
-            logger.warning(f"⚠️  Enrichment took {elapsed:.1f}s (timeout: {timeout_seconds}s)")
-
-        if len(tracker.calls) > 0:
-            logger.info(f"✅ Enrichment completed: {len(tracker.calls)} calls tracked")
-            return True
+        # Read router decision from workspace
+        workspace = WorkspaceTool()
+        if workspace.exists("router_decision.json"):
+            decision = workspace.read_json("router_decision.json")
+            logger.info(f"✅ Router decision: {decision.get('workflows', [])}")
+            if decision.get("suggestions"):
+                logger.info("💡 Router suggestions:")
+                for suggestion in decision["suggestions"]:
+                    logger.info(f"  - {suggestion}")
+            return decision
         else:
-            logger.warning("⚠️  Enrichment returned no data")
-            return False
+            logger.warning("⚠️ Router decision not found in workspace - using defaults")
+            return {
+                "workflows": ["ci-log-analysis", "quick-review"],
+                "suggestions": [],
+                "metadata": {},
+            }
 
     except Exception as e:
-        logger.error(f"❌ Enrichment failed: {e}", exc_info=True)
-        logger.warning("⚠️  Proceeding without complete cost data")
-        return False
+        logger.error(f"❌ Router failed: {e}", exc_info=True)
+        # Return default workflows on failure
+        return {
+            "workflows": ["ci-log-analysis", "quick-review"],
+            "suggestions": [f"⚠️ Router error: {str(e)}"],
+            "metadata": {},
+        }
 
 
-def execute_crew_with_clean_context(crew_wrapper, inputs, max_retries=2):
-    """Execute crew with manual task orchestration to pass CLEAN context to Task 6.
-
-    This function:
-    1. Runs Tasks 1-5 normally
-    2. Extracts ONLY their final .output strings (no execution traces)
-    3. Manually injects those clean outputs into Task 6's context
-    4. Executes Task 6 with synthesized findings
-
-    FIX: Now sets task names in tracker DURING execution for proper cost attribution.
-
-    Args:
-        crew_wrapper: CodeReviewCrew instance
-        inputs: Input parameters for crew execution
-        max_retries: Number of retry attempts for rate limits (default: 2)
-
-    Returns:
-        Final output from Task 6 (executive summary)
-
-    Raises:
-        Exception: After exhausting all retries
-    """
-    attempt = 0
-    last_error = None
-    fallback_activated = False
-
-    # FIX 2: Get tracker for task name tracking
-    tracker = get_tracker()
-
-    # FIX 2: Define task names for cost attribution
-    task_names = [
-        "Task 1: Analyze Commit Changes",
-        "Task 2: Security & Performance Review",
-        "Task 3: Find Related Files",
-        "Task 4: Analyze Related Files",
-        "Task 5: Architecture Review",
-        "Task 6: Generate Executive Summary",
-    ]
-
-    while attempt <= max_retries:
-        try:
-            if attempt > 0:
-                logger.info(f"🔄 Retry attempt {attempt}/{max_retries}")
-
-            logger.info("\n" + "=" * 70)
-            logger.info("🎯 MANUAL ORCHESTRATION: Running tasks with clean context")
-            logger.info("=" * 70)
-
-            # Get crew instance and task objects
-            crew_instance = crew_wrapper.crew()
-            tasks = crew_instance.tasks
-
-            logger.info(f"\n📋 Total tasks: {len(tasks)}")
-            logger.info("   Tasks 1-5: Data collection (will run normally)")
-            logger.info("   Task 6: Executive summary (manual clean context)\n")
-
-            # FIX 2: Track task execution with proper names
-            logger.info("=" * 70)
-            logger.info("🚀 Phase 1: Running Tasks 1-5 (data collection)")
-            logger.info("=" * 70 + "\n")
-
-            # FIX 2: Set initial task for cost tracking
-            # CrewAI will execute all 6 tasks sequentially, but we set names before kickoff
-            # The callbacks will capture API calls and associate them with current task
-            logger.info("📊 Setting up task name tracking for cost attribution...")
-            for i, name in enumerate(task_names, 1):
-                logger.info(f"   Task {i}: {name}")
-            logger.info("")
-
-            # Note: We can't hook into individual task execution with CrewAI's Process.sequential,
-            # so we track the ENTIRE crew execution under a single "task" for now.
-            # A future enhancement could use custom task callbacks to set names per task.
-            tracker.set_current_task("Multi-Task Code Review")
-
-            # Execute the crew normally for Tasks 1-5
-            # Task 6 will also run, but we'll extract clean outputs below
-            result = crew_instance.kickoff(inputs=inputs)
-
-            logger.info("\n" + "=" * 70)
-            logger.info("✅ Phase 1 Complete: Data collection finished")
-            logger.info("=" * 70)
-
-            # Extract clean outputs from Tasks 1-5
-            logger.info("\n🧹 Extracting clean task outputs...")
-            clean_outputs = []
-
-            for i, task in enumerate(tasks[:5], 1):  # Tasks 1-5 only
-                if hasattr(task, "output") and task.output:
-                    output_str = str(task.output).strip()
-                    # Clean up any wrapper text
-                    if "Final Answer:" in output_str:
-                        output_str = output_str.split("Final Answer:")[-1].strip()
-
-                    clean_outputs.append(f"\n### Task {i} Output:\n{output_str}\n")
-                    logger.info(f"   ✓ Task {i}: Extracted {len(output_str)} chars")
-                else:
-                    logger.warning(f"   ⚠ Task {i}: No output found")
-
-            # Create clean context string
-            clean_context = "\n".join(clean_outputs)
-            logger.info(f"\n✅ Clean context prepared: {len(clean_context)} total chars")
-
-            # Task 6 already ran as part of kickoff()
-            # The result should contain the final summary
-            logger.info("\n" + "=" * 70)
-            logger.info("✅ Phase 2 Complete: Executive summary generated")
-            logger.info("=" * 70 + "\n")
-
-            logger.info("\n" + "=" * 70)
-            logger.info("🎉 All tasks completed successfully")
-            logger.info("=" * 70 + "\n")
-
-            return result
-
-        except BadRequestError as e:
-            last_error = e
-            error_str = str(e).lower()
-
-            # Check if it's a context overflow error (400 from provider)
-            is_context_error = (
-                "400" in error_str
-                or "bad request" in error_str
-                or "context" in error_str
-                or "too large" in error_str
-            )
-
-            if is_context_error and not fallback_activated and attempt < max_retries:
-                logger.warning(f"⚠️  Context overflow detected on attempt {attempt + 1}")
-                logger.info(
-                    f"🔄 Switching all agents to fallback model: {crew_wrapper.model_config['fallback']}"
-                )
-
-                # Switch all agents to fallback model (mimo-v2 with 1M context)
-                crew_wrapper.model_config["default"] = crew_wrapper.model_config["fallback"]
-                fallback_activated = True
-
-                # Brief pause before retry
-                time.sleep(2)
-                attempt += 1
-            else:
-                # Either not a context error, fallback already tried, or out of retries
-                raise
-
-        except Exception as e:
-            last_error = e
-            error_str = str(e).lower()
-
-            # Check if it's a rate limit error
-            is_rate_limit = (
-                "rate limit" in error_str or "ratelimit" in error_str or "429" in error_str
-            )
-
-            if is_rate_limit and attempt < max_retries:
-                # Exponential backoff: 5s, 15s
-                wait_time = 5 * (3**attempt)
-                logger.warning(
-                    f"⚠️  Rate limit hit on attempt {attempt + 1}. "
-                    f"Waiting {wait_time}s before retry..."
-                )
-                time.sleep(wait_time)
-                attempt += 1
-            else:
-                # Either not a rate limit error, or we're out of retries
-                raise
-
-    # Should not reach here, but just in case
-    if last_error:
-        raise last_error
-
-
-def write_actions_summary(crew, pr_number, repo, sha, result, fallback_used=False):
-    """Write formatted review to GitHub Actions summary page.
-
-    Args:
-        crew: CodeReviewCrew instance
-        pr_number: Pull request number
-        repo: Repository name
-        sha: Commit SHA
-        result: Crew execution result
-        fallback_used: Whether fallback model was activated
-    """
-    summary_file = os.getenv("GITHUB_STEP_SUMMARY")
-    if not summary_file:
-        logger.warning("⚠️  GITHUB_STEP_SUMMARY not set, skipping summary")
-        return
-
-    tracker = get_tracker()
+def run_ci_analysis(env_vars):
+    """Run CI log analysis crew."""
+    logger.info("="*60)
+    logger.info("📊 STEP 2: CI Log Analysis - Parsing core-ci results")
+    logger.info("="*60)
 
     try:
-        with open(summary_file, "a") as f:
-            # Header
-            f.write("\n## 🤖 CrewAI Code Review Results\n\n")
+        ci_crew = CILogAnalysisCrew()
+        result = ci_crew.crew().kickoff(
+            inputs={"core_ci_result": env_vars["core_ci_result"]}
+        )
+        logger.info("✅ CI analysis complete")
+        return result
+    except Exception as e:
+        logger.error(f"❌ CI analysis failed: {e}", exc_info=True)
+        # Write error to workspace
+        workspace = WorkspaceTool()
+        workspace.write_json(
+            "ci_summary.json",
+            {
+                "status": "error",
+                "error": str(e),
+                "summary": "CI analysis failed",
+            },
+        )
 
-            # Metadata table
-            f.write("### 📊 Review Metadata\n\n")
-            f.write("| Property | Value |\n")
-            f.write("|----------|-------|\n")
-            f.write(f"| **Repository** | `{repo}` |\n")
-            f.write(f"| **Pull Request** | [#{pr_number}]({get_pr_url(repo, pr_number)}) |\n")
-            f.write(f"| **Commit** | [`{sha[:8]}`]({get_commit_url(repo, sha)}) |\n")
-            f.write(f"| **Status** | ✅ Review Complete |\n")
-            f.write("\n")
 
-            # Model configuration
-            f.write("### 🤖 AI Models Used\n\n")
-            f.write("| Task | Model |\n")
-            f.write("|------|-------|\n")
-            f.write(f"| All Tasks | `{crew.model_config['default']}` |\n")
-            if fallback_used:
-                f.write("| **Note** | ⚠️  Fallback model activated for context overflow |\n")
-            f.write("\n")
+def run_quick_review():
+    """Run quick review crew."""
+    logger.info("="*60)
+    logger.info("⚡ STEP 3: Quick Review - Fast code quality check")
+    logger.info("="*60)
 
-            # Cost breakdown table
-            f.write("### 💰 Cost Breakdown\n\n")
-            f.write(tracker.format_as_markdown_table())
-            f.write("\n\n")
+    try:
+        quick_crew = QuickReviewCrew()
+        result = quick_crew.crew().kickoff()
+        logger.info("✅ Quick review complete")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Quick review failed: {e}", exc_info=True)
+        workspace = WorkspaceTool()
+        workspace.write_json(
+            "quick_review.json",
+            {
+                "status": "error",
+                "error": str(e),
+                "summary": "Quick review failed",
+            },
+        )
 
-            # Review output
-            f.write("---\n\n")
-            f.write("### 📋 Review Analysis\n\n")
 
-            if result:
-                # Extract the actual review content
-                result_str = str(result)
+def run_full_review(env_vars):
+    """Run full technical review crew."""
+    logger.info("="*60)
+    logger.info("🔍 STEP 4: Full Technical Review - Deep analysis")
+    logger.info("="*60)
 
-                # Clean up the output if it has extra wrapper text
-                if "Final Answer:" in result_str:
-                    result_str = result_str.split("Final Answer:")[-1].strip()
+    try:
+        full_crew = FullReviewCrew()
+        result = full_crew.crew().kickoff(
+            inputs={
+                "pr_number": env_vars["pr_number"],
+                "commit_sha": env_vars["commit_sha"],
+                "repository": env_vars["repository"],
+            }
+        )
+        logger.info("✅ Full review complete")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Full review failed: {e}", exc_info=True)
+        workspace = WorkspaceTool()
+        workspace.write_json(
+            "full_review.json",
+            {
+                "status": "error",
+                "error": str(e),
+                "summary": "Full review failed",
+            },
+        )
 
-                f.write(result_str)
-            else:
-                f.write("⚠️  _No review output generated_\n")
 
-            # Footer
-            f.write("\n\n---\n")
-            f.write(
-                "_🤖 Generated by CrewAI autonomous agents | "
-                f"🔗 [View Traces]({get_pr_url(repo, pr_number)})_\n"
+def run_legal_review():
+    """Run legal review crew (stub)."""
+    logger.info("="*60)
+    logger.info("⚖️ STEP 5: Legal Review - Compliance check (STUB)")
+    logger.info("="*60)
+
+    try:
+        legal_crew = LegalReviewCrew()
+        result = legal_crew.kickoff()  # Uses stub implementation
+        logger.info("✅ Legal review complete (stub)")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Legal review failed: {e}", exc_info=True)
+
+
+def run_final_summary(env_vars):
+    """Run final summary crew."""
+    logger.info("="*60)
+    logger.info("📝 STEP 6: Final Summary - Synthesizing all reviews")
+    logger.info("="*60)
+
+    try:
+        summary_crew = FinalSummaryCrew()
+        result = summary_crew.crew().kickoff(
+            inputs={
+                "pr_number": env_vars["pr_number"],
+                "commit_sha": env_vars["commit_sha"],
+                "repository": env_vars["repository"],
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            }
+        )
+        logger.info("✅ Final summary complete")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Final summary failed: {e}", exc_info=True)
+        return None
+
+
+def post_results(env_vars, final_markdown):
+    """Post results to PR and GitHub Actions summary."""
+    logger.info("="*60)
+    logger.info("📤 STEP 7: Posting Results")
+    logger.info("="*60)
+
+    # Post to GitHub Actions summary
+    step_summary_file = os.getenv("GITHUB_STEP_SUMMARY")
+    if step_summary_file:
+        try:
+            with open(step_summary_file, "a") as f:
+                f.write(final_markdown)
+                f.write("\n")
+            logger.info("✅ Posted to GitHub Actions summary")
+        except Exception as e:
+            logger.error(f"❌ Failed to write to step summary: {e}")
+    else:
+        logger.warning("⚠️ GITHUB_STEP_SUMMARY not set - skipping Actions summary")
+
+    # Post to PR comment
+    if env_vars["pr_number"] != "999":  # Skip if mock mode
+        try:
+            pr_comment_tool = PRCommentTool()
+            pr_comment_tool._run(
+                pr_number=env_vars["pr_number"],
+                repository=env_vars["repository"],
+                comment=final_markdown,
             )
+            logger.info(f"✅ Posted to PR #{env_vars['pr_number']}")
+        except Exception as e:
+            logger.error(f"❌ Failed to post PR comment: {e}")
+    else:
+        logger.info("🚧 Mock mode - skipping PR comment")
 
-        logger.info("✅ Summary written to GitHub Actions")
+
+def save_trace(workspace_dir):
+    """Save execution trace for artifacts."""
+    logger.info("="*60)
+    logger.info("💾 STEP 8: Saving Execution Trace")
+    logger.info("="*60)
+
+    trace_dir = workspace_dir / "trace"
+
+    # Copy all workspace JSON files to trace
+    for json_file in workspace_dir.glob("*.json"):
+        try:
+            import shutil
+
+            shutil.copy(json_file, trace_dir / json_file.name)
+            logger.info(f"✅ Saved {json_file.name} to trace")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not copy {json_file.name}: {e}")
+
+    logger.info(f"📊 Trace saved to {trace_dir}")
+
+
+def print_cost_summary():
+    """Print cost tracking summary."""
+    logger.info("="*60)
+    logger.info("💰 Cost Summary")
+    logger.info("="*60)
+
+    try:
+        tracker = get_tracker()
+        summary = tracker.get_summary()
+
+        logger.info(f"Total API Calls: {summary['total_calls']}")
+        logger.info(f"Total Tokens: {summary['total_tokens']:,}")
+        logger.info(f"  - Input: {summary['total_tokens_in']:,}")
+        logger.info(f"  - Output: {summary['total_tokens_out']:,}")
+        logger.info(f"Total Cost: ${summary['total_cost']:.4f}")
+        logger.info(f"Total Duration: {summary['total_duration']:.2f}s")
 
     except Exception as e:
-        logger.error(f"❌ Error writing summary: {e}")
-
-
-def get_pr_url(repo, pr_number):
-    """Generate PR URL."""
-    return f"https://github.com/{repo}/pull/{pr_number}"
-
-
-def get_commit_url(repo, sha):
-    """Generate commit URL."""
-    return f"https://github.com/{repo}/commit/{sha}"
+        logger.warning(f"⚠️ Could not generate cost summary: {e}")
 
 
 def main():
-    """Entry point for GitHub Actions - commit-based review."""
-    # Load .env for local testing
-    env_path = Path(__file__).parent / ".env"
-    if env_path.exists():
-        load_dotenv(env_path)
-
-    logger.info("=" * 70)
-    logger.info("🚀 CrewAI Code Review Agent Started")
-    logger.info("=" * 70)
-    logger.info("")
-
-    # Validate environment variables first
-    try:
-        validate_environment()
-    except ValueError as e:
-        logger.error(f"❌ Environment validation failed: {e}")
-        return 1
-
-    # Get GitHub context from environment (already validated)
-    pr_number = os.getenv("PR_NUMBER")
-    repo = os.getenv("GITHUB_REPOSITORY")
-    sha = os.getenv("COMMIT_SHA")
-
-    logger.info(f"📦 Repository: {repo}")
-    logger.info(f"🔗 Pull Request: #{pr_number}")
-    logger.info(f"📝 Commit SHA: {sha[:8]}")
-    logger.info("")
-
-    fallback_used = False
+    """Main orchestration function."""
+    logger.info("🚀 CrewAI Router-Based Review System Starting")
+    logger.info("="*60)
 
     try:
-        # Initialize crew
-        logger.info("🤖 Initializing CrewAI crew...")
-        crew = CodeReviewCrew()
-        logger.info("✅ Crew initialized successfully")
-        logger.info("")
+        # Setup
+        workspace_dir = setup_workspace()
+        env_vars = get_env_vars()
 
-        # Show configuration
-        logger.info("🔧 Model Configuration:")
-        logger.info(f"   🤖 Default (All Tasks): {crew.model_config['default']}")
-        logger.info(f"   🔄 Fallback (Overflow): {crew.model_config['fallback']}")
-        logger.info(f"   🎯 Max Tokens: {crew.llm_config['max_tokens']}")
-        logger.info(f"   🌡️  Temperature: {crew.llm_config['temperature']}")
-        logger.info("")
+        # STEP 1: Router decides workflows
+        decision = run_router(env_vars)
+        workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
 
-        # Show agents
-        logger.info("🤖 Agent Team:")
-        logger.info("   1️⃣ Code Quality Reviewer (Coordinator)")
-        logger.info("   2️⃣ Security & Performance Analyst")
-        logger.info("   3️⃣ Architecture & Impact Analyst")
-        logger.info("   4️⃣ Executive Summary Agent (Synthesizer - NO TOOLS)")
-        logger.info("")
+        # STEP 2: Always run CI analysis (default)
+        if "ci-log-analysis" in workflows:
+            run_ci_analysis(env_vars)
 
-        # Show workflow
-        logger.info("📋 Review Workflow:")
-        logger.info("   1. Analyze commit changes (code quality, tests, docs)")
-        logger.info("   2. Security & performance review")
-        logger.info("   3. Find related files (import analysis)")
-        logger.info("   4. Analyze impact on related files")
-        logger.info("   5. Architecture review (design patterns, coupling)")
-        logger.info("   6. Generate executive summary (CLEAN CONTEXT ONLY)")
-        logger.info("")
-        logger.info("⏱️ Estimated time: 3-5 minutes")
-        logger.info("💰 Cost: Tracked per API call via LiteLLM callbacks + OpenRouter enrichment")
-        logger.info("🔍 Tracing: Enabled")
-        logger.info("🧹 Context: Manual clean extraction for Task 6")
-        logger.info("")
-        logger.info("-" * 70)
-        logger.info("")
+        # STEP 3: Always run quick review (default)
+        if "quick-review" in workflows:
+            run_quick_review()
 
-        # Get tracker for monitoring
-        tracker = get_tracker()
+        # STEP 4: Conditional - Full review
+        if "full-review" in workflows:
+            run_full_review(env_vars)
+        else:
+            logger.info("⏩ Skipping full review (no crewai:full-review label)")
 
-        # Prepare inputs for crew
-        inputs = {
-            "pr_number": pr_number,
-            "repository": repo,
-            "commit_sha": sha,
-            "review_scope": "commit",
-            "output_format": "github_actions_summary",
-        }
+        # STEP 5: Conditional - Legal review (stub)
+        if "legal-review" in workflows:
+            run_legal_review()
+        else:
+            logger.info("⏩ Skipping legal review (no crewai:legal label)")
 
-        logger.info("🚀 Crew executing with clean context extraction...")
-        logger.info("")
+        # STEP 6: Final summary (always run)
+        final_result = run_final_summary(env_vars)
 
-        # Execute crew with clean context extraction
-        try:
-            result = execute_crew_with_clean_context(crew, inputs, max_retries=2)
-        except BadRequestError:
-            # Fallback was activated during execution
-            fallback_used = True
-            raise
+        # Read final markdown from workspace
+        workspace = WorkspaceTool()
+        if workspace.exists("final_summary.md"):
+            final_markdown = workspace.read("final_summary.md")
+        else:
+            logger.warning("⚠️ final_summary.md not found - creating fallback")
+            final_markdown = "## ⚠️ Review Summary\n\nReview completed with warnings. Check logs for details."
 
-        logger.info("")
-        logger.info("-" * 70)
-        logger.info("")
-        logger.info("✅ Code review completed successfully!")
-        logger.info("")
+        # STEP 7: Post results
+        post_results(env_vars, final_markdown)
 
-        # Enrich cost tracking with safe error handling
-        logger.info("=" * 70)
-        logger.info("🔍 Cost Tracking Status Check")
-        logger.info("=" * 70)
-        logger.info(f"API calls captured by LiteLLM callbacks: {len(tracker.calls)}")
-        logger.info("")
+        # STEP 8: Save trace
+        save_trace(workspace_dir)
 
-        # Use safe enrichment function
-        enrichment_success = safe_enrich_costs(tracker, timeout_seconds=30)
+        # Print cost summary
+        print_cost_summary()
 
-        if not enrichment_success and len(tracker.calls) == 0:
-            logger.warning("⚠️  Proceeding without cost data - check API key and OpenRouter status")
-
-        logger.info("")
-
-        # Display cost breakdown in logs
-        logger.info("=" * 70)
-        logger.info("💰 COST BREAKDOWN")
-        logger.info("=" * 70)
-        logger.info("")
-        logger.info(tracker.format_summary())
-        logger.info("")
-        logger.info("Detailed breakdown:")
-        logger.info("")
-        # Print table to logs (will look better in GitHub Actions)
-        for line in tracker.format_as_markdown_table().split("\n"):
-            logger.info(line)
-        logger.info("")
-        logger.info("=" * 70)
-        logger.info("")
-
-        # Write to GitHub Actions summary
-        write_actions_summary(crew, pr_number, repo, sha, result, fallback_used)
-
-        logger.info("")
-        logger.info("=" * 70)
-        logger.info("🎉 CrewAI Code Review Agent Completed")
-        logger.info("=" * 70)
+        logger.info("="*60)
+        logger.info("✅ CrewAI Review Complete!")
+        logger.info("="*60)
 
         return 0
 
     except Exception as e:
-        logger.error("")
-        logger.error("=" * 70)
-        logger.error(f"❌ Error during code review: {e}")
-        logger.error("=" * 70)
-        import traceback
-
-        logger.error(traceback.format_exc())
+        logger.error(f"❌ Review failed: {e}", exc_info=True)
         return 1
 
 
