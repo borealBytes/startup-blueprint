@@ -43,7 +43,7 @@ jobs:
       - name: Install CrewAI dependencies
         working-directory: .crewai
         run: |
-          uv sync --frozen
+          uv sync
 
       - name: Run CrewAI Router-Based Review
         working-directory: .crewai
