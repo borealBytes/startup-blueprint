@@ -2,7 +2,6 @@
 
 import logging
 import os
-import time
 from pathlib import Path
 
 import yaml
@@ -15,45 +14,88 @@ from tools.related_files_tool import RelatedFilesTool
 
 logger = logging.getLogger(__name__)
 
-# Store request start times
-_request_start_times = {}
-
 
 def litellm_success_callback(kwargs, completion_response, start_time, end_time):
     """Callback for successful LiteLLM API calls.
 
     Args:
-        kwargs: Request arguments
-        completion_response: Response object
-        start_time: Request start time
-        end_time: Request end time
+        kwargs: Request arguments (model, messages, etc.)
+        completion_response: LiteLLM ModelResponse object
+        start_time: Request start timestamp
+        end_time: Request end timestamp
     """
     try:
         tracker = get_tracker()
 
-        # Extract metrics from response
+        # Extract model name
         model = kwargs.get("model", "unknown")
-        usage = completion_response.get("usage", {})
-        tokens_in = usage.get("prompt_tokens", 0)
-        tokens_out = usage.get("completion_tokens", 0)
 
-        # Get cost from response (LiteLLM calculates this)
-        cost = getattr(completion_response, "_hidden_params", {}).get("response_cost", 0)
+        # Extract usage from response
+        # LiteLLM returns a ModelResponse object with usage attribute
+        tokens_in = 0
+        tokens_out = 0
+        cost = 0.0
+        generation_id = None
+
+        # Try to get usage from response object
+        if hasattr(completion_response, "usage"):
+            usage = completion_response.usage
+            if usage:
+                tokens_in = getattr(usage, "prompt_tokens", 0)
+                tokens_out = getattr(usage, "completion_tokens", 0)
+                logger.debug(
+                    f"🔍 LiteLLM callback: {model} - {tokens_in} in, {tokens_out} out"
+                )
+
+        # Try to get cost from LiteLLM's cost calculation
+        if hasattr(completion_response, "_hidden_params"):
+            hidden = completion_response._hidden_params
+            if isinstance(hidden, dict):
+                cost = hidden.get("response_cost", 0.0)
+                # OpenRouter may provide generation_id
+                generation_id = hidden.get("generation_id")
+
+        # Fallback: try to access as dict
+        if tokens_in == 0 and isinstance(completion_response, dict):
+            usage_dict = completion_response.get("usage", {})
+            tokens_in = usage_dict.get("prompt_tokens", 0)
+            tokens_out = usage_dict.get("completion_tokens", 0)
 
         # Calculate duration
         duration = end_time - start_time
 
-        # Log the call
-        tracker.log_api_call(
-            model=model,
-            tokens_in=tokens_in,
-            tokens_out=tokens_out,
-            cost=cost,
-            duration_seconds=duration,
-        )
+        # Only log if we got meaningful data
+        if tokens_in > 0 or tokens_out > 0:
+            logger.info(
+                f"✅ Captured API call: {model} "
+                f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
+            )
+
+            tracker.log_api_call(
+                model=model,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                cost=cost,
+                duration_seconds=duration,
+                generation_id=generation_id,
+            )
+        else:
+            logger.warning(
+                f"⚠️  No usage data in response for {model}. "
+                f"Response type: {type(completion_response)}"
+            )
+            # Log with zeros to track that a call happened
+            tracker.log_api_call(
+                model=model,
+                tokens_in=0,
+                tokens_out=0,
+                cost=0.0,
+                duration_seconds=duration,
+                generation_id=generation_id,
+            )
 
     except Exception as e:
-        logger.warning(f"Error in cost tracking callback: {e}")
+        logger.error(f"❌ Error in cost tracking callback: {e}", exc_info=True)
 
 
 def litellm_failure_callback(kwargs, completion_response, start_time, end_time):
@@ -65,10 +107,9 @@ def litellm_failure_callback(kwargs, completion_response, start_time, end_time):
         start_time: Request start time
         end_time: Request end time
     """
-    # Log failure but don't track cost
     model = kwargs.get("model", "unknown")
     duration = end_time - start_time
-    logger.warning(f"API call failed for {model} after {duration:.2f}s")
+    logger.warning(f"⚠️  API call failed for {model} after {duration:.2f}s")
 
 
 @CrewBase
@@ -95,10 +136,16 @@ class CodeReviewCrew:
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
         # Register cost tracking callbacks
+        # Must be done BEFORE any LiteLLM calls
         import litellm
 
+        # Set callbacks - must be lists
         litellm.success_callback = [litellm_success_callback]
         litellm.failure_callback = [litellm_failure_callback]
+
+        # Enable detailed logging from LiteLLM
+        litellm.set_verbose = True
+
         logger.info("📊 Cost tracking callbacks registered")
 
         # Simplified model strategy using Xiaomi Mimo V2 family:
