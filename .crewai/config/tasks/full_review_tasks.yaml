@@ -68,8 +68,7 @@ full_technical_review:
       ],
       "maintainability": [],
       "summary": "1 critical security issue, 1 architectural warning, testing
-    gap identified"
-    }
+    gap identified" }
 
   expected_output: >
     Comprehensive technical review saved to full_review.json with: -
@@ -113,8 +112,7 @@ security_deep_dive:
       "recommendations": [],
       "owasp_categories": ["injection", "auth"],
       "summary": "No critical vulnerabilities found, 2 hardening
-    recommendations"
-    }
+    recommendations" }
 
   expected_output: >
     Security analysis saved to security_review.json with OWASP-based findings
