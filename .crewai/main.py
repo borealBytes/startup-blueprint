@@ -204,7 +204,7 @@ def run_legal_review():
 
 def run_final_summary(env_vars, workflows_executed):
     """Run final summary crew.
-    
+
     Args:
         env_vars: Environment variables dictionary
         workflows_executed: List of workflows that were executed
@@ -216,7 +216,7 @@ def run_final_summary(env_vars, workflows_executed):
     try:
         # Count the number of reviews/workflows that were executed
         workflow_count = len(workflows_executed)
-        
+
         summary_crew = FinalSummaryCrew()
         result = summary_crew.crew().kickoff(
             inputs={

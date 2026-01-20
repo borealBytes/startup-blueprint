@@ -53,7 +53,7 @@ class CostTracker:
         self.generation_ids: Dict[str, int] = {}  # Track generation_id -> call_number
         self._cleanup_registered = False
         logger.info("📊 Cost tracker initialized")
-        
+
         # Register cleanup handler
         self._register_cleanup()
 
@@ -216,7 +216,7 @@ class CostTracker:
 
     def get_summary(self) -> Dict:
         """Get summary statistics for all API calls.
-        
+
         Returns:
             Dictionary containing:
             - total_calls: Number of API calls
