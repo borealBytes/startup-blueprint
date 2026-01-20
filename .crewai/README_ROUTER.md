@@ -6,15 +6,15 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 
 ### Key Improvements
 
-| Feature                 | Old System            | New Router System                 |
-| ----------------------- | --------------------- | --------------------------------- |
-| **Default Review Time** | 3-5 minutes           | **1.5-2 minutes** (⚡ 50% faster) |
-| **Default Cost**        | $0.21 (or $0.00 free) | **$0.13** (or $0.00 free)         |
-| **Customization**       | One size fits all     | **Label-based workflows**         |
-| **CI Integration**      | No CI context         | **Analyzes CI logs**              |
-| **Commit History**      | Single commit only    | **Last 10 commits**               |
-| **Suggestions**         | None                  | **Smart label recommendations**   |
-| **Trace**               | Logs only             | **Full workspace artifacts**      |
+| Feature | Old System | New Router System |
+|---------|------------|-------------------|
+| **Default Review Time** | 3-5 minutes | **1.5-2 minutes** (⚡ 50% faster) |
+| **Default Cost** | $0.21 (or $0.00 free) | **$0.13** (or $0.00 free) | 
+| **Customization** | One size fits all | **Label-based workflows** |
+| **CI Integration** | No CI context | **Analyzes CI logs** |
+| **Commit History** | Single commit only | **Last 10 commits** |
+| **Suggestions** | None | **Smart label recommendations** |
+| **Trace** | Logs only | **Full workspace artifacts** |
 
 ---
 
@@ -22,59 +22,99 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 
 ### Execution Flow
 
+```mermaid
+graph TD
+    A["🔀 Router Agent (20s)"] --> B["Default Workflow"]
+    A --> C["Conditional Workflows"]
+    
+    B --> B1["📊 CI Log Analysis (30s)"]
+    B --> B2["⚡ Quick Review (1min)"]
+    
+    C --> C1["🔍 Full Technical Review (4min)"]
+    C --> C2["⚖️ Legal Review (2min)"]
+    
+    B1 --> D["📝 Final Summary (30s)"]
+    B2 --> D
+    C1 --> D
+    C2 --> D
+    
+    D --> E1["Post to PR"]
+    D --> E2["Upload Trace"]
+    
+    A -."Analyzes labels".-> A1["PR Metadata"]
+    A -."Fetches once".-> A2["Commit Diff"]
+    A -."Reads history".-> A3["Last 10 Commits"]
+    
+    C1 -."Triggered by".-> L1["crewai:full-review label"]
+    C2 -."Triggered by".-> L2["crewai:legal label"]
+    
+    style A fill:#e1f5ff
+    style B fill:#c8e6c9
+    style C fill:#fff3e0
+    style D fill:#f3e5f5
+    style E1 fill:#fce4ec
+    style E2 fill:#fce4ec
 ```
-┌───────────────────────────────────────────────────────────┐
-│            🔀 ROUTER AGENT (20s)                          │
-│  • Analyzes PR labels from GitHub event                     │
-│  • Fetches commit diff (cached to workspace)               │
-│  • Reads last 10 commits                                   │
-│  • Decides workflows + makes suggestions                   │
-└───────────────────────────────────────────────────────────┘
-                            │
-                            ↓
-┌───────────────────────────────────────────────────────────┐
-│        DEFAULT WORKFLOW (Always Runs - 1.5min)             │
-├───────────────────────────────────────────────────────────┤
-│  📊 CI Log Analysis (30s)                              │
-│   • Reads core-ci result from GitHub Actions env         │
-│   • Parses format/lint/link check errors (RAG-based)     │
-│   • Categorizes: critical, warning, info                  │
-│   • Outputs: workspace/ci_summary.json                    │
-├───────────────────────────────────────────────────────────┤
-│  ⚡ Quick Review (1min)                                  │
-│   • Reads workspace/diff.txt (fetched by router)          │
-│   • Reviews code quality, logic, error handling           │
-│   • Analyzes commit messages (last 10)                    │
-│   • Correlates with CI errors                            │
-│   • Outputs: workspace/quick_review.json                  │
-└───────────────────────────────────────────────────────────┘
-                            │
-                            ↓
-┌───────────────────────────────────────────────────────────┐
-│     CONDITIONAL WORKFLOWS (Label-Based)                   │
-├───────────────────────────────────────────────────────────┤
-│  🔍 Full Technical Review (4min)                       │
-│   🏷️  Trigger: `crewai:full-review` label                │
-│   • 3 agents, 6 tasks (existing workflow)                 │
-│   • Security, architecture, related files analysis        │
-│   • Reads workspace for diff/CI context (no re-fetch)     │
-│   • Outputs: workspace/full_review.json                   │
-├───────────────────────────────────────────────────────────┤
-│  ⚖️ Legal Review (2min) - STUB                           │
-│   🏷️  Trigger: `crewai:legal` label                       │
-│   • Placeholder for future legal compliance checks       │
-│   • Returns "not implemented" message                    │
-└───────────────────────────────────────────────────────────┘
-                            │
-                            ↓
-┌───────────────────────────────────────────────────────────┐
-│          📝 FINAL SUMMARY (30s)                         │
-│  • Reads ALL workspace outputs                            │
-│  • Synthesizes comprehensive markdown report              │
-│  • Includes router suggestions                            │
-│  • Posts to PR + GitHub Actions summary                   │
-│  • Saves trace to artifacts                               │
-└───────────────────────────────────────────────────────────┘
+
+### Detailed Flow
+
+```mermaid
+flowchart TD
+    Start(["GitHub PR Event"]) --> Router["Router Agent"]
+    
+    Router --> FetchDiff["Fetch Diff (cache to workspace)"]
+    Router --> ReadCommits["Read Last 10 Commits"]
+    Router --> ParseLabels["Parse PR Labels"]
+    
+    FetchDiff --> Decision{"Decide Workflows"}
+    ReadCommits --> Decision
+    ParseLabels --> Decision
+    
+    Decision --> SaveDecision["Save router_decision.json"]
+    
+    SaveDecision --> CI["CI Log Analysis"]
+    SaveDecision --> Quick["Quick Review"]
+    
+    CI --> ReadCI["Read CORE_CI_RESULT env"]
+    ReadCI --> ParseErrors["Parse format/lint errors"]
+    ParseErrors --> SaveCI["Save ci_summary.json"]
+    
+    Quick --> ReadDiff["Read workspace/diff.txt"]
+    ReadDiff --> ReviewCode["Review code quality"]
+    ReviewCode --> SaveQuick["Save quick_review.json"]
+    
+    SaveCI --> CheckLabels{"Has Labels?"}
+    SaveQuick --> CheckLabels
+    
+    CheckLabels -->|"crewai:full-review"| Full["Full Technical Review"]
+    CheckLabels -->|"crewai:legal"| Legal["Legal Review (stub)"]
+    CheckLabels -->|"none"| Summary
+    
+    Full --> SaveFull["Save full_review.json"]
+    Legal --> SaveLegal["Save legal_review.json"]
+    
+    SaveFull --> Summary["Final Summary"]
+    SaveLegal --> Summary
+    
+    Summary --> ReadAll["Read all workspace/*.json"]
+    ReadAll --> Synthesize["Synthesize markdown report"]
+    Synthesize --> SaveMD["Save final_summary.md"]
+    
+    SaveMD --> Post1["Post to PR comment"]
+    SaveMD --> Post2["Post to Actions summary"]
+    SaveMD --> Post3["Upload trace artifacts"]
+    
+    Post1 --> End(["Review Complete"])
+    Post2 --> End
+    Post3 --> End
+    
+    style Router fill:#e1f5ff
+    style CI fill:#c8e6c9
+    style Quick fill:#c8e6c9
+    style Full fill:#fff3e0
+    style Legal fill:#fff3e0
+    style Summary fill:#f3e5f5
+    style End fill:#c8e6c9
 ```
 
 ---
@@ -92,7 +132,6 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 #### 🔍 `crewai:full-review`
 
 **Use when:**
-
 - Large changeset (20+ files or 500+ LOC)
 - Security-sensitive changes (auth, encryption, API keys)
 - Architecture refactoring
@@ -100,7 +139,6 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 - Third-party dependency updates
 
 **Provides:**
-
 - Security vulnerability scanning
 - Related files impact analysis (imports)
 - Architecture pattern evaluation
@@ -110,7 +148,6 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 #### ⚖️ `crewai:legal` (Future)
 
 **Use when:**
-
 - License file changes
 - Terms of Service updates
 - Privacy Policy modifications
@@ -118,7 +155,6 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 - Third-party attribution
 
 **Provides:**
-
 - License compatibility checks
 - Copyright compliance review
 - Terms consistency analysis
@@ -129,31 +165,58 @@ This is the **next-generation** CrewAI review system with intelligent routing, f
 
 ### Execution Time
 
-| Scenario                       | Workflows           | Time          | vs Old            |
-| ------------------------------ | ------------------- | ------------- | ----------------- |
+| Scenario | Workflows | Time | vs Old |
+|----------|-----------|------|--------|
 | **Simple commit** (90% of PRs) | Router + CI + Quick | **1.5-2 min** | ⚡ **50% faster** |
-| **Large commit**               | + Full Review       | **6-7 min**   | 🔽 20% slower     |
-| **Legal changes**              | + Legal (stub)      | **6.5-7 min** | New capability    |
+| **Large commit** | + Full Review | **6-7 min** | 🔽 20% slower |
+| **Legal changes** | + Legal (stub) | **6.5-7 min** | New capability |
 
 ### Cost (with free models)
 
-| Scenario          | API Calls | Tokens | Cost      |
-| ----------------- | --------- | ------ | --------- |
-| **Simple commit** | ~8        | ~50K   | **$0.00** |
-| **Large commit**  | ~20       | ~200K  | **$0.00** |
+| Scenario | API Calls | Tokens | Cost |
+|----------|-----------|--------|------|
+| **Simple commit** | ~8 | ~50K | **$0.00** |
+| **Large commit** | ~20 | ~200K | **$0.00** |
 
 ### Cost (with GPT-4o)
 
-| Scenario          | API Calls | Tokens | Cost      | vs Old         |
-| ----------------- | --------- | ------ | --------- | -------------- |
-| **Simple commit** | ~8        | ~50K   | **$0.13** | 💰 38% cheaper |
-| **Large commit**  | ~20       | ~200K  | **$0.34** | 🔽 62% more    |
+| Scenario | API Calls | Tokens | Cost | vs Old |
+|----------|-----------|--------|------|--------|
+| **Simple commit** | ~8 | ~50K | **$0.13** | 💰 38% cheaper |
+| **Large commit** | ~20 | ~200K | **$0.34** | 🔽 62% more |
 
 **ROI**: 90% of PRs use simple review → **massive savings**
 
 ---
 
 ## 🛠️ Workspace System
+
+### Architecture
+
+```mermaid
+graph LR
+    A["Router Crew"] -->|writes once| W["Workspace"]
+    B["CI Analysis Crew"] -->|reads diff| W
+    C["Quick Review Crew"] -->|reads diff| W
+    D["Full Review Crew"] -->|reads diff + CI| W
+    E["Legal Review Crew"] -->|reads diff| W
+    F["Final Summary Crew"] -->|reads all| W
+    
+    W --> W1["diff.txt"]
+    W --> W2["commits.json"]
+    W --> W3["router_decision.json"]
+    W --> W4["ci_summary.json"]
+    W --> W5["quick_review.json"]
+    W --> W6["full_review.json"]
+    W --> W7["final_summary.md"]
+    
+    W --> T["trace/"]
+    T --> A1["Artifacts Upload"]
+    
+    style W fill:#e1f5ff
+    style T fill:#c8e6c9
+    style A1 fill:#f3e5f5
+```
 
 ### How It Works
 
@@ -217,7 +280,7 @@ files_changed > 50 OR lines_changed > 1000
 **Fix**: Check `CORE_CI_RESULT` is passed correctly in `.github/workflows/ci.yml`
 
 ```yaml
-core_ci_result: ${{ needs.core-ci.result }} # Must be 'success' or 'failure'
+core_ci_result: ${{ needs.core-ci.result }}  # Must be 'success' or 'failure'
 ```
 
 #### Quick review too slow
@@ -232,14 +295,14 @@ core_ci_result: ${{ needs.core-ci.result }} # Must be 'success' or 'failure'
 
 ### What Changed?
 
-| Component          | Old                     | New                              |
-| ------------------ | ----------------------- | -------------------------------- |
-| **Entry point**    | `crew.py` + `main.py`   | `main.py` (orchestrator)         |
-| **Crew structure** | Single `CodeReviewCrew` | Multiple crews in `crews/`       |
-| **Tasks**          | Single `tasks.yaml`     | Split into `config/tasks/*.yaml` |
-| **Workflow**       | Always 6 tasks          | Router decides (2-6 tasks)       |
-| **CI integration** | None                    | Reads `CORE_CI_RESULT`           |
-| **Commit history** | Single commit           | Last 10 commits                  |
+| Component | Old | New |
+|-----------|-----|-----|
+| **Entry point** | `crew.py` + `main.py` | `main.py` (orchestrator) |
+| **Crew structure** | Single `CodeReviewCrew` | Multiple crews in `crews/` |
+| **Tasks** | Single `tasks.yaml` | Split into `config/tasks/*.yaml` |
+| **Workflow** | Always 6 tasks | Router decides (2-6 tasks) |
+| **CI integration** | None | Reads `CORE_CI_RESULT` |
+| **Commit history** | Single commit | Last 10 commits |
 
 ### Migration Steps
 
@@ -248,7 +311,6 @@ core_ci_result: ${{ needs.core-ci.result }} # Must be 'success' or 'failure'
    - `.github/workflows/crewai-review-reusable.yml` updated
 
 2. **Create labels** (manual)
-
    ```bash
    # In your repo settings → Labels
    gh label create "crewai:full-review" --color "0366d6" --description "Trigger full technical review"
@@ -268,7 +330,6 @@ core_ci_result: ${{ needs.core-ci.result }} # Must be 'success' or 'failure'
 The router analyzes your PR and suggests labels even if you forgot:
 
 **Example 1: Large Changeset**
-
 ```markdown
 ## 🤖 Router Suggestions
 
@@ -277,7 +338,6 @@ The router analyzes your PR and suggests labels even if you forgot:
 ```
 
 **Example 2: Legal Files**
-
 ```markdown
 ## 🤖 Router Suggestions
 
@@ -286,7 +346,6 @@ The router analyzes your PR and suggests labels even if you forgot:
 ```
 
 **Example 3: Security Files**
-
 ```markdown
 ## 🤖 Router Suggestions
 
