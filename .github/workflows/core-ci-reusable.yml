@@ -826,6 +826,8 @@ jobs:
             --exclude 'onecorp\.lara\.state\.mi\.us'
             --exclude 'cofs\.lara\.state\.mi\.us'
             --exclude 'bpd\.sos\.ca\.gov'
+            --exclude 'bizfileonline\.sos\.ca\.gov'
+            --exclude 'apps\.dos\.ny\.gov/publicInquiry'
             --exclude 'nerdwallet\.com/article/small-business/start-an-llc'
             --exclude 'sba\.gov/business-guide/launch/choose-business-structure'
             '**/*.md'
