@@ -775,6 +775,73 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "➡️ Documentation link check will run next on commit \`${{ steps.initial_sha.outputs.sha }}\`..." >> $GITHUB_STEP_SUMMARY
 
+  test-crewai:
+    name: Test: CrewAI
+    runs-on: ubuntu-latest
+    needs: [format-and-lint]
+    if: |
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.changed_files.*.filename, '.crewai/')
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.format-and-lint.outputs.commit-sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: '.crewai/pyproject.toml'
+
+      - name: Install dependencies
+        working-directory: .crewai
+        run: |
+          echo "📦 Installing CrewAI dependencies with pytest..."
+          uv sync --all-extras
+          echo "✅ Dependencies installed"
+
+      - name: Run pytest
+        working-directory: .crewai
+        run: |
+          echo "🧪 Running CrewAI test suite..."
+          uv run pytest -v --tb=short
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ needs.format-and-lint.outputs.commit-sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CORE_CI_RESULT: "success"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: "test_key"
+
+      - name: Generate test report
+        if: always()
+        working-directory: .crewai
+        run: |
+          echo "## 🧪 CrewAI Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit tested:** \`${{ needs.format-and-lint.outputs.commit-sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f ".pytest_cache/v/cache/lastfailed" ]; then
+            echo "### ❌ Failed Tests" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat .pytest_cache/v/cache/lastfailed >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ All Tests Passed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All CrewAI tools and functions validated successfully!" >> $GITHUB_STEP_SUMMARY
+          fi
+
   link-check:
     name: Check Documentation Links
     runs-on: ubuntu-latest
