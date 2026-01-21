@@ -127,7 +127,7 @@ def run_ci_analysis(env_vars):
         ci_crew = CILogAnalysisCrew()
         result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
         logger.info("✅ CI analysis complete")
-        
+
         # Validate output file was created
         workspace = WorkspaceTool()
         if not workspace.exists("ci_summary.json"):
@@ -142,7 +142,7 @@ def run_ci_analysis(env_vars):
                     "warnings": [],
                 },
             )
-        
+
         return result
     except Exception as e:
         logger.error(f"❌ CI analysis failed: {e}", exc_info=True)
@@ -168,7 +168,7 @@ def run_quick_review():
         quick_crew = QuickReviewCrew()
         result = quick_crew.crew().kickoff()
         logger.info("✅ Quick review complete")
-        
+
         # CRITICAL: Validate output file was created
         workspace = WorkspaceTool()
         if not workspace.exists("quick_review.json"):
@@ -186,7 +186,7 @@ def run_quick_review():
             )
         else:
             logger.info("✅ Verified quick_review.json exists in workspace")
-        
+
         return result
     except Exception as e:
         logger.error(f"❌ Quick review failed: {e}", exc_info=True)
@@ -301,9 +301,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
     summary_parts.append(f"**Commit**: `{env_vars['commit_sha'][:7]}`")
     summary_parts.append(f"**Repository**: {env_vars['repository']}")
     summary_parts.append(f"**Workflows**: {', '.join(workflows_executed)}")
-    summary_parts.append(
-        f"**Timestamp**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}"
-    )
+    summary_parts.append(f"**Timestamp**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
     summary_parts.append("")
     summary_parts.append("---")
     summary_parts.append("")
@@ -336,9 +334,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
                 for idx, error in enumerate(critical_errors[:3], 1):  # Top 3 errors
                     error_type = error.get("type", "Error") if isinstance(error, dict) else "Error"
                     error_msg = (
-                        error.get("message", str(error))
-                        if isinstance(error, dict)
-                        else str(error)
+                        error.get("message", str(error)) if isinstance(error, dict) else str(error)
                     )
                     summary_parts.append(f"{idx}. **{error_type}**: {error_msg}")
                     if isinstance(error, dict) and error.get("fix_suggestion"):
@@ -362,7 +358,9 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             quick_data = workspace.read_json("quick_review.json")
             summary_parts.append("### ⚡ Quick Review")
             summary_parts.append(f"**Status**: {quick_data.get('status', 'completed')}")
-            summary_parts.append(f"**Summary**: {quick_data.get('summary', 'No summary available')}")
+            summary_parts.append(
+                f"**Summary**: {quick_data.get('summary', 'No summary available')}"
+            )
 
             # Add critical/warning/info counts
             critical_count = len(quick_data.get("critical", []))
@@ -428,9 +426,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             if critical_security:
                 summary_parts.append("**Security Vulnerabilities**:")
                 for idx, issue in enumerate(critical_security[:2], 1):  # Top 2
-                    severity_emoji = (
-                        "🔴" if issue.get("severity") == "critical" else "🟡"
-                    )
+                    severity_emoji = "🔴" if issue.get("severity") == "critical" else "🟡"
                     summary_parts.append(
                         f"{idx}. {severity_emoji} **{issue.get('title', 'Unknown')}**"
                     )
