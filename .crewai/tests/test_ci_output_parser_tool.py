@@ -1,6 +1,7 @@
 """Tests for CI Output Parser Tool."""
 
 import os
+
 import pytest
 from tools.ci_output_parser_tool import CIOutputParserTool
 
@@ -13,7 +14,7 @@ class TestCIOutputParserTool:
         os.environ["COMMIT_SHA"] = "abc123"
         tool = CIOutputParserTool()
         result = tool._run("All tests passed")
-        
+
         # Result is a dict
         assert isinstance(result, dict)
         assert result["status"] == "success" or result["passed"] is True
@@ -23,7 +24,7 @@ class TestCIOutputParserTool:
         os.environ["COMMIT_SHA"] = "abc123"
         tool = CIOutputParserTool()
         result = tool._run("Tests failed with 3 errors")
-        
+
         # Result is a dict
         assert isinstance(result, dict)
         assert result["status"] == "failure" or result["passed"] is False
@@ -34,7 +35,7 @@ class TestCIOutputParserTool:
         os.environ.pop("COMMIT_SHA", None)
         tool = CIOutputParserTool()
         result = tool._run("Some output")
-        
+
         # Should still return something, even without COMMIT_SHA
         assert result is not None
 
@@ -43,7 +44,7 @@ class TestCIOutputParserTool:
         os.environ["COMMIT_SHA"] = "abc123"
         tool = CIOutputParserTool()
         result = tool._run("Build completed successfully")
-        
+
         # Result is a dict with multiple fields
         assert isinstance(result, dict)
         assert len(result) > 2  # Should have multiple keys

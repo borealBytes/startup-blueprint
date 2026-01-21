@@ -1,8 +1,9 @@
 """Tests for GitHub Tools."""
 
 import os
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 from tools.github_tools import CommitDiffTool, CommitInfoTool
 
 
@@ -73,7 +74,7 @@ class TestCommitInfoTool:
     def test_fetch_commits_api_error(self):
         """Test handling API error when fetching commits."""
         os.environ["GITHUB_TOKEN"] = "test-token"
-        
+
         tool = CommitInfoTool()
         assert tool is not None
 
