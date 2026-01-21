@@ -9,23 +9,41 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Step 1: Run core CI (format, lint, link check)
+  # Step 1: Run core CI (format, lint, link check, test detection)
   core-ci:
     name: Core CI
     uses: ./.github/workflows/core-ci-reusable.yml
     secrets: inherit
 
-  # Step 2: Run CrewAI review ONLY if core CI completes (success or failure)
+  # Step 2: Run detected tests in parallel
+  run-tests:
+    name: Test ${{ matrix.name }}
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      needs.core-ci.outputs.has-tests == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.core-ci.outputs.test-matrix) }}
+    uses: ./.github/workflows/${{ matrix.workflow }}
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
+  # Step 3: Run CrewAI review ONLY if core CI completes (success or failure)
   crewai-review:
     name: CrewAI Code Review
-    needs: [core-ci]
+    needs: [core-ci, run-tests]
     # Run if:
     # - Core CI completed (success OR failure - we want to analyze failures too!)
+    # - Tests completed or were skipped
     # - Not a bot PR
     # - Not a draft PR
     if: |
       always() &&
       (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      (needs.run-tests.result == 'success' || needs.run-tests.result == 'failure' || needs.run-tests.result == 'skipped') &&
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
       !github.event.pull_request.draft
