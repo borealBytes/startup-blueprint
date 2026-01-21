@@ -278,6 +278,46 @@ def run_final_summary(env_vars, workflows_executed):
         return None
 
 
+def format_finding_item(finding, severity_emoji):
+    """Format a single finding item with proper structure.
+    
+    Args:
+        finding: Finding dictionary
+        severity_emoji: Emoji to use for severity
+        
+    Returns:
+        str: Formatted markdown for the finding
+    """
+    if not isinstance(finding, dict):
+        return f"- {severity_emoji} {str(finding)}"
+    
+    lines = []
+    title = finding.get("title", "Unknown issue")
+    file_path = finding.get("file", "")
+    line_num = finding.get("line", "")
+    description = finding.get("description", "")
+    fix_suggestion = finding.get("fix_suggestion", "")
+    
+    # Title with file location
+    if file_path:
+        if line_num:
+            lines.append(f"- {severity_emoji} **{title}** `{file_path}:{line_num}`")
+        else:
+            lines.append(f"- {severity_emoji} **{title}** `{file_path}`")
+    else:
+        lines.append(f"- {severity_emoji} **{title}**")
+    
+    # Description (indented)
+    if description:
+        lines.append(f"  - {description}")
+    
+    # Fix suggestion (indented with special icon)
+    if fix_suggestion:
+        lines.append(f"  - 💡 **Fix**: {fix_suggestion}")
+    
+    return "\n".join(lines)
+
+
 def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
     """Create a comprehensive fallback summary extracting all available findings.
 
@@ -311,7 +351,16 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
         try:
             ci_data = workspace.read_json("ci_summary.json")
             summary_parts.append("### ✅ CI Analysis")
-            summary_parts.append(f"**Status**: {ci_data.get('status', 'unknown')}")
+            status = ci_data.get("status", "unknown")
+            passed = ci_data.get("passed", False)
+            status_emoji = "✅" if passed else "❌"
+            summary_parts.append(f"**Status**: {status_emoji} {status}")
+            
+            # Get what was checked
+            checks_performed = ci_data.get("checks_performed", [])
+            if checks_performed:
+                summary_parts.append(f"**Checks Performed**: {', '.join(checks_performed)}")
+            
             summary_parts.append(f"**Summary**: {ci_data.get('summary', 'No summary available')}")
 
             # Extract issue analysis if available
@@ -328,17 +377,34 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
 
             # Add critical errors if present
             critical_errors = ci_data.get("critical_errors", [])
-            if critical_errors:
+            warnings = ci_data.get("warnings", [])
+            
+            if critical_errors or warnings:
                 summary_parts.append("")
-                summary_parts.append("**Critical Errors**:")
-                for idx, error in enumerate(critical_errors[:3], 1):  # Top 3 errors
-                    error_type = error.get("type", "Error") if isinstance(error, dict) else "Error"
-                    error_msg = (
-                        error.get("message", str(error)) if isinstance(error, dict) else str(error)
-                    )
-                    summary_parts.append(f"{idx}. **{error_type}**: {error_msg}")
-                    if isinstance(error, dict) and error.get("fix_suggestion"):
-                        summary_parts.append(f"   - 💡 **Fix**: {error['fix_suggestion']}")
+                summary_parts.append("<details>")
+                summary_parts.append("<summary><b>🔍 View CI Issues</b></summary>")
+                summary_parts.append("")
+                
+                if critical_errors:
+                    summary_parts.append("**Critical Errors**:")
+                    for idx, error in enumerate(critical_errors, 1):
+                        error_type = error.get("type", "Error") if isinstance(error, dict) else "Error"
+                        error_msg = (
+                            error.get("message", str(error)) if isinstance(error, dict) else str(error)
+                        )
+                        summary_parts.append(f"{idx}. **{error_type}**: {error_msg}")
+                        if isinstance(error, dict) and error.get("fix_suggestion"):
+                            summary_parts.append(f"   - 💡 **Fix**: {error['fix_suggestion']}")
+                    summary_parts.append("")
+                
+                if warnings:
+                    summary_parts.append("**Warnings**:")
+                    for idx, warning in enumerate(warnings, 1):
+                        warning_msg = warning.get("message", str(warning)) if isinstance(warning, dict) else str(warning)
+                        summary_parts.append(f"{idx}. {warning_msg}")
+                    summary_parts.append("")
+                
+                summary_parts.append("</details>")
 
             summary_parts.append("")
         except Exception as e:
@@ -352,7 +418,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
         summary_parts.append("Status: Not available")
         summary_parts.append("")
 
-    # Quick Review
+    # Quick Review - SHOW ALL FINDINGS with collapsible sections
     if workspace.exists("quick_review.json"):
         try:
             quick_data = workspace.read_json("quick_review.json")
@@ -362,10 +428,15 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
                 f"**Summary**: {quick_data.get('summary', 'No summary available')}"
             )
 
-            # Add critical/warning/info counts
-            critical_count = len(quick_data.get("critical", []))
-            warning_count = len(quick_data.get("warnings", []))
-            info_count = len(quick_data.get("info", []))
+            # Get all findings
+            critical_issues = quick_data.get("critical", [])
+            warnings = quick_data.get("warnings", [])
+            suggestions = quick_data.get("info", [])
+
+            # High-level counts
+            critical_count = len(critical_issues)
+            warning_count = len(warnings)
+            info_count = len(suggestions)
 
             if critical_count > 0 or warning_count > 0 or info_count > 0:
                 summary_parts.append("")
@@ -377,17 +448,38 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
                 if info_count > 0:
                     summary_parts.append(f"- 🔵 {info_count} suggestion(s)")
 
-            # List top critical issues
-            critical_issues = quick_data.get("critical", [])
+            # CRITICAL ISSUES - always show if present
             if critical_issues:
                 summary_parts.append("")
-                summary_parts.append("**Critical Issues**:")
-                for idx, issue in enumerate(critical_issues[:3], 1):  # Top 3
-                    if isinstance(issue, dict):
-                        title = issue.get("title", "Unknown issue")
-                        summary_parts.append(f"{idx}. {title}")
-                    else:
-                        summary_parts.append(f"{idx}. {str(issue)}")
+                summary_parts.append("<details open>")
+                summary_parts.append("<summary><b>🔴 Critical Issues ({count})</b></summary>".replace("{count}", str(critical_count)))
+                summary_parts.append("")
+                for issue in critical_issues:
+                    summary_parts.append(format_finding_item(issue, "🔴"))
+                    summary_parts.append("")
+                summary_parts.append("</details>")
+
+            # WARNINGS - collapsible
+            if warnings:
+                summary_parts.append("")
+                summary_parts.append("<details>")
+                summary_parts.append("<summary><b>🟡 Warnings ({count})</b></summary>".replace("{count}", str(warning_count)))
+                summary_parts.append("")
+                for warning in warnings:
+                    summary_parts.append(format_finding_item(warning, "🟡"))
+                    summary_parts.append("")
+                summary_parts.append("</details>")
+
+            # SUGGESTIONS - collapsible
+            if suggestions:
+                summary_parts.append("")
+                summary_parts.append("<details>")
+                summary_parts.append("<summary><b>🔵 Suggestions ({count})</b></summary>".replace("{count}", str(info_count)))
+                summary_parts.append("")
+                for suggestion in suggestions:
+                    summary_parts.append(format_finding_item(suggestion, "🔵"))
+                    summary_parts.append("")
+                summary_parts.append("</details>")
 
             summary_parts.append("")
         except Exception as e:
@@ -692,9 +784,9 @@ def main():
             logger.info(f"✅ Read final_summary.md ({len(final_markdown)} chars)")
 
             # CRITICAL VALIDATION: If summary is too short, it's likely just skeleton
-            # A proper summary with actual content should be at least 800 chars
-            # (increased from 500 to account for more detailed extraction)
-            if len(final_markdown) < 800:
+            # A proper summary with actual content should be at least 1000 chars
+            # (increased from 800 to account for collapsible sections)
+            if len(final_markdown) < 1000:
                 logger.warning(
                     f"⚠️ Final summary is too short ({len(final_markdown)} chars) - likely incomplete"
                 )
