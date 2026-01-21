@@ -36,7 +36,8 @@ parse_ci_output:
        - What was the before/after?
        - What still needs manual fixing?
 
-    7. **RETURN JSON OUTPUT**: Your output will be automatically saved to ci_summary.json.
+    7. **RETURN JSON OUTPUT**: Your output will be automatically saved to
+    ci_summary.json.
        Return this exact structure:
        {
          "status": "success",  # or "failure", "warning"
@@ -55,7 +56,8 @@ parse_ci_output:
              "file": "src/utils.ts",
              "line": "45",
              "message": "Type 'string' is not assignable to type 'number'",
-             "fix_suggestion": "Change variable type or convert string to number"
+             "fix_suggestion": "Change variable type or convert string to
+    number"
            }
          ],
          "warnings": [

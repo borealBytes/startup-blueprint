@@ -53,7 +53,9 @@ class CILogAnalysisCrew:
     def analyze_ci_logs(self) -> Task:
         """Analyze CI logs task."""
         return Task(
-            config=self.tasks_config["parse_ci_output"],  # Task name from ci_log_analysis_tasks.yaml
+            config=self.tasks_config[
+                "parse_ci_output"
+            ],  # Task name from ci_log_analysis_tasks.yaml
             agent=self.ci_analyst(),
         )
 

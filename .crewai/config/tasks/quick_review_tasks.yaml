@@ -34,7 +34,8 @@ quick_code_review:
        - Proper error propagation
        - Consistent code style
 
-    7. **RETURN JSON OUTPUT**: Your output will be automatically saved to quick_review.json.
+    7. **RETURN JSON OUTPUT**: Your output will be automatically saved to
+    quick_review.json.
        Return this exact structure:
        {
          "critical": [
