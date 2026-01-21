@@ -3,9 +3,8 @@ quick_code_review:
     **CRITICAL TASK**: Perform fast code quality review AND write findings to
     quick_review.json using WorkspaceTool.
 
-    **YOU MUST COMPLETE BOTH STEPS**:
-    1. Analyze the code changes
-    2. **WRITE the output to quick_review.json using WorkspaceTool**
+    **YOU MUST COMPLETE BOTH STEPS**: 1. Analyze the code changes 2. **WRITE the
+    output to quick_review.json using WorkspaceTool**
 
     **INPUTS AVAILABLE**: 
     - diff.txt (full PR diff) 
@@ -58,8 +57,7 @@ quick_code_review:
 
     After analyzing, you **MUST** call WorkspaceTool to write your findings:
 
-    ```
-    WorkspaceTool(
+    ``` WorkspaceTool(
       operation="write",
       filename="quick_review.json",
       content={
@@ -71,8 +69,10 @@ quick_code_review:
             "title": "SQL Injection Vulnerability",
             "file": "api/users.py",
             "line": "45",
-            "description": "User input concatenated directly into SQL query without sanitization",
-            "fix_suggestion": "Use parameterized queries or ORM instead of string concatenation"
+            "description": "User input concatenated directly into SQL query
+    without sanitization",
+            "fix_suggestion": "Use parameterized queries or ORM instead of
+    string concatenation"
           }
         ],
         "warnings": [...],
@@ -80,12 +80,9 @@ quick_code_review:
         "files_reviewed": 5,
         "total_findings": 8
       }
-    )
-    ```
+    ) ```
 
-    **IF NO ISSUES FOUND**, still write the file:
-    ```
-    WorkspaceTool(
+    **IF NO ISSUES FOUND**, still write the file: ``` WorkspaceTool(
       operation="write",
       filename="quick_review.json",
       content={
@@ -98,39 +95,29 @@ quick_code_review:
         "files_reviewed": 5,
         "total_findings": 0
       }
-    )
-    ```
+    ) ```
 
-    **OUTPUT FORMAT REQUIREMENTS**:
-    - status: "success", "warning", or "critical"
-    - passed: true/false
-    - summary: Brief text summary
-    - critical: Array of critical issues (may be empty)
-    - warnings: Array of warnings (may be empty)
-    - info: Array of suggestions (may be empty)
-    - files_reviewed: Number of files analyzed
-    - total_findings: Total count of all findings
+    **OUTPUT FORMAT REQUIREMENTS**: - status: "success", "warning", or
+    "critical" - passed: true/false - summary: Brief text summary - critical:
+    Array of critical issues (may be empty) - warnings: Array of warnings (may
+    be empty) - info: Array of suggestions (may be empty) - files_reviewed:
+    Number of files analyzed - total_findings: Total count of all findings
 
-    **Each finding object must have**:
-    - title: Short title
-    - file: File path
-    - line: Line number (string)
-    - description: What's wrong
-    - fix_suggestion: How to fix it
+    **Each finding object must have**: - title: Short title - file: File path -
+    line: Line number (string) - description: What's wrong - fix_suggestion: How
+    to fix it
 
-    **VALIDATION BEFORE COMPLETION**:
-    - [ ] Did you call WorkspaceTool with operation="write"?
-    - [ ] Did you set filename="quick_review.json"?
-    - [ ] Does content have all required fields?
-    - [ ] Are arrays (critical, warnings, info) present even if empty?
+    **VALIDATION BEFORE COMPLETION**: - [ ] Did you call WorkspaceTool with
+    operation="write"? - [ ] Did you set filename="quick_review.json"? - [ ]
+    Does content have all required fields? - [ ] Are arrays (critical, warnings,
+    info) present even if empty?
 
     **IMPORTANT**: 
-    - Focus on NEW/CHANGED code only (lines starting with `+` in diff)
-    - Ignore formatting/style if CI handles it
-    - Provide specific line numbers from the diff
-    - Every finding MUST have a concrete fix suggestion
-    - Be concise - this is a "quick" review
-    - **YOU MUST WRITE THE FILE - do not just return JSON as text**
+    - Focus on NEW/CHANGED code only (lines starting with `+` in diff) - Ignore
+    formatting/style if CI handles it - Provide specific line numbers from the
+    diff - Every finding MUST have a concrete fix suggestion - Be concise - this
+    is a "quick" review - **YOU MUST WRITE THE FILE - do not just return JSON as
+    text**
 
   expected_output: >
     Confirmation that quick_review.json has been written to workspace using
