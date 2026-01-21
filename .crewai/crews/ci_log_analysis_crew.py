@@ -52,11 +52,12 @@ class CILogAnalysisCrew:
     @task
     def analyze_ci_logs(self) -> Task:
         """Analyze CI logs task."""
-        # CRITICAL: Use filename only (not full path) - CrewAI writes to CWD
+        # Use output_file (not output_json) - CrewAI writes string content to file
+        # Agent returns JSON as string, CrewAI writes it to ci_summary.json
         return Task(
             config=self.tasks_config["parse_ci_output"],
             agent=self.ci_analyst(),
-            output_json="ci_summary.json",  # Just filename - CrewAI handles path
+            output_file="ci_summary.json",  # Direct file write
         )
 
     @crew

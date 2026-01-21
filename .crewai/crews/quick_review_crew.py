@@ -48,11 +48,12 @@ class QuickReviewCrew:
     @task
     def quick_code_review(self) -> Task:
         """Quick code review task."""
-        # CRITICAL: Use filename only (not full path) - CrewAI writes to CWD
+        # Use output_file (not output_json) - CrewAI writes string content to file
+        # Agent returns JSON as string, CrewAI writes it to quick_review.json
         return Task(
             config=self.tasks_config["quick_code_review"],
             agent=self.quick_reviewer(),
-            output_json="quick_review.json",  # Just filename - CrewAI handles path
+            output_file="quick_review.json",  # Direct file write
         )
 
     @crew
