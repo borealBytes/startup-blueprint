@@ -127,6 +127,22 @@ def run_ci_analysis(env_vars):
         ci_crew = CILogAnalysisCrew()
         result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
         logger.info("✅ CI analysis complete")
+        
+        # Validate output file was created
+        workspace = WorkspaceTool()
+        if not workspace.exists("ci_summary.json"):
+            logger.warning("⚠️ CI analysis did not create ci_summary.json - creating fallback")
+            workspace.write_json(
+                "ci_summary.json",
+                {
+                    "status": env_vars["core_ci_result"],
+                    "passed": env_vars["core_ci_result"] == "success",
+                    "summary": f"Core CI: {env_vars['core_ci_result']}",
+                    "critical_errors": [],
+                    "warnings": [],
+                },
+            )
+        
         return result
     except Exception as e:
         logger.error(f"❌ CI analysis failed: {e}", exc_info=True)
@@ -152,6 +168,25 @@ def run_quick_review():
         quick_crew = QuickReviewCrew()
         result = quick_crew.crew().kickoff()
         logger.info("✅ Quick review complete")
+        
+        # CRITICAL: Validate output file was created
+        workspace = WorkspaceTool()
+        if not workspace.exists("quick_review.json"):
+            logger.warning("⚠️ Quick review did not create quick_review.json - creating fallback")
+            # Try to extract from result if available
+            workspace.write_json(
+                "quick_review.json",
+                {
+                    "status": "completed",
+                    "summary": "Quick review completed but did not write structured output.",
+                    "critical": [],
+                    "warnings": [],
+                    "info": [],
+                },
+            )
+        else:
+            logger.info("✅ Verified quick_review.json exists in workspace")
+        
         return result
     except Exception as e:
         logger.error(f"❌ Quick review failed: {e}", exc_info=True)
@@ -244,14 +279,14 @@ def run_final_summary(env_vars, workflows_executed):
 
 
 def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
-    """Create a fallback summary if the agent didn't create one.
+    """Create a comprehensive fallback summary extracting all available findings.
 
     Args:
         workspace_dir: Path to workspace directory
         env_vars: Environment variables
         workflows_executed: List of executed workflows
     """
-    logger.info("🔧 Creating fallback summary...")
+    logger.info("🔧 Creating comprehensive fallback summary...")
 
     workspace = WorkspaceTool()
 
@@ -260,13 +295,15 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
     summary_parts.append(f"## ⚠️ Review Summary")
     summary_parts.append("")
     summary_parts.append(
-        f"Review completed with warnings. Some workflows may have encountered issues."
+        f"Review completed for PR #{env_vars['pr_number']} - {len(workflows_executed)} workflows executed."
     )
     summary_parts.append("")
-    summary_parts.append(f"**PR**: #{env_vars['pr_number']}")
     summary_parts.append(f"**Commit**: `{env_vars['commit_sha'][:7]}`")
     summary_parts.append(f"**Repository**: {env_vars['repository']}")
-    summary_parts.append(f"**Workflows Executed**: {', '.join(workflows_executed)}")
+    summary_parts.append(f"**Workflows**: {', '.join(workflows_executed)}")
+    summary_parts.append(
+        f"**Timestamp**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+    )
     summary_parts.append("")
     summary_parts.append("---")
     summary_parts.append("")
@@ -277,22 +314,35 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             ci_data = workspace.read_json("ci_summary.json")
             summary_parts.append("### ✅ CI Analysis")
             summary_parts.append(f"**Status**: {ci_data.get('status', 'unknown')}")
+            summary_parts.append(f"**Summary**: {ci_data.get('summary', 'No summary available')}")
+
+            # Extract issue analysis if available
+            if "issue_analysis" in ci_data:
+                analysis = ci_data["issue_analysis"]
+                summary_parts.append("")
+                summary_parts.append("**Issue Analysis**:")
+                if analysis.get("root_cause"):
+                    summary_parts.append(f"- **Root Cause**: {analysis['root_cause']}")
+                if analysis.get("fix_applied"):
+                    summary_parts.append(f"- **Fix Applied**: {analysis['fix_applied']}")
+                if analysis.get("recommendation"):
+                    summary_parts.append(f"- **Recommendation**: {analysis['recommendation']}")
 
             # Add critical errors if present
             critical_errors = ci_data.get("critical_errors", [])
             if critical_errors:
                 summary_parts.append("")
-                summary_parts.append("<details>")
-                summary_parts.append("<summary>🔴 Critical Errors</summary>")
-                summary_parts.append("")
-                for error in critical_errors[:3]:  # Top 3 errors
-                    summary_parts.append(
-                        f"**{error.get('type', 'Error')}**: {error.get('message', 'No details')}"
+                summary_parts.append("**Critical Errors**:")
+                for idx, error in enumerate(critical_errors[:3], 1):  # Top 3 errors
+                    error_type = error.get("type", "Error") if isinstance(error, dict) else "Error"
+                    error_msg = (
+                        error.get("message", str(error))
+                        if isinstance(error, dict)
+                        else str(error)
                     )
-                    if error.get("fix_suggestion"):
-                        summary_parts.append(f"  - 💡 **Fix**: {error['fix_suggestion']}")
-                    summary_parts.append("")
-                summary_parts.append("</details>")
+                    summary_parts.append(f"{idx}. **{error_type}**: {error_msg}")
+                    if isinstance(error, dict) and error.get("fix_suggestion"):
+                        summary_parts.append(f"   - 💡 **Fix**: {error['fix_suggestion']}")
 
             summary_parts.append("")
         except Exception as e:
@@ -300,27 +350,58 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             summary_parts.append("### ✅ CI Analysis")
             summary_parts.append("Status: Error parsing results")
             summary_parts.append("")
+    else:
+        logger.warning("⚠️ ci_summary.json not found in workspace")
+        summary_parts.append("### ✅ CI Analysis")
+        summary_parts.append("Status: Not available")
+        summary_parts.append("")
 
     # Quick Review
     if workspace.exists("quick_review.json"):
         try:
             quick_data = workspace.read_json("quick_review.json")
             summary_parts.append("### ⚡ Quick Review")
-            summary_parts.append(f"**Status**: {quick_data.get('status', 'unknown')}")
+            summary_parts.append(f"**Status**: {quick_data.get('status', 'completed')}")
+            summary_parts.append(f"**Summary**: {quick_data.get('summary', 'No summary available')}")
 
-            # Add key findings if present
-            if quick_data.get("issues"):
-                issues = quick_data["issues"]
-                critical_count = len([i for i in issues if i.get("severity") == "critical"])
+            # Add critical/warning/info counts
+            critical_count = len(quick_data.get("critical", []))
+            warning_count = len(quick_data.get("warnings", []))
+            info_count = len(quick_data.get("info", []))
+
+            if critical_count > 0 or warning_count > 0 or info_count > 0:
+                summary_parts.append("")
+                summary_parts.append("**Findings**:")
                 if critical_count > 0:
-                    summary_parts.append(f"  - 🔴 {critical_count} critical issues found")
+                    summary_parts.append(f"- 🔴 {critical_count} critical issue(s)")
+                if warning_count > 0:
+                    summary_parts.append(f"- 🟡 {warning_count} warning(s)")
+                if info_count > 0:
+                    summary_parts.append(f"- 🔵 {info_count} suggestion(s)")
+
+            # List top critical issues
+            critical_issues = quick_data.get("critical", [])
+            if critical_issues:
+                summary_parts.append("")
+                summary_parts.append("**Critical Issues**:")
+                for idx, issue in enumerate(critical_issues[:3], 1):  # Top 3
+                    if isinstance(issue, dict):
+                        title = issue.get("title", "Unknown issue")
+                        summary_parts.append(f"{idx}. {title}")
+                    else:
+                        summary_parts.append(f"{idx}. {str(issue)}")
 
             summary_parts.append("")
         except Exception as e:
             logger.warning(f"Could not parse quick_review.json: {e}")
             summary_parts.append("### ⚡ Quick Review")
-            summary_parts.append("Status: Did not run")
+            summary_parts.append("Status: Error parsing results")
             summary_parts.append("")
+    else:
+        logger.warning("⚠️ quick_review.json not found in workspace")
+        summary_parts.append("### ⚡ Quick Review")
+        summary_parts.append("Status: Not available")
+        summary_parts.append("")
 
     # Full Review - Extract architectural and security findings
     if workspace.exists("full_review.json"):
@@ -333,16 +414,10 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             arch_issues = full_data.get("architecture", [])
             critical_arch = [i for i in arch_issues if i.get("severity") == "critical"]
             if critical_arch:
-                summary_parts.append("<details>")
-                summary_parts.append("<summary>🏗️ Critical Architecture Issues</summary>")
-                summary_parts.append("")
-                for issue in critical_arch[:3]:  # Top 3
-                    summary_parts.append(f"**{issue.get('title', 'Unknown')}**")
-                    summary_parts.append(f"  - {issue.get('description', 'No description')}")
-                    if issue.get("suggestion"):
-                        summary_parts.append(f"  - 💡 **Suggestion**: {issue['suggestion']}")
-                    summary_parts.append("")
-                summary_parts.append("</details>")
+                summary_parts.append("**Critical Architecture Issues**:")
+                for idx, issue in enumerate(critical_arch[:2], 1):  # Top 2
+                    summary_parts.append(f"{idx}. **{issue.get('title', 'Unknown')}**")
+                    summary_parts.append(f"   - {issue.get('description', 'No description')}")
                 summary_parts.append("")
 
             # Security vulnerabilities
@@ -351,60 +426,42 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
                 i for i in security_issues if i.get("severity") in ["critical", "high"]
             ]
             if critical_security:
-                summary_parts.append("<details>")
-                summary_parts.append("<summary>🔒 Security Vulnerabilities</summary>")
-                summary_parts.append("")
-                for issue in critical_security[:3]:  # Top 3
-                    severity_emoji = "🔴" if issue.get("severity") == "critical" else "🟡"
-                    summary_parts.append(f"{severity_emoji} **{issue.get('title', 'Unknown')}**")
-                    summary_parts.append(f"  - {issue.get('description', 'No description')}")
-                    summary_parts.append("")
-                summary_parts.append("</details>")
-                summary_parts.append("")
-
-            # Testing issues
-            testing_issues = full_data.get("testing", [])
-            critical_testing = [i for i in testing_issues if i.get("severity") == "critical"]
-            if critical_testing:
-                summary_parts.append("<details>")
-                summary_parts.append("<summary>🧪 Testing Issues</summary>")
-                summary_parts.append("")
-                for issue in critical_testing[:2]:  # Top 2
-                    summary_parts.append(f"**{issue.get('title', 'Unknown')}**")
-                    summary_parts.append(f"  - {issue.get('description', 'No description')}")
-                    summary_parts.append("")
-                summary_parts.append("</details>")
+                summary_parts.append("**Security Vulnerabilities**:")
+                for idx, issue in enumerate(critical_security[:2], 1):  # Top 2
+                    severity_emoji = (
+                        "🔴" if issue.get("severity") == "critical" else "🟡"
+                    )
+                    summary_parts.append(
+                        f"{idx}. {severity_emoji} **{issue.get('title', 'Unknown')}**"
+                    )
+                    summary_parts.append(f"   - {issue.get('description', 'No description')}")
                 summary_parts.append("")
 
         except Exception as e:
             logger.warning(f"Could not parse full_review.json: {e}")
             summary_parts.append("### 🔍 Full Technical Review")
-            summary_parts.append("Status: Did not run")
+            summary_parts.append("Status: Error parsing results")
             summary_parts.append("")
+    else:
+        if "full-review" in workflows_executed:
+            logger.warning("⚠️ full_review.json not found but full-review was executed")
+        summary_parts.append("### 🔍 Full Technical Review")
+        summary_parts.append("Status: Did not run")
+        summary_parts.append("")
 
-    # Security Review (if available)
-    if workspace.exists("security_review.json"):
+    # Router Suggestions
+    if workspace.exists("router_decision.json"):
         try:
-            security_data = workspace.read_json("security_review.json")
-            critical_vulns = security_data.get("critical_vulnerabilities", [])
-            if critical_vulns:
-                summary_parts.append("### 🔒 Security Scan")
-                summary_parts.append(f"**Critical Vulnerabilities**: {len(critical_vulns)}")
+            router_data = workspace.read_json("router_decision.json")
+            suggestions = router_data.get("suggestions", [])
+            if suggestions:
+                summary_parts.append("### 💡 Router Suggestions")
                 summary_parts.append("")
-                summary_parts.append("<details>")
-                summary_parts.append("<summary>View Details</summary>")
-                summary_parts.append("")
-                for vuln in critical_vulns[:3]:  # Top 3
-                    summary_parts.append(f"**{vuln.get('title', 'Unknown')}**")
-                    summary_parts.append(f"  - **Category**: {vuln.get('category', 'N/A')}")
-                    summary_parts.append(f"  - {vuln.get('description', 'No description')}")
-                    if vuln.get("remediation"):
-                        summary_parts.append(f"  - 💡 **Fix**: {vuln['remediation']}")
-                    summary_parts.append("")
-                summary_parts.append("</details>")
+                for suggestion in suggestions:
+                    summary_parts.append(f"- {suggestion}")
                 summary_parts.append("")
         except Exception as e:
-            logger.warning(f"Could not parse security_review.json: {e}")
+            logger.warning(f"Could not parse router_decision.json: {e}")
 
     summary_parts.append("---")
     summary_parts.append("")
@@ -414,7 +471,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
 
     fallback_md = "\n".join(summary_parts)
     workspace.write("final_summary.md", fallback_md)
-    logger.info(f"✅ Fallback summary created ({len(fallback_md)} chars)")
+    logger.info(f"✅ Comprehensive fallback summary created ({len(fallback_md)} chars)")
     return fallback_md
 
 
@@ -532,6 +589,16 @@ def save_trace(workspace_dir):
     else:
         logger.warning(f"⚠️ final_summary.md not found at {summary_file}")
 
+    # Copy diff.txt to trace if it exists
+    diff_file = workspace_dir / "diff.txt"
+    if diff_file.exists():
+        try:
+            shutil.copy(diff_file, trace_dir / "diff.txt")
+            logger.info(f"✅ Saved diff.txt to trace")
+            files_copied += 1
+        except Exception as e:
+            logger.warning(f"⚠️ Could not copy diff.txt: {e}")
+
     # Create a trace index file with metadata
     try:
         trace_index = {
@@ -629,10 +696,11 @@ def main():
             logger.info(f"✅ Read final_summary.md ({len(final_markdown)} chars)")
 
             # CRITICAL VALIDATION: If summary is too short, it's likely just skeleton
-            # A proper summary with actual content should be at least 500 chars
-            if len(final_markdown) < 500:
+            # A proper summary with actual content should be at least 800 chars
+            # (increased from 500 to account for more detailed extraction)
+            if len(final_markdown) < 800:
                 logger.warning(
-                    f"⚠️ Final summary is too short ({len(final_markdown)} chars) - likely skeleton only"
+                    f"⚠️ Final summary is too short ({len(final_markdown)} chars) - likely incomplete"
                 )
                 logger.info("🔄 Replacing with comprehensive fallback summary")
                 final_markdown = create_fallback_summary(
@@ -641,7 +709,7 @@ def main():
             else:
                 logger.info("✅ Final summary has sufficient content")
         else:
-            logger.warning("⚠️ final_summary.md not found - creating fallback")
+            logger.warning("⚠️ final_summary.md not found - creating comprehensive fallback")
             final_markdown = create_fallback_summary(workspace_dir, env_vars, workflows_executed)
 
         # CRITICAL: Wait for async cost tracking callbacks to fire
