@@ -54,7 +54,7 @@ class FinalSummaryCrew:
         """Synthesize final summary task."""
         # CRITICAL: Set output_file with full path to force file creation
         output_file = str(self.workspace_dir / "final_summary.md")
-        
+
         return Task(
             config=self.tasks_config["synthesize_summary"],
             agent=self.executive_summary_agent(),

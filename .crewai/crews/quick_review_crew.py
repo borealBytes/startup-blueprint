@@ -54,7 +54,7 @@ class QuickReviewCrew:
         """Quick code review task."""
         # CRITICAL: Set output_json with full path to force file creation
         output_file = str(self.workspace_dir / "quick_review.json")
-        
+
         return Task(
             config=self.tasks_config["quick_code_review"],
             agent=self.quick_reviewer(),

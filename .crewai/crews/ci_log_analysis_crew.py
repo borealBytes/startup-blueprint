@@ -58,7 +58,7 @@ class CILogAnalysisCrew:
         """Analyze CI logs task."""
         # CRITICAL: Set output_json with full path to force file creation
         output_file = str(self.workspace_dir / "ci_summary.json")
-        
+
         return Task(
             config=self.tasks_config["parse_ci_output"],
             agent=self.ci_analyst(),
