@@ -268,7 +268,8 @@ def run_final_summary(env_vars, workflows_executed):
                 "commit_sha": env_vars["commit_sha"],
                 "repository": env_vars["repository"],
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
-                "count": workflow_count,  # Add count parameter to fix template variable error
+                "count": workflow_count,
+                "workflows": ", ".join(workflows_executed),  # Fix: Add workflows parameter
             }
         )
         logger.info("✅ Final summary complete")
