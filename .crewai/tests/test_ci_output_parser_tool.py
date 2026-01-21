@@ -1,7 +1,6 @@
 """Tests for CI Output Parser Tool."""
 
 import os
-
 import pytest
 from tools.ci_output_parser_tool import CIOutputParserTool
 
@@ -13,29 +12,31 @@ class TestCIOutputParserTool:
         """Test parsing successful CI output."""
         os.environ["COMMIT_SHA"] = "abc123"
         tool = CIOutputParserTool()
-        result = tool._run("All tests passed")
-
-        # Result is a dict
+        result = tool._run("success")
+        
+        # Result is a dict with status field
         assert isinstance(result, dict)
-        assert result["status"] == "success" or result["passed"] is True
+        assert result["status"] == "success"
+        assert result["passed"] is True
 
     def test_parse_failure_result(self):
         """Test parsing failed CI output."""
         os.environ["COMMIT_SHA"] = "abc123"
         tool = CIOutputParserTool()
-        result = tool._run("Tests failed with 3 errors")
-
+        result = tool._run("failure")
+        
         # Result is a dict
         assert isinstance(result, dict)
-        assert result["status"] == "failure" or result["passed"] is False
+        assert result["status"] == "failure"
+        assert result["passed"] is False
 
     def test_parse_missing_env_var(self):
         """Test handling missing COMMIT_SHA."""
         # Remove COMMIT_SHA if it exists
         os.environ.pop("COMMIT_SHA", None)
         tool = CIOutputParserTool()
-        result = tool._run("Some output")
-
+        result = tool._run("success")
+        
         # Should still return something, even without COMMIT_SHA
         assert result is not None
 
@@ -43,8 +44,8 @@ class TestCIOutputParserTool:
         """Test that output includes useful context."""
         os.environ["COMMIT_SHA"] = "abc123"
         tool = CIOutputParserTool()
-        result = tool._run("Build completed successfully")
-
+        result = tool._run("success")
+        
         # Result is a dict with multiple fields
         assert isinstance(result, dict)
         assert len(result) > 2  # Should have multiple keys
