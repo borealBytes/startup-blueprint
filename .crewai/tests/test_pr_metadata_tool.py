@@ -1,8 +1,9 @@
 """Tests for PR Metadata Tool."""
 
 import os
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from tools.pr_metadata_tool import PRMetadataTool
 
 
@@ -34,9 +35,7 @@ class TestPRMetadataTool:
         with patch("requests.get") as mock_get:
             mock_response = Mock()
             mock_response.status_code = 200
-            mock_response.json.return_value = {
-                "labels": [{"name": "crewai:full-review"}]
-            }
+            mock_response.json.return_value = {"labels": [{"name": "crewai:full-review"}]}
             mock_get.return_value = mock_response
 
             tool = PRMetadataTool()
