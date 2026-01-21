@@ -614,7 +614,7 @@ def main():
         # STEP 6: Final summary (always run) - pass workflow count
         final_result = run_final_summary(env_vars, workflows_executed)
 
-        # Read final markdown from workspace with fallback
+        # Read final markdown from workspace with validation
         workspace = WorkspaceTool()
 
         # Debug: List all files in workspace
@@ -623,10 +623,21 @@ def main():
             if f.is_file():
                 logger.info(f"  - {f.name} ({f.stat().st_size} bytes)")
 
-        # Try to read final_summary.md, create fallback if missing
+        # Try to read final_summary.md
         if workspace.exists("final_summary.md"):
             final_markdown = workspace.read("final_summary.md")
             logger.info(f"✅ Read final_summary.md ({len(final_markdown)} chars)")
+
+            # CRITICAL VALIDATION: If summary is too short, it's likely just skeleton
+            # A proper summary with actual content should be at least 500 chars
+            if len(final_markdown) < 500:
+                logger.warning(
+                    f"⚠️ Final summary is too short ({len(final_markdown)} chars) - likely skeleton only"
+                )
+                logger.info("🔄 Replacing with comprehensive fallback summary")
+                final_markdown = create_fallback_summary(workspace_dir, env_vars, workflows_executed)
+            else:
+                logger.info("✅ Final summary has sufficient content")
         else:
             logger.warning("⚠️ final_summary.md not found - creating fallback")
             final_markdown = create_fallback_summary(workspace_dir, env_vars, workflows_executed)
