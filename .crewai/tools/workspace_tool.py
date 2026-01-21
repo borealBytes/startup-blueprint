@@ -6,9 +6,24 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 from crewai.tools import BaseTool
-from pydantic import Field, field_validator
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+
+class WorkspaceToolInput(BaseModel):
+    """Input schema for WorkspaceTool."""
+    
+    operation: str = Field(
+        description="Operation to perform: 'read', 'write', or 'exists'"
+    )
+    filename: str = Field(
+        description="Filename (relative to workspace directory)"
+    )
+    content: Union[str, dict, list, None] = Field(
+        default="",
+        description="Content to write (string, dict, or list). Dicts/lists auto-convert to JSON."
+    )
 
 
 class WorkspaceTool(BaseTool):
@@ -21,6 +36,7 @@ class WorkspaceTool(BaseTool):
         "Available operations: read(filename), write(filename, content), exists(filename). "
         "For JSON data, you can pass a dictionary and it will be auto-stringified."
     )
+    args_schema: type[BaseModel] = WorkspaceToolInput
 
     # Pydantic v2 requires fields to be declared
     # Use absolute path to avoid CWD issues when workflow sets working-directory
@@ -37,7 +53,12 @@ class WorkspaceTool(BaseTool):
         self.trace_dir.mkdir(exist_ok=True)
         logger.info(f"📁 WorkspaceTool initialized: {self.workspace_dir}")
 
-    def _run(self, operation: str, filename: str, content: Union[str, dict, list] = "") -> Any:
+    def _run(
+        self, 
+        operation: str, 
+        filename: str, 
+        content: Union[str, dict, list, None] = None
+    ) -> Any:
         """Execute workspace operation.
 
         Args:
@@ -51,11 +72,15 @@ class WorkspaceTool(BaseTool):
             For 'write': Success message
             For 'exists': Boolean
         """
+        # Handle None content
+        if content is None:
+            content = ""
+        
         # Auto-stringify JSON if dict/list is passed
         if isinstance(content, (dict, list)):
             try:
                 content = json.dumps(content, indent=2)
-                logger.info(f"🔄 Auto-stringified JSON for {filename}")
+                logger.info(f"🔄 Auto-stringified JSON for {filename} ({len(content)} bytes)")
             except Exception as e:
                 logger.error(f"❌ Failed to stringify JSON: {e}")
                 return f"Error: Could not stringify JSON - {e}"
