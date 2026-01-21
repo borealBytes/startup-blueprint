@@ -2,73 +2,108 @@ analyze_pr_and_route:
   description: >
     Analyze the pull request and determine which review workflows to execute.
 
-    YOU HAVE ACCESS TO: - PR metadata from PRMetadataTool (labels, files
-    changed, LOC, commit_sha, repository) - Commit diff via CommitDiffTool
-    (fetch once, cache to workspace) - Commit history via CommitInfoTool (last
-    10 commits)
+    **IMPORTANT**: The GitHub Actions workflow has ALREADY prepared all data files
+    for you in the workspace:
+    - `diff.txt`: Full PR diff (base..head) - ALL code changes in this PR
+    - `commits.json`: All commits in this PR with stats
+    - `diff.json`: PR metadata (number, labels, files changed, additions/deletions)
 
-    YOUR TASKS: 1. Use PRMetadataTool to get PR labels and metadata (no API call
-    - reads from environment)
-       IMPORTANT: This returns commit_sha and repository - save these for steps
-    2-4
+    You do NOT need to fetch data from GitHub - just READ the files.
 
-    2. Use CommitDiffTool(commit_sha=<sha_from_metadata>,
-    repository=<repo_from_metadata>) to fetch the commit diff ONCE
+    YOUR TASKS:
 
-    3. Use WorkspaceTool to save diff to diff.txt for reuse by other agents
-       IMPORTANT: Save the entire diff object as JSON string using json.dumps()
-    before writing to workspace
+    1. **Read PR metadata** using WorkspaceTool:
+       ```
+       WorkspaceTool({"operation": "read", "filename": "diff.json"})
+       ```
+       This gives you: pr_number, commit_sha, labels, files_changed, additions, deletions
 
-    4. Use CommitInfoTool(commit_sha=<sha_from_metadata>,
-    repository=<repo_from_metadata>) to get last 10 commits
+    2. **Read the full PR diff** using WorkspaceTool:
+       ```
+       WorkspaceTool({"operation": "read", "filename": "diff.txt"})
+       ```
+       This is the COMPLETE diff for the entire PR - analyze file types, patterns, etc.
 
-    5. Use WorkspaceTool to save commits to commits.json
+    3. **Read commit history** using WorkspaceTool:
+       ```
+       WorkspaceTool({"operation": "read", "filename": "commits.json"})
+       ```
+       This gives you all commits in the PR with messages, authors, and stats
 
-    6. Analyze changeset complexity (files, LOC, file types)
+    4. **Analyze changeset complexity**:
+       - How many files changed?
+       - How many lines added/removed?
+       - What types of files? (code, tests, config, docs, legal)
+       - Are there security-sensitive changes? (.env, secrets, auth)
 
-    7. Decide which workflows should run based on labels
+    5. **Decide which workflows should run** based on labels and analysis
 
-    8. Suggest additional labels if appropriate
+    6. **Suggest additional labels** if you detect patterns the PR author missed
 
-    9. **ACTION REQUIRED**: Save your decision using WorkspaceTool:
+    7. **Write your decision** using WorkspaceTool:
        ```
        WorkspaceTool({
          "operation": "write",
          "filename": "router_decision.json",
          "content": json.dumps({
-           "workflows": [...],
-           "suggestions": [...],
-           "metadata": {...}
+           "workflows": ["ci-log-analysis", "quick-review"],  # Always include these
+           "suggestions": ["Consider adding crewai:full-review label - 44 files changed"],
+           "metadata": {
+             "pr_number": 4,
+             "commit_sha": "abc123",
+             "files_changed": 44,
+             "lines_added": 4458,
+             "lines_removed": 709,
+             "complexity": "HIGH"
+           },
+           "analysis": {
+             "complexity": "HIGH",
+             "reason": "44 files changed exceeds threshold",
+             "file_types_detected": ["python", "yaml", "markdown"],
+             "security_files_detected": false
+           }
          })
        })
        ```
 
-    WORKFLOW DECISION RULES: - ALWAYS include: ["ci-log-analysis",
-    "quick-review"] (these are the default) - IF "crewai:full-review" label
-    present → add "full-review" to workflows - IF "crewai:legal" label present →
-    add "legal-review" to workflows
+    **WORKFLOW DECISION RULES**:
+    - **ALWAYS include**: `["ci-log-analysis", "quick-review"]` (these are the default baseline)
+    - **IF** "crewai:full-review" label present → add `"full-review"` to workflows array
+    - **IF** "crewai:legal" label present → add `"legal-review"` to workflows array
 
-    SUGGESTION RULES (suggest labels even if not present): - IF files_changed >
-    20 OR lines_changed > 500 → suggest "crewai:full-review" - IF legal files
-    detected (LICENSE, TERMS, PRIVACY, CONTRIBUTING) → suggest "crewai:legal" -
-    IF security-sensitive files (.env, secrets, auth) → warn immediately in
-    suggestions - IF test files modified without code changes → suggest testing
-    review
+    **SUGGESTION RULES** (suggest labels even if not present):
+    - **IF** files_changed > 20 **OR** lines_changed > 500 → suggest `"crewai:full-review"`
+    - **IF** legal files detected (LICENSE, TERMS, PRIVACY, CONTRIBUTING) → suggest `"crewai:legal"`
+    - **IF** security-sensitive files (.env*, *secret*, *key*, auth*, credential*) → **warn immediately** in suggestions
+    - **IF** test files modified without code changes → suggest reviewing test coverage
+    - **IF** only documentation changed → note that quick review may be sufficient
 
-    FILE TYPE DETECTION: - Legal: LICENSE*, TERMS*, PRIVACY*, CONTRIBUTING*,
-    COPYRIGHT* - Security: .env*, *secret*, *key*, auth*, credential* - Config:
-    *.yml, *.yaml, *.json, *.toml, Dockerfile* - Documentation: *.md, docs/*,
-    README*
+    **FILE TYPE DETECTION** (scan diff.txt for these patterns):
+    - **Legal**: LICENSE*, TERMS*, PRIVACY*, CONTRIBUTING*, COPYRIGHT*
+    - **Security**: .env*, *secret*, *key*, auth*, credential*, *password*
+    - **Config**: *.yml, *.yaml, *.json, *.toml, Dockerfile*, docker-compose*
+    - **Documentation**: *.md, docs/*, README*
+    - **Tests**: *test*, *spec*, __tests__/*, tests/*
+    - **Infrastructure**: .github/*, terraform/*, k8s/*, kubernetes/*
 
-    CRITICAL: You MUST call WorkspaceTool with operation="write" to save the
-    JSON. DO NOT just return JSON as text - it must be written to
-    router_decision.json file.
+    **COMPLEXITY ASSESSMENT**:
+    - **LOW**: < 5 files, < 100 lines changed
+    - **MEDIUM**: 5-20 files OR 100-500 lines changed
+    - **HIGH**: > 20 files OR > 500 lines changed
+
+    **CRITICAL REQUIREMENTS**:
+    - You MUST call WorkspaceTool with operation="write" to save router_decision.json
+    - DO NOT attempt to fetch data from GitHub APIs - all data is pre-prepared
+    - DO NOT just return JSON as text - it must be written to the file
+    - The diff.txt file contains the FULL PR diff, not just the latest commit
 
   expected_output: >
     Complete routing decision WRITTEN to router_decision.json file using
-    WorkspaceTool with: - List of workflows to execute - Intelligent suggestions
-    for additional labels - PR metadata and analysis - Diff and commits cached
-    to workspace for other agents
+    WorkspaceTool with:
+    - List of workflows to execute (always include ci-log-analysis and quick-review)
+    - Intelligent suggestions for additional labels based on code analysis
+    - PR metadata and complexity assessment
+    - Analysis reasoning explaining why certain workflows were selected
 
-    The file must exist in workspace after task completion. Verify with
-    operation="read" if needed.
+    The router_decision.json file must exist in workspace after task completion.
+    Other agents will read this file to understand what workflows ran.
