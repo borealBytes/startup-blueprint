@@ -1,93 +1,185 @@
 synthesize_summary:
   description: >
-    Synthesize all review outputs into a final GitHub-flavored markdown summary
-    with DETAILED FINDINGS extracted from workspace JSON files.
+    **CRITICAL MISSION**: Create a comprehensive GitHub-flavored markdown summary by reading ALL workspace files and synthesizing their content.
 
-    **YOUR TASK**: Read workspace files and create a comprehensive summary that
-    shows WHAT was found, not just status.
+    ## STEP-BY-STEP WORKFLOW
 
-    WORKSPACE FILES TO READ (use WorkspaceTool): 1. `router_decision.json` -
-    Router suggestions 2. `ci_summary.json` - CI analysis (REQUIRED) - Extract
-    critical_errors array 3. `quick_review.json` - Quick code review - Extract
-    issues array 4. `full_review.json` - Full technical review - Extract
-    architecture, security, testing arrays 5. `security_review.json` - Security
-    scan - Extract critical_vulnerabilities array 6. `diff.txt` - Commit diff
-    (if available)
+    ### Step 1: Read Router Decision
+    Use WorkspaceTool(operation="read", filename="router_decision.json")
+    Extract: workflows executed, suggestions
 
-    **CRITICAL**: Don't just say "Status: failure" - extract the ACTUAL
-    FINDINGS!
+    ### Step 2: Read CI Analysis (REQUIRED)
+    Use WorkspaceTool(operation="read", filename="ci_summary.json")
+    Extract:
+    - status (success/failure)
+    - critical_errors array (type, message, severity, fix_suggestion)
+    - warnings array
+    - summary text
+    - jobs_checked array
 
-    EXAMPLE WORKFLOW: ``` Step 1: Read ci_summary.json using WorkspaceTool Step
-    2: Extract critical_errors array - get message, severity, fix_suggestion
-    Step 3: Read full_review.json Step 4: Extract architecture array - get
-    title, description, suggestion Step 5: Extract security array - get title,
-    description, remediation Step 6: Format top 3-5 findings from each category
-    Step 7: Write final_summary.md with DETAILED findings, not just status ```
+    ### Step 3: Read Quick Review
+    Use WorkspaceTool(operation="read", filename="quick_review.json")
+    If exists, extract:
+    - status
+    - key findings
+    - recommendations
+    If missing, note "Did not run"
 
-    GITHUB MARKDOWN FORMAT (DO NOT wrap in code blocks!):
+    ### Step 4: Read Full Review (if available)
+    Use WorkspaceTool(operation="read", filename="full_review.json")
+    If exists, extract:
+    - architecture issues array (category, severity, title, description, suggestion)
+    - security issues array
+    - performance issues array
+    - testing issues array
+    - maintainability issues array
+    - summary text
+    If missing, note "Did not run"
+
+    ### Step 5: Read Security Review (if available)
+    Use WorkspaceTool(operation="read", filename="security_review.json")
+    If exists, extract:
+    - critical_vulnerabilities array
+    - warnings array
+    - recommendations array
+    - summary text
+    If missing, skip section
+
+    ### Step 6: Synthesize Markdown
+    Create comprehensive summary following the EXACT format below.
+
+    ### Step 7: Write Output
+    Use WorkspaceTool(operation="write", filename="final_summary.md", content=<your complete markdown>)
+
+    ## REQUIRED OUTPUT FORMAT
+
+    (DO NOT wrap in code blocks - raw markdown only!)
 
     ## ⚠️ Review Summary
 
-    **Quick Take**: [One sentence summary with key numbers - e.g., "3 critical
-    errors, 5 security vulnerabilities, 4 architecture issues"]
+    Review completed with [STATUS]. [One-sentence summary of key findings].
 
-    **PR**: #{{pr_number}} **Commit**: `{{commit_sha}}` **Repository**:
-    {{repository}} **Workflows Executed**: {{count}} workflows
+    **PR**: #{{pr_number}}
+    **Commit**: `{{commit_sha}}`
+    **Repository**: {{repository}}
+    **Workflows Executed**: {{count}} workflows ([list workflow names from router_decision.json])
 
     ---
 
-    ### ✅ CI Analysis **Status**: failure
+    ### ✅ CI Analysis
 
-    <details> <summary>🔴 Critical Errors</summary>
+    **Status**: [success/failure from ci_summary.json]
 
-    **Type Error in router_label_handler**:
-      - Missing import statement for Label type
-      - 💡 **Fix**: Add `from types import Label` at top of file
+    [IF FAILURES EXIST:]
+    #### 🚨 Critical Errors
+    - **[error.type]**: [error.message] (Severity: [error.severity])
+      - 💡 Fix: [error.fix_suggestion]
 
-    **Build Failure in crewai_integration**:
-      - Module 'crewai.agents' has no attribute 'WorkflowAgent'
-      - 💡 **Fix**: Update to use 'Agent' class from crewai v0.2
+    [REPEAT for each critical error]
 
-    </details>
+    [IF WARNINGS EXIST:]
+    #### ⚠️ Warnings
+    - [warning details]
 
-    ### 🔍 Full Review
+    **Summary**: [ci_summary.summary]
 
-    <details> <summary>🏗️ Critical Architecture Issues</summary>
+    ---
 
-    **High cyclomatic complexity in router-based review system**
-      - Large commit (3221 additions, 30 files) with label-driven workflows
-        suggests tightly coupled routing logic.
-      - 💡 **Suggestion**: Implement clean architecture with clear boundaries:
-        1) Router layer, 2) Review orchestration layer, 3) Agent execution layer
+    ### ⚡ Quick Review
 
-    </details>
+    [IF quick_review.json exists:]
+    **Status**: [status]
 
-    <details> <summary>🔒 Security Vulnerabilities</summary>
+    **Key Findings**:
+    - [finding 1]
+    - [finding 2]
+    - [finding 3]
 
-    🔴 **Label injection vulnerability in router workflow selection**
-      - Label-driven workflows without proper sanitization allow malicious
-        label injection leading to arbitrary code execution.
-      - 💡 **Fix**: Implement strict label validation with whitelist
+    **Recommendations**:
+    - [recommendation 1]
+    - [recommendation 2]
 
-    </details>
+    [IF missing:]
+    Status: Did not run
+
+    ---
+
+    ### 🔍 Full Technical Review
+
+    [IF full_review.json exists:]
+
+    #### Architecture Issues ([count])
+    - **[severity]** - [title]: [description]
+      - 💡 [suggestion]
+
+    #### Security Vulnerabilities ([count])
+    - **[severity]** - [title]: [description]
+      - 💡 [suggestion]
+
+    #### Performance Concerns ([count])
+    - **[severity]** - [title]: [description]
+
+    #### Testing Gaps ([count])
+    - **[severity]** - [title]: [description]
+
+    **Summary**: [full_review.summary]
+
+    [IF missing:]
+    Status: Did not run (no `crewai:full-review` label)
+
+    ---
+
+    ### 🔐 Security Review
+
+    [IF security_review.json exists:]
+
+    #### Critical Vulnerabilities ([count])
+    - **[category]** - [title]: [description]
+      - 💡 Remediation: [remediation]
+
+    **Summary**: [security_review.summary]
+
+    [IF missing:]
+    (Security review not requested)
+
+    ---
+
+    ### 🤖 Router Suggestions
+
+    [IF router_decision.suggestions exists and not empty:]
+    - [suggestion 1]
+    - [suggestion 2]
+
+    [IF empty:]
+    No additional suggestions from router.
 
     ---
 
     *🤖 Generated by CrewAI Router System | ⏱️ {{timestamp}}*
 
-    CRITICAL RULES: 1. DO NOT wrap output in ```markdown blocks 2. Extract
-    ACTUAL FINDINGS - titles, descriptions, fix suggestions 3. Use ## for main
-    headings, ### for subheadings 4. Use <details>/<summary> for collapsible
-    sections 5. Top 3-5 findings per category 6. If a file is missing, say "Did
-    not run" - don't error 7. Focus on ACTIONABLE information, not generic
-    status
+    ## CRITICAL RULES
+
+    1. **MUST READ ALL FILES**: Use WorkspaceTool to read every JSON file mentioned above
+    2. **MUST INCLUDE CONTENT**: Don't just say "CI failed" - include the actual error messages, suggestions, etc.
+    3. **NO CODE BLOCKS**: Output raw markdown, not wrapped in ```markdown
+    4. **BE SPECIFIC**: Extract actual data from JSON files, don't paraphrase or summarize too much
+    5. **HANDLE MISSING FILES**: If a file doesn't exist, note "Did not run" but continue
+    6. **LIMIT LENGTH**: Aim for 50-100 lines total, but don't omit critical details
+    7. **PRESERVE SEVERITY**: Always include severity levels (critical/high/medium/warning)
+    8. **INCLUDE FIX SUGGESTIONS**: These are the most valuable part for developers
 
   expected_output: >
-    GitHub-flavored markdown summary written to final_summary.md via
-    WorkspaceTool. Should include: - Quick take with counts - Detailed findings
-    from ci_summary.json (critical_errors array) - Detailed findings from
-    full_review.json (architecture, security, testing) - Top 3-5 most critical
-    issues with fix suggestions - Collapsible sections for readability -
-    Actionable recommendations, not just "Status: failure"
+    A comprehensive GitHub-flavored markdown summary (50-100 lines) written to final_summary.md via WorkspaceTool.
+    
+    MUST include:
+    - Header with PR metadata
+    - CI Analysis section with actual errors/warnings from ci_summary.json
+    - Quick Review section with actual findings from quick_review.json
+    - Full Review section with categorized issues from full_review.json (if exists)
+    - Security Review section with vulnerabilities from security_review.json (if exists)
+    - Router suggestions section
+    - Footer with timestamp
+    
+    The summary should be actionable and detailed, not just a status update. Include actual error messages, fix suggestions, and severity levels.
 
   output_file: final_summary.md
