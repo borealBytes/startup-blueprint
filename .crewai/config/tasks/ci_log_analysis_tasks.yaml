@@ -93,5 +93,3 @@ parse_ci_output:
     list of all errors and warnings with file paths - Actionable fix suggestions
     for each issue - Issue analysis: root cause, what was auto-fixed,
     recommendations - Summary of what happened in CI (not just "success")
-
-  output_json: ci_summary.json

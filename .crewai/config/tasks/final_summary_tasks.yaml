@@ -61,7 +61,7 @@ synthesize_summary:
 
     ---
 
-    ### ✅ CI Analysis **Status**: {emoji} {status} **Summary**: {summary text}
+    ### ✅ CI Analysis **Status**: {status_emoji} {status} **Summary**: {summary text}
 
     <details> <summary><b>🔍 View CI Issues</b></summary>
 
@@ -151,5 +151,3 @@ synthesize_summary:
     displayed in collapsible <details> sections with title, file path, line
     number, description, and fix suggestion for EACH finding. Critical issues
     expanded by default, warnings/suggestions collapsed.
-
-  output_file: final_summary.md

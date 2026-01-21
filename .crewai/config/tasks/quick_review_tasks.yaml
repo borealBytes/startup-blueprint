@@ -1,88 +1,100 @@
 quick_code_review:
   description: >
-    Perform a fast code quality check on the diff.
+    **TASK**: Perform fast code quality review focusing on common issues and
+    best practices.
 
-    INPUTS AVAILABLE: - Workspace diff from diff.txt (cached by router) - CI
-    summary from ci_summary.json (what already failed) - Workspace commits from
-    commits.json (commit context)
+    **INPUTS AVAILABLE**: - diff.txt (full PR diff) - commits.json (commit
+    history) - diff.json (PR metadata)
 
-    YOUR TASKS: 1. Use WorkspaceTool to read diff.txt
+    **YOUR ANALYSIS STEPS**:
 
-    2. Use WorkspaceTool to read ci_summary.json for context
+    1. **Read PR diff** using WorkspaceTool:
+       ```
+       WorkspaceTool(operation="read", filename="diff.txt", content="")
+       ```
+       Parse the unified diff format to extract file changes
 
-    3. Use WorkspaceTool to read commits.json for context
+    2. **Analyze each changed file** for:
 
-    4. Scan for common code smells:
-       - Long functions (>50 lines)
-       - Deep nesting (>3 levels)
-       - Magic numbers (hardcoded constants)
+       **Code Quality**:
+       - Overly complex logic (nested loops, long methods)
+       - Magic numbers/strings without constants
        - Duplicate code patterns
-       - TODO/FIXME comments
-       - Poor variable naming
        - Missing error handling
-       - Console.log/print statements
+       - Poor naming conventions
 
-    5. Identify potential bugs:
-       - Off-by-one errors
-       - Null/undefined checks
-       - Resource leaks (unclosed files/connections)
-       - Race conditions (async/await issues)
+       **Best Practices**:
+       - Missing documentation for public APIs
+       - Hardcoded credentials or secrets
+       - Console.log/print statements left in code
+       - TODO/FIXME comments without tracking
+       - Missing input validation
 
-    6. Check for best practices:
-       - DRY (Don't Repeat Yourself)
-       - Single Responsibility Principle
-       - Proper error propagation
-       - Consistent code style
+       **Performance Red Flags**:
+       - N+1 query patterns
+       - Unnecessary loops or iterations
+       - Missing database indexes
+       - Inefficient data structures
 
-    7. **RETURN JSON OUTPUT**: Your output will be automatically saved to
-    quick_review.json.
-       Return this exact structure:
+       **Security Concerns**:
+       - SQL injection vulnerabilities
+       - Unvalidated user input
+       - Exposed sensitive data
+       - Missing authentication checks
+
+    3. **Categorize findings** by severity:
+       - 🔴 **CRITICAL**: Security vulnerabilities, data loss risks, breaking
+    changes
+       - 🟡 **WARNING**: Code quality issues, missing docs, potential bugs
+       - 🔵 **INFO**: Style suggestions, minor improvements, best practices
+
+    4. **Return JSON output** in this EXACT structure:
        {
+         "status": "warning",  # success, warning, or critical
+         "passed": false,
+         "summary": "Found 2 critical issues and 5 warnings",
          "critical": [
            {
-             "title": "Issue title",
-             "file": "path/to/file.js",
+             "title": "SQL Injection Vulnerability",
+             "file": "api/users.py",
              "line": "45",
-             "description": "Detailed description",
-             "fix_suggestion": "How to fix it",
-             "severity": "high"
+             "description": "User input concatenated directly into SQL query
+    without sanitization",
+             "fix_suggestion": "Use parameterized queries or ORM instead of
+    string concatenation"
            }
          ],
          "warnings": [
            {
-             "title": "Warning title",
-             "file": "path/to/file.js",
-             "line": "20",
-             "description": "What's wrong",
-             "fix_suggestion": "How to improve",
-             "severity": "medium"
+             "title": "Missing Error Handling",
+             "file": "utils/parser.ts",
+             "line": "128",
+             "description": "File read operation without try-catch block",
+             "fix_suggestion": "Add try-catch to handle file not found or
+    permission errors"
            }
          ],
          "info": [
            {
-             "title": "Suggestion title",
-             "file": "path/to/file.js",
-             "line": "10",
-             "description": "Best practice suggestion",
-             "fix_suggestion": "How to implement",
-             "severity": "info"
+             "title": "Magic Number",
+             "file": "config/settings.py",
+             "line": "12",
+             "description": "Hardcoded timeout value of 3000ms",
+             "fix_suggestion": "Extract to named constant:
+    REQUEST_TIMEOUT_MS = 3000"
            }
          ],
-         "summary": "Overall summary of findings"
+         "files_reviewed": 5,
+         "total_findings": 8
        }
 
-    IMPORTANT: - Focus on NEW code (lines with + in diff) - Skip CI errors
-    already in ci_summary.json - Be constructive and specific - Suggest fixes,
-    not just problems - Prioritize high-impact issues
-
-    CATEGORIZATION: - Critical: Potential bugs, security issues, broken
-    functionality - Warning: Code smells, maintainability issues, style
-    violations - Info: Suggestions for improvement, best practices
+    **IMPORTANT**:
+    - Focus on NEW/CHANGED code only (lines starting with `+` in diff)
+    - Ignore formatting/style if CI handles it
+    - Provide specific line numbers from the diff
+    - Every finding MUST have a concrete fix suggestion
+    - Be concise - this is a "quick" review
 
   expected_output: >
-    Complete code review in JSON format with: - Critical issues (potential bugs,
-    security) - Warnings (code smells, maintainability) - Info (suggestions,
-    best practices) - Overall summary with key findings - All issues with
-    specific file, line, and fix suggestions
-
-  output_json: quick_review.json
+    JSON object with categorized findings (critical/warning/info) including file
+    paths, line numbers, issue descriptions, and specific fix suggestions.
