@@ -635,7 +635,9 @@ def main():
                     f"⚠️ Final summary is too short ({len(final_markdown)} chars) - likely skeleton only"
                 )
                 logger.info("🔄 Replacing with comprehensive fallback summary")
-                final_markdown = create_fallback_summary(workspace_dir, env_vars, workflows_executed)
+                final_markdown = create_fallback_summary(
+                    workspace_dir, env_vars, workflows_executed
+                )
             else:
                 logger.info("✅ Final summary has sufficient content")
         else:
