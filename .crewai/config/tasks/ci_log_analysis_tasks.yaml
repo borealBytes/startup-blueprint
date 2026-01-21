@@ -2,59 +2,62 @@ parse_ci_output:
   description: >
     Parse CI outputs from the core-ci job and identify errors/warnings.
 
-    INPUTS AVAILABLE: - CI job status from CIOutputParserTool (reads from
-    environment) - Workspace diff from diff.txt (what files changed) - Workspace
-    commits from commits.json (commit context)
+    INPUTS AVAILABLE:
+    - CI job status from CIOutputParserTool (reads from environment)
+    - Workspace diff from diff.txt (what files changed)
+    - Workspace commits from commits.json (commit context)
 
-    YOUR TASKS: 1. Use CIOutputParserTool to get CI job status and outputs 2.
-    Use WorkspaceTool to read diff.txt for context 3. Parse and categorize CI
-    issues by severity:
+    YOUR TASKS:
+    1. Use CIOutputParserTool to get CI job status and outputs
+    
+    2. Use WorkspaceTool to read diff.txt for context
+    
+    3. Parse and categorize CI issues by severity:
        - CRITICAL: Build failures, type errors, syntax errors (blocks merge)
        - WARNING: Lint warnings, format issues, style violations (should fix)
        - INFO: Documentation links, minor suggestions (nice to have)
-    4. For each issue, identify the root cause in the diff 5. Generate
-    actionable fix suggestions
+    
+    4. For each issue, identify the root cause in the diff
+    
+    5. Generate actionable fix suggestions
+    
+    6. **ACTION REQUIRED**: Save analysis using WorkspaceTool:
+       ```
+       WorkspaceTool({
+         "operation": "write",
+         "filename": "ci_summary.json",
+         "content": json.dumps({
+           "status": "success",
+           "passed": true,
+           "critical_errors": [...],
+           "warnings": [...],
+           "summary": "..."
+         })
+       })
+       ```
 
-    IMPORTANT: - If CI passed, still document what was checked (format, lint,
-    links) - If CI failed, extract specific error messages (use RAG if logs are
-    large) - Match errors to files in the diff for correlation - Keep context
-    minimal - don't dump full logs
+    IMPORTANT:
+    - If CI passed, still document what was checked (format, lint, links)
+    - If CI failed, extract specific error messages (use RAG if logs are large)
+    - Match errors to files in the diff for correlation
+    - Keep context minimal - don't dump full logs
 
-    ERROR CATEGORIZATION: - Format errors (Prettier, Black) → severity="warning"
-    - Lint errors (ESLint, Ruff) → severity="warning" or "critical" if many -
-    Type errors (TypeScript, mypy) → severity="critical" - Link check failures →
-    severity="info" - Build failures → severity="critical"
+    ERROR CATEGORIZATION:
+    - Format errors (Prettier, Black) → severity="warning"
+    - Lint errors (ESLint, Ruff) → severity="warning" or "critical" if many
+    - Type errors (TypeScript, mypy) → severity="critical"
+    - Link check failures → severity="info"
+    - Build failures → severity="critical"
 
-    OUTPUT FORMAT: Use WorkspaceTool to write JSON to ci_summary.json: {
-      "status": "success" | "warning" | "failure",
-      "passed": true | false,
-      "critical_errors": [
-        {
-          "type": "type_error",
-          "file": "src/utils.ts",
-          "line": 42,
-          "message": "Type 'string' is not assignable to type 'number'",
-          "severity": "critical",
-          "fix_suggestion": "Change type annotation or convert value"
-        }
-      ],
-      "warnings": [
-        {
-          "type": "lint",
-          "file": "src/api.ts",
-          "line": 15,
-          "message": "Unused variable 'temp'",
-          "severity": "warning",
-          "fix_suggestion": "Remove unused variable"
-        }
-      ],
-      "info": [],
-      "summary": "2 lint warnings, 0 critical errors",
-      "jobs_checked": ["format", "lint", "link-check"]
-    }
+    CRITICAL: You MUST call WorkspaceTool with operation="write" to save the JSON.
+    DO NOT just return JSON as text - it must be written to ci_summary.json file.
 
   expected_output: >
-    Complete CI analysis saved to ci_summary.json with: - Overall CI status
-    (success/warning/failure) - Categorized list of all errors and warnings -
-    Actionable fix suggestions for each issue - Root cause analysis correlated
-    with changed files - Summary of what CI jobs were checked
+    Complete CI analysis WRITTEN to ci_summary.json file using WorkspaceTool with:
+    - Overall CI status (success/warning/failure)
+    - Categorized list of all errors and warnings
+    - Actionable fix suggestions for each issue
+    - Root cause analysis correlated with changed files
+    - Summary of what CI jobs were checked
+    
+    The file must exist in workspace after task completion.
