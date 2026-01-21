@@ -280,24 +280,24 @@ def run_final_summary(env_vars, workflows_executed):
 
 def format_finding_item(finding, severity_emoji):
     """Format a single finding item with proper structure.
-    
+
     Args:
         finding: Finding dictionary
         severity_emoji: Emoji to use for severity
-        
+
     Returns:
         str: Formatted markdown for the finding
     """
     if not isinstance(finding, dict):
         return f"- {severity_emoji} {str(finding)}"
-    
+
     lines = []
     title = finding.get("title", "Unknown issue")
     file_path = finding.get("file", "")
     line_num = finding.get("line", "")
     description = finding.get("description", "")
     fix_suggestion = finding.get("fix_suggestion", "")
-    
+
     # Title with file location
     if file_path:
         if line_num:
@@ -306,15 +306,15 @@ def format_finding_item(finding, severity_emoji):
             lines.append(f"- {severity_emoji} **{title}** `{file_path}`")
     else:
         lines.append(f"- {severity_emoji} **{title}**")
-    
+
     # Description (indented)
     if description:
         lines.append(f"  - {description}")
-    
+
     # Fix suggestion (indented with special icon)
     if fix_suggestion:
         lines.append(f"  - 💡 **Fix**: {fix_suggestion}")
-    
+
     return "\n".join(lines)
 
 
@@ -355,12 +355,12 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             passed = ci_data.get("passed", False)
             status_emoji = "✅" if passed else "❌"
             summary_parts.append(f"**Status**: {status_emoji} {status}")
-            
+
             # Get what was checked
             checks_performed = ci_data.get("checks_performed", [])
             if checks_performed:
                 summary_parts.append(f"**Checks Performed**: {', '.join(checks_performed)}")
-            
+
             summary_parts.append(f"**Summary**: {ci_data.get('summary', 'No summary available')}")
 
             # Extract issue analysis if available
@@ -378,32 +378,40 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             # Add critical errors if present
             critical_errors = ci_data.get("critical_errors", [])
             warnings = ci_data.get("warnings", [])
-            
+
             if critical_errors or warnings:
                 summary_parts.append("")
                 summary_parts.append("<details>")
                 summary_parts.append("<summary><b>🔍 View CI Issues</b></summary>")
                 summary_parts.append("")
-                
+
                 if critical_errors:
                     summary_parts.append("**Critical Errors**:")
                     for idx, error in enumerate(critical_errors, 1):
-                        error_type = error.get("type", "Error") if isinstance(error, dict) else "Error"
+                        error_type = (
+                            error.get("type", "Error") if isinstance(error, dict) else "Error"
+                        )
                         error_msg = (
-                            error.get("message", str(error)) if isinstance(error, dict) else str(error)
+                            error.get("message", str(error))
+                            if isinstance(error, dict)
+                            else str(error)
                         )
                         summary_parts.append(f"{idx}. **{error_type}**: {error_msg}")
                         if isinstance(error, dict) and error.get("fix_suggestion"):
                             summary_parts.append(f"   - 💡 **Fix**: {error['fix_suggestion']}")
                     summary_parts.append("")
-                
+
                 if warnings:
                     summary_parts.append("**Warnings**:")
                     for idx, warning in enumerate(warnings, 1):
-                        warning_msg = warning.get("message", str(warning)) if isinstance(warning, dict) else str(warning)
+                        warning_msg = (
+                            warning.get("message", str(warning))
+                            if isinstance(warning, dict)
+                            else str(warning)
+                        )
                         summary_parts.append(f"{idx}. {warning_msg}")
                     summary_parts.append("")
-                
+
                 summary_parts.append("</details>")
 
             summary_parts.append("")
@@ -452,7 +460,11 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             if critical_issues:
                 summary_parts.append("")
                 summary_parts.append("<details open>")
-                summary_parts.append("<summary><b>🔴 Critical Issues ({count})</b></summary>".replace("{count}", str(critical_count)))
+                summary_parts.append(
+                    "<summary><b>🔴 Critical Issues ({count})</b></summary>".replace(
+                        "{count}", str(critical_count)
+                    )
+                )
                 summary_parts.append("")
                 for issue in critical_issues:
                     summary_parts.append(format_finding_item(issue, "🔴"))
@@ -463,7 +475,11 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             if warnings:
                 summary_parts.append("")
                 summary_parts.append("<details>")
-                summary_parts.append("<summary><b>🟡 Warnings ({count})</b></summary>".replace("{count}", str(warning_count)))
+                summary_parts.append(
+                    "<summary><b>🟡 Warnings ({count})</b></summary>".replace(
+                        "{count}", str(warning_count)
+                    )
+                )
                 summary_parts.append("")
                 for warning in warnings:
                     summary_parts.append(format_finding_item(warning, "🟡"))
@@ -474,7 +490,11 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             if suggestions:
                 summary_parts.append("")
                 summary_parts.append("<details>")
-                summary_parts.append("<summary><b>🔵 Suggestions ({count})</b></summary>".replace("{count}", str(info_count)))
+                summary_parts.append(
+                    "<summary><b>🔵 Suggestions ({count})</b></summary>".replace(
+                        "{count}", str(info_count)
+                    )
+                )
                 summary_parts.append("")
                 for suggestion in suggestions:
                     summary_parts.append(format_finding_item(suggestion, "🔵"))
