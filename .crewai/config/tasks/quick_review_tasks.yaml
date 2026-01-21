@@ -1,12 +1,18 @@
 quick_code_review:
   description: >
-    **TASK**: Perform fast code quality review focusing on common issues and
-    best practices.
+    **CRITICAL TASK**: Perform fast code quality review AND write findings to
+    quick_review.json using WorkspaceTool.
 
-    **INPUTS AVAILABLE**: - diff.txt (full PR diff) - commits.json (commit
-    history) - diff.json (PR metadata)
+    **YOU MUST COMPLETE BOTH STEPS**:
+    1. Analyze the code changes
+    2. **WRITE the output to quick_review.json using WorkspaceTool**
 
-    **YOUR ANALYSIS STEPS**:
+    **INPUTS AVAILABLE**: 
+    - diff.txt (full PR diff) 
+    - commits.json (commit history) 
+    - diff.json (PR metadata)
+
+    **STEP 1: Read and Analyze**
 
     1. **Read PR diff** using WorkspaceTool:
        ```
@@ -48,51 +54,86 @@ quick_code_review:
        - 🟡 **WARNING**: Code quality issues, missing docs, potential bugs
        - 🔵 **INFO**: Style suggestions, minor improvements, best practices
 
-    4. **Return JSON output** in this EXACT structure:
-       {
-         "status": "warning",  # success, warning, or critical
-         "passed": false,
-         "summary": "Found 2 critical issues and 5 warnings",
-         "critical": [
-           {
-             "title": "SQL Injection Vulnerability",
-             "file": "api/users.py",
-             "line": "45",
-             "description": "User input concatenated directly into SQL query
-    without sanitization",
-             "fix_suggestion": "Use parameterized queries or ORM instead of
-    string concatenation"
-           }
-         ],
-         "warnings": [
-           {
-             "title": "Missing Error Handling",
-             "file": "utils/parser.ts",
-             "line": "128",
-             "description": "File read operation without try-catch block",
-             "fix_suggestion": "Add try-catch to handle file not found or
-    permission errors"
-           }
-         ],
-         "info": [
-           {
-             "title": "Magic Number",
-             "file": "config/settings.py",
-             "line": "12",
-             "description": "Hardcoded timeout value of 3000ms",
-             "fix_suggestion": "Extract to named constant:
-    REQUEST_TIMEOUT_MS = 3000"
-           }
-         ],
-         "files_reviewed": 5,
-         "total_findings": 8
-       }
+    **STEP 2: WRITE OUTPUT FILE (MANDATORY)**
 
-    **IMPORTANT**: - Focus on NEW/CHANGED code only (lines starting with `+` in
-    diff) - Ignore formatting/style if CI handles it - Provide specific line
-    numbers from the diff - Every finding MUST have a concrete fix suggestion -
-    Be concise - this is a "quick" review
+    After analyzing, you **MUST** call WorkspaceTool to write your findings:
+
+    ```
+    WorkspaceTool(
+      operation="write",
+      filename="quick_review.json",
+      content={
+        "status": "warning",
+        "passed": false,
+        "summary": "Found 2 critical issues and 5 warnings",
+        "critical": [
+          {
+            "title": "SQL Injection Vulnerability",
+            "file": "api/users.py",
+            "line": "45",
+            "description": "User input concatenated directly into SQL query without sanitization",
+            "fix_suggestion": "Use parameterized queries or ORM instead of string concatenation"
+          }
+        ],
+        "warnings": [...],
+        "info": [...],
+        "files_reviewed": 5,
+        "total_findings": 8
+      }
+    )
+    ```
+
+    **IF NO ISSUES FOUND**, still write the file:
+    ```
+    WorkspaceTool(
+      operation="write",
+      filename="quick_review.json",
+      content={
+        "status": "success",
+        "passed": true,
+        "summary": "No issues found",
+        "critical": [],
+        "warnings": [],
+        "info": [],
+        "files_reviewed": 5,
+        "total_findings": 0
+      }
+    )
+    ```
+
+    **OUTPUT FORMAT REQUIREMENTS**:
+    - status: "success", "warning", or "critical"
+    - passed: true/false
+    - summary: Brief text summary
+    - critical: Array of critical issues (may be empty)
+    - warnings: Array of warnings (may be empty)
+    - info: Array of suggestions (may be empty)
+    - files_reviewed: Number of files analyzed
+    - total_findings: Total count of all findings
+
+    **Each finding object must have**:
+    - title: Short title
+    - file: File path
+    - line: Line number (string)
+    - description: What's wrong
+    - fix_suggestion: How to fix it
+
+    **VALIDATION BEFORE COMPLETION**:
+    - [ ] Did you call WorkspaceTool with operation="write"?
+    - [ ] Did you set filename="quick_review.json"?
+    - [ ] Does content have all required fields?
+    - [ ] Are arrays (critical, warnings, info) present even if empty?
+
+    **IMPORTANT**: 
+    - Focus on NEW/CHANGED code only (lines starting with `+` in diff)
+    - Ignore formatting/style if CI handles it
+    - Provide specific line numbers from the diff
+    - Every finding MUST have a concrete fix suggestion
+    - Be concise - this is a "quick" review
+    - **YOU MUST WRITE THE FILE - do not just return JSON as text**
 
   expected_output: >
-    JSON object with categorized findings (critical/warning/info) including file
-    paths, line numbers, issue descriptions, and specific fix suggestions.
+    Confirmation that quick_review.json has been written to workspace using
+    WorkspaceTool. The file must contain a JSON object with categorized findings
+    (critical/warning/info) including file paths, line numbers, issue
+    descriptions, and specific fix suggestions.
