@@ -48,12 +48,12 @@ class QuickReviewCrew:
     @task
     def quick_code_review(self) -> Task:
         """Quick code review task."""
-        # Use output_file (not output_json) - CrewAI writes string content to file
-        # Agent returns JSON as string, CrewAI writes it to quick_review.json
+        # Agent writes output directly using WorkspaceTool
+        # No output_file needed - agent calls WorkspaceTool(operation="write", filename="quick_review.json")
         return Task(
             config=self.tasks_config["quick_code_review"],
             agent=self.quick_reviewer(),
-            output_file="quick_review.json",  # Direct file write
+            # output_file removed - agent writes directly via WorkspaceTool
         )
 
     @crew
