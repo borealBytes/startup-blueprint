@@ -883,7 +883,7 @@ jobs:
           # Check for .crewai/
           if [ -d ".crewai" ] && [ -f ".crewai/pyproject.toml" ]; then
             echo "✅ Found .crewai/ directory with pyproject.toml"
-            TEST_JOBS=$(echo "$TEST_JOBS" | jq '. + [{"name": "crewai", "path": ".crewai", "workflow": "test-crewai-reusable.yml"}]')
+            TEST_JOBS=$(echo "$TEST_JOBS" | jq -c '. + [{"name": "crewai", "path": ".crewai", "workflow": "test-crewai-reusable.yml"}]')
           fi
           
           # Check for apps/*/ directories with package.json or go.mod or pyproject.toml
@@ -894,19 +894,19 @@ jobs:
                 
                 if [ -f "${app_dir}package.json" ]; then
                   echo "✅ Found Node.js app: $APP_NAME"
-                  TEST_JOBS=$(echo "$TEST_JOBS" | jq ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-node-reusable.yml\"}]")
+                  TEST_JOBS=$(echo "$TEST_JOBS" | jq -c ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-node-reusable.yml\"}]")
                 elif [ -f "${app_dir}go.mod" ]; then
                   echo "✅ Found Go app: $APP_NAME"
-                  TEST_JOBS=$(echo "$TEST_JOBS" | jq ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-go-reusable.yml\"}]")
+                  TEST_JOBS=$(echo "$TEST_JOBS" | jq -c ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-go-reusable.yml\"}]")
                 elif [ -f "${app_dir}pyproject.toml" ]; then
                   echo "✅ Found Python app: $APP_NAME"
-                  TEST_JOBS=$(echo "$TEST_JOBS" | jq ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-python-reusable.yml\"}]")
+                  TEST_JOBS=$(echo "$TEST_JOBS" | jq -c ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-python-reusable.yml\"}]")
                 fi
               fi
             done
           fi
           
-          # Output matrix
+          # Output matrix (compact JSON, no whitespace)
           echo "matrix={\"include\":$TEST_JOBS}" >> $GITHUB_OUTPUT
           
           # Check if we have any tests
