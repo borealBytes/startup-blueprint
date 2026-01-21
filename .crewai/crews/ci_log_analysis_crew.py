@@ -16,7 +16,7 @@ class CILogAnalysisCrew:
     """CI log analysis crew."""
 
     agents_config = "../config/agents.yaml"
-    tasks_config = "../config/tasks/ci_log_tasks.yaml"
+    tasks_config = "../config/tasks/ci_log_analysis_tasks.yaml"  # Fixed: was ci_log_tasks.yaml
 
     def __init__(self):
         """Initialize CI log analysis crew."""
@@ -53,7 +53,7 @@ class CILogAnalysisCrew:
     def analyze_ci_logs(self) -> Task:
         """Analyze CI logs task."""
         return Task(
-            config=self.tasks_config["analyze_ci_logs"],
+            config=self.tasks_config["parse_ci_output"],  # Task name from ci_log_analysis_tasks.yaml
             agent=self.ci_analyst(),
         )
 

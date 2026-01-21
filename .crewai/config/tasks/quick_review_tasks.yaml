@@ -34,19 +34,41 @@ quick_code_review:
        - Proper error propagation
        - Consistent code style
 
-    7. **ACTION REQUIRED**: Save findings using WorkspaceTool:
-       ```
-       WorkspaceTool({
-         "operation": "write",
-         "filename": "quick_review.json",
-         "content": json.dumps({
-           "critical": [...],
-           "warnings": [...],
-           "info": [...],
-           "summary": "..."
-         })
-       })
-       ```
+    7. **RETURN JSON OUTPUT**: Your output will be automatically saved to quick_review.json.
+       Return this exact structure:
+       {
+         "critical": [
+           {
+             "title": "Issue title",
+             "file": "path/to/file.js",
+             "line": "45",
+             "description": "Detailed description",
+             "fix_suggestion": "How to fix it",
+             "severity": "high"
+           }
+         ],
+         "warnings": [
+           {
+             "title": "Warning title",
+             "file": "path/to/file.js",
+             "line": "20",
+             "description": "What's wrong",
+             "fix_suggestion": "How to improve",
+             "severity": "medium"
+           }
+         ],
+         "info": [
+           {
+             "title": "Suggestion title",
+             "file": "path/to/file.js",
+             "line": "10",
+             "description": "Best practice suggestion",
+             "fix_suggestion": "How to implement",
+             "severity": "info"
+           }
+         ],
+         "summary": "Overall summary of findings"
+       }
 
     IMPORTANT: - Focus on NEW code (lines with + in diff) - Skip CI errors
     already in ci_summary.json - Be constructive and specific - Suggest fixes,
@@ -56,14 +78,10 @@ quick_code_review:
     functionality - Warning: Code smells, maintainability issues, style
     violations - Info: Suggestions for improvement, best practices
 
-    CRITICAL: You MUST call WorkspaceTool with operation="write" to save the
-    JSON. DO NOT just return JSON as text - it must be written to
-    quick_review.json file.
-
   expected_output: >
-    Complete code review WRITTEN to quick_review.json file using WorkspaceTool
-    with: - Critical issues (potential bugs, security) - Warnings (code smells,
-    maintainability) - Info (suggestions, best practices) - Overall summary with
-    key findings - All issues with specific file, line, and fix suggestions
+    Complete code review in JSON format with: - Critical issues (potential bugs,
+    security) - Warnings (code smells, maintainability) - Info (suggestions,
+    best practices) - Overall summary with key findings - All issues with
+    specific file, line, and fix suggestions
 
-    The file must exist in workspace after task completion.
+  output_json: quick_review.json

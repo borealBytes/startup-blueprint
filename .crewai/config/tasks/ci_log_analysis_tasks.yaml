@@ -36,48 +36,42 @@ parse_ci_output:
        - What was the before/after?
        - What still needs manual fixing?
 
-    7. **ACTION REQUIRED**: Save comprehensive analysis using WorkspaceTool:
-       ```
-       WorkspaceTool({
-         "operation": "write",
-         "filename": "ci_summary.json",
-         "content": json.dumps({
-           "status": "success",  # or "failure", "warning"
-           "passed": true,
-           "summary": "Core CI: all checks passed successfully",
-           "checks_performed": [
-             "code-formatting",
-             "linting",
-             "type-checking",
-             "unit-tests",
-             "link-checking"
-           ],
-           "critical_errors": [
-             {
-               "type": "Type Error",
-               "file": "src/utils.ts",
-               "line": "45",
-               "message": "Type 'string' is not assignable to type 'number'",
-               "fix_suggestion": "Change variable type or convert string to
-    number"
-             }
-           ],
-           "warnings": [
-             {
-               "type": "Lint Warning",
-               "message": "Line too long (exceeds 100 chars)",
-               "count": 3,
-               "fix_suggestion": "Break long lines or adjust line length limit"
-             }
-           ],
-           "issue_analysis": {
-             "root_cause": "Recent refactor changed return types",
-             "fix_applied": "Auto-formatted 15 files, fixed import order",
-             "recommendation": "Review type definitions in changed files"
+    7. **RETURN JSON OUTPUT**: Your output will be automatically saved to ci_summary.json.
+       Return this exact structure:
+       {
+         "status": "success",  # or "failure", "warning"
+         "passed": true,
+         "summary": "Core CI: all checks passed successfully",
+         "checks_performed": [
+           "code-formatting",
+           "linting",
+           "type-checking",
+           "unit-tests",
+           "link-checking"
+         ],
+         "critical_errors": [
+           {
+             "type": "Type Error",
+             "file": "src/utils.ts",
+             "line": "45",
+             "message": "Type 'string' is not assignable to type 'number'",
+             "fix_suggestion": "Change variable type or convert string to number"
            }
-         })
-       })
-       ```
+         ],
+         "warnings": [
+           {
+             "type": "Lint Warning",
+             "message": "Line too long (exceeds 100 chars)",
+             "count": 3,
+             "fix_suggestion": "Break long lines or adjust line length limit"
+           }
+         ],
+         "issue_analysis": {
+           "root_cause": "Recent refactor changed return types",
+           "fix_applied": "Auto-formatted 15 files, fixed import order",
+           "recommendation": "Review type definitions in changed files"
+         }
+       }
 
     IMPORTANT: - If CI passed, document what was checked and provide summary of
     success - If CI failed, extract specific error messages (use RAG if logs are
@@ -91,16 +85,11 @@ parse_ci_output:
     severity="info" - Build failures → severity="critical" - Test failures →
     severity="critical"
 
-    CRITICAL: You MUST call WorkspaceTool with operation="write" to save the
-    JSON. DO NOT just return JSON as text - it must be written to
-    ci_summary.json file.
-
   expected_output: >
-    Complete CI analysis WRITTEN to ci_summary.json file using WorkspaceTool
-    with: - Overall CI status (success/warning/failure) - List of checks that
-    were performed - Categorized list of all errors and warnings with file paths
-    - Actionable fix suggestions for each issue - Issue analysis: root cause,
-    what was auto-fixed, recommendations - Summary of what happened in CI (not
-    just "success")
+    Complete CI analysis in JSON format with: - Overall CI status
+    (success/warning/failure) - List of checks that were performed - Categorized
+    list of all errors and warnings with file paths - Actionable fix suggestions
+    for each issue - Issue analysis: root cause, what was auto-fixed,
+    recommendations - Summary of what happened in CI (not just "success")
 
-    The file must exist in workspace after task completion.
+  output_json: ci_summary.json
