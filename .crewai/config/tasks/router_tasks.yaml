@@ -3,10 +3,9 @@ analyze_pr_and_route:
     **CRITICAL TASK**: Analyze the pull request AND write your routing decision
     to router_decision.json using WorkspaceTool.
 
-    **YOU MUST COMPLETE ALL STEPS**:
-    1. Read PR data files
-    2. Analyze complexity and patterns
-    3. **WRITE the decision to router_decision.json using WorkspaceTool**
+    **YOU MUST COMPLETE ALL STEPS**: 1. Read PR data files 2. Analyze complexity
+    and patterns 3. **WRITE the decision to router_decision.json using
+    WorkspaceTool**
 
     **IMPORTANT**: The GitHub Actions workflow has ALREADY prepared all data
     files for you in the workspace: 
@@ -81,17 +80,24 @@ analyze_pr_and_route:
        ```
 
     **WORKFLOW DECISION RULES**: 
-    - **ALWAYS include**: `["ci-log-analysis", "quick-review"]` (these are the default baseline) 
-    - **IF** "crewai:full-review" label present → add `"full-review"` to workflows array 
+    - **ALWAYS include**: `["ci-log-analysis", "quick-review"]` (these are the
+    default baseline) 
+    - **IF** "crewai:full-review" label present → add `"full-review"` to
+    workflows array 
     - **IF** "crewai:legal" label present → add `"legal-review"` to workflows
     array
 
     **SUGGESTION RULES** (suggest labels even if not present): 
-    - **IF** files_changed > 20 **OR** lines_changed > 500 → suggest `"crewai:full-review"` 
-    - **IF** legal files detected (LICENSE, TERMS, PRIVACY, CONTRIBUTING) → suggest `"crewai:legal"` 
-    - **IF** security-sensitive files (.env*, *secret*, *key*, auth*, credential*) → **warn immediately** in suggestions 
-    - **IF** test files modified without code changes → suggest reviewing test coverage 
-    - **IF** only documentation changed → note that quick review may be sufficient
+    - **IF** files_changed > 20 **OR** lines_changed > 500 → suggest
+    `"crewai:full-review"` 
+    - **IF** legal files detected (LICENSE, TERMS, PRIVACY, CONTRIBUTING) →
+    suggest `"crewai:legal"` 
+    - **IF** security-sensitive files (.env*, *secret*, *key*, auth*,
+    credential*) → **warn immediately** in suggestions 
+    - **IF** test files modified without code changes → suggest reviewing test
+    coverage 
+    - **IF** only documentation changed → note that quick review may be
+    sufficient
 
     **FILE TYPE DETECTION** (scan diff.txt for these patterns): 
     - **Legal**: LICENSE*, TERMS*, PRIVACY*, CONTRIBUTING*, COPYRIGHT* 
@@ -106,32 +112,34 @@ analyze_pr_and_route:
     - **MEDIUM**: 5-20 files OR 100-500 lines changed 
     - **HIGH**: > 20 files OR > 500 lines changed
 
-    **OUTPUT FORMAT REQUIREMENTS**:
-    - workflows: Array of workflow names to execute (always include ci-log-analysis and quick-review)
-    - suggestions: Array of recommendation strings
-    - metadata: Object with pr_number, commit_sha, files_changed, lines_added, lines_removed, complexity
-    - analysis: Object with complexity, reason, file_types_detected, security_files_detected
+    **OUTPUT FORMAT REQUIREMENTS**: - workflows: Array of workflow names to
+    execute (always include ci-log-analysis and quick-review) - suggestions:
+    Array of recommendation strings - metadata: Object with pr_number,
+    commit_sha, files_changed, lines_added, lines_removed, complexity -
+    analysis: Object with complexity, reason, file_types_detected,
+    security_files_detected
 
-    **VALIDATION BEFORE COMPLETION**:
-    - [ ] Did you call WorkspaceTool with operation="write"?
-    - [ ] Did you set filename="router_decision.json"?
-    - [ ] Does content have all required fields (workflows, suggestions, metadata, analysis)?
-    - [ ] Does workflows array include "ci-log-analysis" and "quick-review"?
+    **VALIDATION BEFORE COMPLETION**: - [ ] Did you call WorkspaceTool with
+    operation="write"? - [ ] Did you set filename="router_decision.json"? - [ ]
+    Does content have all required fields (workflows, suggestions, metadata,
+    analysis)? - [ ] Does workflows array include "ci-log-analysis" and
+    "quick-review"?
 
     **CRITICAL REQUIREMENTS**: 
-    - You MUST call WorkspaceTool with operation="write" to save router_decision.json 
+    - You MUST call WorkspaceTool with operation="write" to save
+    router_decision.json 
     - DO NOT attempt to fetch data from GitHub APIs - all data is pre-prepared 
     - DO NOT just return JSON as text - it must be written to the file 
-    - The diff.txt file contains the FULL PR diff, not just the latest commit
-    - **YOU MUST WRITE THE FILE - do not just return JSON as text**
+    - The diff.txt file contains the FULL PR diff, not just the latest commit -
+    **YOU MUST WRITE THE FILE - do not just return JSON as text**
 
   expected_output: >
     Confirmation that router_decision.json has been written to workspace using
-    WorkspaceTool. The file must contain:
-    - List of workflows to execute (always include ci-log-analysis and quick-review)
-    - Intelligent suggestions for additional labels based on code analysis
-    - PR metadata and complexity assessment
-    - Analysis reasoning explaining why certain workflows were selected
+    WorkspaceTool. The file must contain: - List of workflows to execute (always
+    include ci-log-analysis and quick-review) - Intelligent suggestions for
+    additional labels based on code analysis - PR metadata and complexity
+    assessment - Analysis reasoning explaining why certain workflows were
+    selected
 
     The router_decision.json file must exist in workspace after task completion.
     Other agents will read this file to understand what workflows ran.
