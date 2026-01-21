@@ -50,7 +50,7 @@ class QuickReviewCrew:
         """Quick code review task."""
         # CRITICAL: Task name must match YAML key
         return Task(
-            config=self.tasks_config["quick_code_check"],  # Match YAML
+            config=self.tasks_config["quick_code_review"],  # Fixed: was "quick_code_check"
             agent=self.quick_reviewer(),
         )
 
