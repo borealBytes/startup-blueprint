@@ -70,7 +70,7 @@ class RouterCrew:
     @agent
     def router_agent(self) -> Agent:
         """Create router agent with function calling enabled.
-        
+
         IMPORTANT: The GitHub workflow has already prepared all data files
         (diff.txt, commits.json, diff.json) in the workspace. The router
         only needs WorkspaceTool to read these pre-prepared files.
