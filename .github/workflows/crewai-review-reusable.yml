@@ -34,6 +34,133 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0  # Full history for commit analysis
 
+      - name: Prepare PR data for CrewAI agents
+        id: prepare-data
+        run: |
+          set -e
+          
+          echo "📦 Preparing PR data for AI agents"
+          
+          # Create workspace directory
+          mkdir -p .crewai/workspace
+          
+          # Get PR information using GitHub API
+          PR_DATA=$(gh pr view ${{ inputs.pr_number }} --json number,title,body,labels,files,additions,deletions,changedFiles,baseRefName,headRefName)
+          
+          echo "📊 PR Metadata:"
+          echo "$PR_DATA" | jq -r '.number, .title, .changedFiles'
+          
+          # Extract base and head refs
+          BASE_REF=$(echo "$PR_DATA" | jq -r '.baseRefName')
+          HEAD_REF=$(echo "$PR_DATA" | jq -r '.headRefName')
+          
+          echo "📍 Base: $BASE_REF, Head: $HEAD_REF"
+          
+          # Fetch the base branch
+          git fetch origin "$BASE_REF:$BASE_REF" || true
+          
+          # Generate FULL PR diff (base..head) - this is what agents need!
+          echo "📝 Generating full PR diff (base..head)..."
+          git diff "origin/$BASE_REF...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
+          
+          DIFF_SIZE=$(wc -c < .crewai/workspace/diff.txt)
+          echo "✅ Full PR diff saved: $DIFF_SIZE bytes"
+          
+          if [ "$DIFF_SIZE" -lt 100 ]; then
+            echo "⚠️ Warning: Diff is suspiciously small. Trying alternative method..."
+            # Fallback: use merge-base
+            MERGE_BASE=$(git merge-base "origin/$BASE_REF" "${{ inputs.commit_sha }}")
+            git diff "$MERGE_BASE...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
+            DIFF_SIZE=$(wc -c < .crewai/workspace/diff.txt)
+            echo "✅ Fallback diff saved: $DIFF_SIZE bytes"
+          fi
+          
+          # Get all commits in this PR
+          echo "📚 Getting PR commits..."
+          git log --format='%H|%s|%an|%ae|%aI' "origin/$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt
+          
+          # Convert to JSON array
+          echo '[' > .crewai/workspace/commits.json
+          FIRST=true
+          while IFS='|' read -r sha message author_name author_email author_date; do
+            if [ "$FIRST" = true ]; then
+              FIRST=false
+            else
+              echo ',' >> .crewai/workspace/commits.json
+            fi
+            
+            # Get stats for this commit
+            STATS=$(git show --stat --format='' "$sha" | tail -n 1)
+            ADDITIONS=0
+            DELETIONS=0
+            FILES=0
+            
+            if echo "$STATS" | grep -q "insertion"; then
+              ADDITIONS=$(echo "$STATS" | sed -n 's/.* \([0-9]\+\) insertion.*/\1/p')
+            fi
+            if echo "$STATS" | grep -q "deletion"; then
+              DELETIONS=$(echo "$STATS" | sed -n 's/.* \([0-9]\+\) deletion.*/\1/p')
+            fi
+            if echo "$STATS" | grep -q "file"; then
+              FILES=$(echo "$STATS" | sed -n 's/^ *\([0-9]\+\) file.*/\1/p')
+            fi
+            
+            cat >> .crewai/workspace/commits.json <<EOF
+            {
+              "sha": "${sha:0:8}",
+              "message": $(echo "$message" | jq -R .),
+              "author": {
+                "name": $(echo "$author_name" | jq -R .),
+                "email": $(echo "$author_email" | jq -R .),
+                "date": $(echo "$author_date" | jq -R .)
+              },
+              "stats": {
+                "additions": ${ADDITIONS:-0},
+                "deletions": ${DELETIONS:-0},
+                "files_changed": ${FILES:-0}
+              }
+            }
+EOF
+          done < /tmp/commits.txt
+          echo ']' >> .crewai/workspace/commits.json
+          
+          COMMIT_COUNT=$(jq '. | length' .crewai/workspace/commits.json)
+          echo "✅ Saved $COMMIT_COUNT commits to commits.json"
+          
+          # Create diff metadata JSON (for router)
+          PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels | map(.name) | join(",")')
+          CHANGED_FILES=$(echo "$PR_DATA" | jq -r '.changedFiles')
+          ADDITIONS=$(echo "$PR_DATA" | jq -r '.additions')
+          DELETIONS=$(echo "$PR_DATA" | jq -r '.deletions')
+          
+          cat > .crewai/workspace/diff.json <<EOF
+          {
+            "pr_number": ${{ inputs.pr_number }},
+            "commit_sha": "${{ inputs.commit_sha }}",
+            "base_ref": "$BASE_REF",
+            "head_ref": "$HEAD_REF",
+            "labels": $(echo "$PR_LABELS" | jq -R 'split(",")'),
+            "files_changed": $CHANGED_FILES,
+            "additions": $ADDITIONS,
+            "deletions": $DELETIONS,
+            "total_changes": $((ADDITIONS + DELETIONS))
+          }
+EOF
+          
+          echo "✅ Saved PR metadata to diff.json"
+          
+          # Summary
+          echo ""
+          echo "📋 Data prepared for CrewAI:"
+          echo "  - diff.txt: $DIFF_SIZE bytes (full PR diff)"
+          echo "  - commits.json: $COMMIT_COUNT commits"
+          echo "  - diff.json: PR metadata"
+          echo "  - Files changed: $CHANGED_FILES"
+          echo "  - Lines: +$ADDITIONS/-$DELETIONS"
+          
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup UV (Python Package Manager)
         uses: astral-sh/setup-uv@v5
         with:
@@ -69,6 +196,9 @@ jobs:
           echo "🔗 PR: #$PR_NUMBER"
           echo "📝 Commit: ${COMMIT_SHA:0:8}"
           echo "✅ Core CI: $CORE_CI_RESULT"
+          echo ""
+          echo "📂 Workspace data available:"
+          ls -lh workspace/*.{txt,json} 2>/dev/null || echo "  (checking...)"
           echo ""
           
           uv run main.py
