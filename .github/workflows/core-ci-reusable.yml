@@ -779,9 +779,6 @@ jobs:
     name: Test: CrewAI
     runs-on: ubuntu-latest
     needs: [format-and-lint]
-    if: |
-      github.event_name == 'pull_request' &&
-      contains(github.event.pull_request.changed_files.*.filename, '.crewai/')
     timeout-minutes: 10
 
     steps:
@@ -790,18 +787,39 @@ jobs:
         with:
           ref: ${{ needs.format-and-lint.outputs.commit-sha }}
 
+      - name: Check if .crewai files changed
+        id: check_crewai
+        run: |
+          # Get list of changed files in the PR
+          git fetch origin ${{ github.base_ref }}
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          if echo "$CHANGED_FILES" | grep -q "^\.crewai/"; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "✅ .crewai files changed - tests will run"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No .crewai files changed - skipping tests"
+          fi
+
       - name: Setup Python
+        if: steps.check_crewai.outputs.has_changes == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Setup UV
+        if: steps.check_crewai.outputs.has_changes == 'true'
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
           cache-dependency-glob: '.crewai/pyproject.toml'
 
       - name: Install dependencies
+        if: steps.check_crewai.outputs.has_changes == 'true'
         working-directory: .crewai
         run: |
           echo "📦 Installing CrewAI dependencies with pytest..."
@@ -809,6 +827,7 @@ jobs:
           echo "✅ Dependencies installed"
 
       - name: Run pytest
+        if: steps.check_crewai.outputs.has_changes == 'true'
         working-directory: .crewai
         run: |
           echo "🧪 Running CrewAI test suite..."
@@ -822,7 +841,7 @@ jobs:
           OPENROUTER_API_KEY: "test_key"
 
       - name: Generate test report
-        if: always()
+        if: always() && steps.check_crewai.outputs.has_changes == 'true'
         working-directory: .crewai
         run: |
           echo "## 🧪 CrewAI Test Results" >> $GITHUB_STEP_SUMMARY
@@ -841,6 +860,13 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "All CrewAI tools and functions validated successfully!" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Skipped summary
+        if: always() && steps.check_crewai.outputs.has_changes == 'false'
+        run: |
+          echo "## ⏭️ CrewAI Tests Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No changes detected in \`.crewai/\` directory." >> $GITHUB_STEP_SUMMARY
 
   link-check:
     name: Check Documentation Links
