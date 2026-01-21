@@ -271,24 +271,136 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
     summary_parts.append("---")
     summary_parts.append("")
 
-    # Try to include any available results
+    # CI Analysis - Extract detailed findings
     if workspace.exists("ci_summary.json"):
         try:
             ci_data = workspace.read_json("ci_summary.json")
             summary_parts.append("### ✅ CI Analysis")
-            summary_parts.append(f"Status: {ci_data.get('status', 'unknown')}")
+            summary_parts.append(f"**Status**: {ci_data.get('status', 'unknown')}")
+            
+            # Add critical errors if present
+            critical_errors = ci_data.get('critical_errors', [])
+            if critical_errors:
+                summary_parts.append("")
+                summary_parts.append("<details>")
+                summary_parts.append("<summary>🔴 Critical Errors</summary>")
+                summary_parts.append("")
+                for error in critical_errors[:3]:  # Top 3 errors
+                    summary_parts.append(f"**{error.get('type', 'Error')}**: {error.get('message', 'No details')}")
+                    if error.get('fix_suggestion'):
+                        summary_parts.append(f"  - 💡 **Fix**: {error['fix_suggestion']}")
+                    summary_parts.append("")
+                summary_parts.append("</details>")
+            
             summary_parts.append("")
-        except:
-            pass
+        except Exception as e:
+            logger.warning(f"Could not parse ci_summary.json: {e}")
+            summary_parts.append("### ✅ CI Analysis")
+            summary_parts.append("Status: Error parsing results")
+            summary_parts.append("")
 
+    # Quick Review
     if workspace.exists("quick_review.json"):
         try:
             quick_data = workspace.read_json("quick_review.json")
             summary_parts.append("### ⚡ Quick Review")
-            summary_parts.append(f"Status: {quick_data.get('status', 'unknown')}")
+            summary_parts.append(f"**Status**: {quick_data.get('status', 'unknown')}")
+            
+            # Add key findings if present
+            if quick_data.get('issues'):
+                issues = quick_data['issues']
+                critical_count = len([i for i in issues if i.get('severity') == 'critical'])
+                if critical_count > 0:
+                    summary_parts.append(f"  - 🔴 {critical_count} critical issues found")
+            
             summary_parts.append("")
-        except:
-            pass
+        except Exception as e:
+            logger.warning(f"Could not parse quick_review.json: {e}")
+            summary_parts.append("### ⚡ Quick Review")
+            summary_parts.append("Status: Did not run")
+            summary_parts.append("")
+
+    # Full Review - Extract architectural and security findings
+    if workspace.exists("full_review.json"):
+        try:
+            full_data = workspace.read_json("full_review.json")
+            summary_parts.append("### 🔍 Full Technical Review")
+            summary_parts.append("")
+            
+            # Architecture issues
+            arch_issues = full_data.get('architecture', [])
+            critical_arch = [i for i in arch_issues if i.get('severity') == 'critical']
+            if critical_arch:
+                summary_parts.append("<details>")
+                summary_parts.append("<summary>🏗️ Critical Architecture Issues</summary>")
+                summary_parts.append("")
+                for issue in critical_arch[:3]:  # Top 3
+                    summary_parts.append(f"**{issue.get('title', 'Unknown')}**")
+                    summary_parts.append(f"  - {issue.get('description', 'No description')}")
+                    if issue.get('suggestion'):
+                        summary_parts.append(f"  - 💡 **Suggestion**: {issue['suggestion']}")
+                    summary_parts.append("")
+                summary_parts.append("</details>")
+                summary_parts.append("")
+            
+            # Security vulnerabilities
+            security_issues = full_data.get('security', [])
+            critical_security = [i for i in security_issues if i.get('severity') in ['critical', 'high']]
+            if critical_security:
+                summary_parts.append("<details>")
+                summary_parts.append("<summary>🔒 Security Vulnerabilities</summary>")
+                summary_parts.append("")
+                for issue in critical_security[:3]:  # Top 3
+                    severity_emoji = "🔴" if issue.get('severity') == 'critical' else "🟡"
+                    summary_parts.append(f"{severity_emoji} **{issue.get('title', 'Unknown')}**")
+                    summary_parts.append(f"  - {issue.get('description', 'No description')}")
+                    summary_parts.append("")
+                summary_parts.append("</details>")
+                summary_parts.append("")
+            
+            # Testing issues
+            testing_issues = full_data.get('testing', [])
+            critical_testing = [i for i in testing_issues if i.get('severity') == 'critical']
+            if critical_testing:
+                summary_parts.append("<details>")
+                summary_parts.append("<summary>🧪 Testing Issues</summary>")
+                summary_parts.append("")
+                for issue in critical_testing[:2]:  # Top 2
+                    summary_parts.append(f"**{issue.get('title', 'Unknown')}**")
+                    summary_parts.append(f"  - {issue.get('description', 'No description')}")
+                    summary_parts.append("")
+                summary_parts.append("</details>")
+                summary_parts.append("")
+            
+        except Exception as e:
+            logger.warning(f"Could not parse full_review.json: {e}")
+            summary_parts.append("### 🔍 Full Technical Review")
+            summary_parts.append("Status: Did not run")
+            summary_parts.append("")
+
+    # Security Review (if available)
+    if workspace.exists("security_review.json"):
+        try:
+            security_data = workspace.read_json("security_review.json")
+            critical_vulns = security_data.get('critical_vulnerabilities', [])
+            if critical_vulns:
+                summary_parts.append("### 🔒 Security Scan")
+                summary_parts.append(f"**Critical Vulnerabilities**: {len(critical_vulns)}")
+                summary_parts.append("")
+                summary_parts.append("<details>")
+                summary_parts.append("<summary>View Details</summary>")
+                summary_parts.append("")
+                for vuln in critical_vulns[:3]:  # Top 3
+                    summary_parts.append(f"**{vuln.get('title', 'Unknown')}**")
+                    summary_parts.append(f"  - **Category**: {vuln.get('category', 'N/A')}")
+                    summary_parts.append(f"  - {vuln.get('description', 'No description')}")
+                    if vuln.get('remediation'):
+                        summary_parts.append(f"  - 💡 **Fix**: {vuln['remediation']}")
+                    summary_parts.append("")
+                summary_parts.append("</details>")
+                summary_parts.append("")
+        except Exception as e:
+            logger.warning(f"Could not parse security_review.json: {e}")
 
     summary_parts.append("---")
     summary_parts.append("")
