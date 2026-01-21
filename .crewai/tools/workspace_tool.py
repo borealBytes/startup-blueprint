@@ -3,10 +3,10 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from crewai.tools import BaseTool
-from pydantic import Field
+from pydantic import Field, field_validator
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,8 @@ class WorkspaceTool(BaseTool):
     description: str = (
         "Read and write files to shared workspace. "
         "Use this to cache data fetched by other agents and avoid duplicate API calls. "
-        "Available operations: read(filename), write(filename, content), exists(filename)"
+        "Available operations: read(filename), write(filename, content), exists(filename). "
+        "For JSON data, you can pass a dictionary and it will be auto-stringified."
     )
 
     # Pydantic v2 requires fields to be declared
@@ -36,19 +37,34 @@ class WorkspaceTool(BaseTool):
         self.trace_dir.mkdir(exist_ok=True)
         logger.info(f"📁 WorkspaceTool initialized: {self.workspace_dir}")
 
-    def _run(self, operation: str, filename: str, content: str = "") -> Any:
+    def _run(
+        self, 
+        operation: str, 
+        filename: str, 
+        content: Union[str, dict, list] = ""
+    ) -> Any:
         """Execute workspace operation.
 
         Args:
             operation: One of 'read', 'write', 'exists'
             filename: File to operate on (relative to workspace/)
-            content: Content to write (only for 'write' operation)
+            content: Content to write - can be string, dict, or list.
+                    Dicts/lists are auto-converted to JSON strings.
 
         Returns:
             For 'read': File content as string
             For 'write': Success message
             For 'exists': Boolean
         """
+        # Auto-stringify JSON if dict/list is passed
+        if isinstance(content, (dict, list)):
+            try:
+                content = json.dumps(content, indent=2)
+                logger.info(f"🔄 Auto-stringified JSON for {filename}")
+            except Exception as e:
+                logger.error(f"❌ Failed to stringify JSON: {e}")
+                return f"Error: Could not stringify JSON - {e}"
+
         filepath = self.workspace_dir / filename
 
         if operation == "read":
