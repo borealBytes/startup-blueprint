@@ -88,12 +88,10 @@ quick_code_review:
          "total_findings": 8
        }
 
-    **IMPORTANT**:
-    - Focus on NEW/CHANGED code only (lines starting with `+` in diff)
-    - Ignore formatting/style if CI handles it
-    - Provide specific line numbers from the diff
-    - Every finding MUST have a concrete fix suggestion
-    - Be concise - this is a "quick" review
+    **IMPORTANT**: - Focus on NEW/CHANGED code only (lines starting with `+` in
+    diff) - Ignore formatting/style if CI handles it - Provide specific line
+    numbers from the diff - Every finding MUST have a concrete fix suggestion -
+    Be concise - this is a "quick" review
 
   expected_output: >
     JSON object with categorized findings (critical/warning/info) including file

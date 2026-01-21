@@ -61,7 +61,8 @@ synthesize_summary:
 
     ---
 
-    ### ✅ CI Analysis **Status**: {status_emoji} {status} **Summary**: {summary text}
+    ### ✅ CI Analysis **Status**: {status_emoji} {status} **Summary**: {summary
+    text}
 
     <details> <summary><b>🔍 View CI Issues</b></summary>
 
