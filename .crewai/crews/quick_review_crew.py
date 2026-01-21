@@ -2,7 +2,6 @@
 
 import logging
 import os
-from pathlib import Path
 
 from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
@@ -33,9 +32,6 @@ class QuickReviewCrew:
             base_url="https://openrouter.ai/api/v1",
         )
 
-        # Get workspace path (absolute)
-        self.workspace_dir = (Path(__file__).parent.parent / "workspace").resolve()
-
     @agent
     def quick_reviewer(self) -> Agent:
         """Create quick reviewer agent."""
@@ -52,13 +48,11 @@ class QuickReviewCrew:
     @task
     def quick_code_review(self) -> Task:
         """Quick code review task."""
-        # CRITICAL: Set output_json with full path to force file creation
-        output_file = str(self.workspace_dir / "quick_review.json")
-
+        # CRITICAL: Use filename only (not full path) - CrewAI writes to CWD
         return Task(
             config=self.tasks_config["quick_code_review"],
             agent=self.quick_reviewer(),
-            output_json=output_file,  # Force JSON output to file
+            output_json="quick_review.json",  # Just filename - CrewAI handles path
         )
 
     @crew
