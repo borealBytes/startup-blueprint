@@ -48,7 +48,7 @@ jobs:
           if [ -d "tests" ] && [ -f "tests/__init__.py" ]; then
             echo "🧪 Running unit tests..."
             uv run python -m pytest tests/ -v --tb=short
-            
+
             if [ $? -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
             else
@@ -68,7 +68,7 @@ jobs:
           if [ -d "tests/integration" ]; then
             echo "🧪 Running integration tests..."
             uv run python -m pytest tests/integration/ -v --tb=short
-            
+
             if [ $? -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
             else
@@ -86,9 +86,9 @@ jobs:
         continue-on-error: true
         run: |
           echo "🔍 Checking if Python modules can be imported..."
-          
+
           uv run python -c "import crew; print('✅ crew module imports successfully')" 2>&1 | tee /tmp/import_check.log
-          
+
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
           else
@@ -112,10 +112,13 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Check if any tests failed
+          # FIX: Use 'outcome' instead of 'conclusion' to check actual test results
+          # 'outcome' shows the step's actual result (success/failure)
+          # 'conclusion' shows 'success' even when continue-on-error is true
           FAILED=false
-          if [[ "${{ steps.unit_tests.conclusion }}" == "failure" ]] || \
-             [[ "${{ steps.integration_tests.conclusion }}" == "failure" ]] || \
-             [[ "${{ steps.import_check.conclusion }}" == "failure" ]]; then
+          if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.integration_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.import_check.outcome }}" == "failure" ]]; then
             FAILED=true
           fi
 
@@ -132,9 +135,10 @@ jobs:
       - name: Fail job if tests failed
         if: always()
         run: |
-          if [[ "${{ steps.unit_tests.conclusion }}" == "failure" ]] || \
-             [[ "${{ steps.integration_tests.conclusion }}" == "failure" ]] || \
-             [[ "${{ steps.import_check.conclusion }}" == "failure" ]]; then
+          # FIX: Use 'outcome' instead of 'conclusion' for accurate failure detection
+          if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.integration_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.import_check.outcome }}" == "failure" ]]; then
             echo "❌ One or more tests failed"
             exit 1
           fi

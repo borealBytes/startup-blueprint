@@ -8,8 +8,7 @@ import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from tools.cost_tracker import get_tracker
-from tools.github_tools import (CommitDiffTool, CommitInfoTool,
-                                FileContentTool, PRCommentTool)
+from tools.github_tools import CommitDiffTool, CommitInfoTool, FileContentTool
 from tools.related_files_tool import RelatedFilesTool
 
 logger = logging.getLogger(__name__)
@@ -235,7 +234,6 @@ class CodeReviewCrew:
                 CommitDiffTool,
                 CommitInfoTool,
                 FileContentTool,
-                PRCommentTool,
             ],
             llm=self.model_config["default"],
             max_iter=5,  # Limit iterations to prevent runaway loops

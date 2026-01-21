@@ -9,11 +9,13 @@ analyze_commit_changes:
     Use the CommitDiffTool with commit_sha="{commit_sha}" and
     repository="{repository}". Provide specific line references from the diff.
   expected_output: >
-    A structured report with: - Commit message assessment (clear/unclear,
-    follows conventions) - Files changed breakdown (new, modified, removed) -
-    Code quality issues by file (severity: high/medium/low) - Missing tests for
-    new functionality - Documentation gaps - Specific recommendations with line
-    numbers
+    A structured report with:
+    - Commit message assessment (clear/unclear, follows conventions)
+    - Files changed breakdown (new, modified, removed)
+    - Code quality issues by file (severity: high/medium/low)
+    - Missing tests for new functionality
+    - Documentation gaps
+    - Specific recommendations with line numbers
   agent: code_quality_reviewer
 
 security_performance_review:
@@ -28,9 +30,11 @@ security_performance_review:
     Use the CommitDiffTool with commit_sha="{commit_sha}" and
     repository="{repository}". Flag CRITICAL issues that block merge.
   expected_output: >
-    A report with: - Security vulnerabilities (CRITICAL/HIGH/MEDIUM) with CVE
-    references - Performance bottlenecks with estimated impact - Hardcoded
-    secrets or credentials (immediate block) - Remediation steps for each issue
+    A report with:
+    - Security vulnerabilities (CRITICAL/HIGH/MEDIUM) with CVE references
+    - Performance bottlenecks with estimated impact
+    - Hardcoded secrets or credentials (immediate block)
+    - Remediation steps for each issue
   agent: security_performance_analyst
 
 find_related_files:
@@ -45,9 +49,11 @@ find_related_files:
     Use RelatedFilesTool to discover related files based on the changed files
     from the commit.
   expected_output: >
-    A list of related files with: - File path - Relationship type (imports,
-    imported by, shared dependency, pattern) - Relatedness score (0-100) - Why
-    it's related and potential impact
+    A list of related files with:
+    - File path
+    - Relationship type (imports, imported by, shared dependency, pattern)
+    - Relatedness score (0-100)
+    - Why it's related and potential impact
   agent: architecture_impact_analyst
 
 analyze_related_files:
@@ -59,9 +65,11 @@ analyze_related_files:
     Consider: breaking changes, interface modifications, shared contracts. Use
     FileContentTool to read related files and analyze their dependencies.
   expected_output: >
-    An impact assessment with: - Affected components and their criticality -
-    Potential breaking changes (with migration steps) - Integration risks (API
-    changes, data format changes) - Recommendations for additional testing
+    An impact assessment with:
+    - Affected components and their criticality
+    - Potential breaking changes (with migration steps)
+    - Integration risks (API changes, data format changes)
+    - Recommendations for additional testing
   agent: architecture_impact_analyst
 
 architecture_review:
@@ -74,28 +82,31 @@ architecture_review:
 
     Reference insights from all previous tasks to provide holistic view.
   expected_output: >
-    An architectural assessment with: - Design pattern evaluation
-    (appropriate/inappropriate) - Coupling and cohesion analysis - Scalability
-    considerations (will this scale?) - Alignment with project architecture
-    (consistent/divergent) - Long-term maintainability impact (tech debt
-    introduced/reduced)
+    An architectural assessment with:
+    - Design pattern evaluation (appropriate/inappropriate)
+    - Coupling and cohesion analysis
+    - Scalability considerations (will this scale?)
+    - Alignment with project architecture (consistent/divergent)
+    - Long-term maintainability impact (tech debt introduced/reduced)
   agent: architecture_impact_analyst
 
 generate_executive_summary:
   description: >
     === YOUR ROLE: SYNTHESIZER ONLY ===
 
-    You are the Executive Summary Agent. Your ONLY job is to read the findings 
+    You are the Executive Summary Agent. Your ONLY job is to read the findings
     from the 5 previous tasks and write a markdown summary. That's it.
 
     YOU DO NOT HAVE ACCESS TO ANY TOOLS. YOU CANNOT call CommitDiffTool,
     FileContentTool, or any other tool. YOU CANNOT fetch data from GitHub. YOU
     CANNOT access the repository.
 
-    ALL THE DATA YOU NEED is already in your context from previous tasks: - Task
-    1 (Code Quality): Code review findings - Task 2 (Security): Security and
-    performance issues - Task 3 (Related Files): List of related files - Task 4
-    (Impact): Impact assessment - Task 5 (Architecture): Architecture review
+    ALL THE DATA YOU NEED is already in your context from previous tasks:
+    - Task 1 (Code Quality): Code review findings
+    - Task 2 (Security): Security and performance issues
+    - Task 3 (Related Files): List of related files
+    - Task 4 (Impact): Impact assessment
+    - Task 5 (Architecture): Architecture review
 
     YOUR TASK: Read the findings above and synthesize them into ONE cohesive
     markdown report that renders beautifully on GitHub.
@@ -140,29 +151,31 @@ generate_executive_summary:
 
     [Write 4-5 sentences here: overall assessment, key metrics, recommendation]
 
-    **Top 3 Actions:** 1. [Most important action from findings] 2. [Second most
-    important action] 3. [Third most important action]
+    **Top 3 Actions:**
+    1. [Most important action from findings]
+    2. [Second most important action]
+    3. [Third most important action]
 
     ---
 
     ## 🚨 Critical Issues (Must Fix Before Merge)
 
-    [If critical issues found in Tasks 1-2, list them here with details] [If
-    none, write: "None found ✅"]
+    [If critical issues found in Tasks 1-2, list them here with details]
+    [If none, write: "None found ✅"]
 
     ---
 
     ## ⚠️ Warnings (Should Fix Soon)
 
-    [List medium-priority warnings from Tasks 1-5] [If none, write: "None found
-    ✅"]
+    [List medium-priority warnings from Tasks 1-5]
+    [If none, write: "None found ✅"]
 
     ---
 
     ## 💡 Suggestions (Nice to Have)
 
-    [List improvement suggestions from Tasks 1-5] [If none, write: "Code follows
-    best practices ✅"]
+    [List improvement suggestions from Tasks 1-5]
+    [If none, write: "Code follows best practices ✅"]
 
     ---
 
@@ -172,41 +185,56 @@ generate_executive_summary:
 
     ---
 
-    ### 🔗 Quick Links - [View
-    Commit](https://github.com/{repository}/commit/{commit_sha}) - [View Pull
-    Request](https://github.com/{repository}/pull/{pr_number})
+    ### 🔗 Quick Links
+    - [View Commit](https://github.com/{repository}/commit/{commit_sha})
+    - [View Pull Request](https://github.com/{repository}/pull/{pr_number})
 
     === FORMATTING EXAMPLES ===
 
-    ✅ CORRECT: ## 🚨 Critical Issues
+    ✅ CORRECT:
+    ## 🚨 Critical Issues
 
-    **Security Issue in `main.py:42`** - SQL injection vulnerability detected -
-    Use parameterized queries instead
+    **Security Issue in `main.py:42`**
+    - SQL injection vulnerability detected
+    - Use parameterized queries instead
 
-    ❌ WRONG: ``` Critical Issues: Security Issue in main.py:42 SQL injection
-    vulnerability ``` (Don't wrap in code blocks!)
+    ❌ WRONG:
+    ```
+    Critical Issues:
+    Security Issue in main.py:42
+    SQL injection vulnerability
+    ```
+    (Don't wrap in code blocks!)
 
-    ✅ CORRECT: **Files Changed:** 3 files modified, 120 lines added
+    ✅ CORRECT:
+    **Files Changed:** 3 files modified, 120 lines added
 
-    ❌ WRONG: Files Changed: 3 files modified, 120 lines added (Use bold for
-    metrics!)
+    ❌ WRONG:
+    Files Changed: 3 files modified, 120 lines added
+    (Use bold for metrics!)
 
     === IMPORTANT REMINDERS ===
 
-    1. DO NOT wrap your output in ```markdown code blocks 2. DO NOT try to fetch
-    more data or call tools 3. DO NOT say "I'll analyze" - just synthesize NOW
-    4. DO use proper markdown headings (##), lists, bold 5. DO include emojis
-    for visual clarity 6. DO make it scannable with clear sections 7. DO write
-    in complete, professional sentences
+    1. DO NOT wrap your output in ```markdown code blocks
+    2. DO NOT try to fetch more data or call tools
+    3. DO NOT say "I'll analyze" - just synthesize NOW
+    4. DO use proper markdown headings (##), lists, bold
+    5. DO include emojis for visual clarity
+    6. DO make it scannable with clear sections
+    7. DO write in complete, professional sentences
 
     Your output will be posted to GitHub Actions summary and PR comments. It
     MUST render as beautiful, formatted markdown, NOT plain text in a code box!
   expected_output: >
-    Complete GitHub-flavored markdown executive summary that renders properly: -
-    Clear heading hierarchy (##, ###) - Proper emphasis (bold, italic) - Clean
-    lists (numbered and bulleted) - Inline code for file/function names - Code
-    blocks ONLY for actual code snippets (3+ lines) - Horizontal rules for
-    section breaks - Working links to commit and PR - Emojis for visual clarity
+    Complete GitHub-flavored markdown executive summary that renders properly:
+    - Clear heading hierarchy (##, ###)
+    - Proper emphasis (bold, italic)
+    - Clean lists (numbered and bulleted)
+    - Inline code for file/function names
+    - Code blocks ONLY for actual code snippets (3+ lines)
+    - Horizontal rules for section breaks
+    - Working links to commit and PR
+    - Emojis for visual clarity
     - NO wrapper code blocks around the entire output
 
     The output will render beautifully on GitHub Actions summary page.
