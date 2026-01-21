@@ -13,16 +13,12 @@ logger = logging.getLogger(__name__)
 
 class WorkspaceToolInput(BaseModel):
     """Input schema for WorkspaceTool."""
-    
-    operation: str = Field(
-        description="Operation to perform: 'read', 'write', or 'exists'"
-    )
-    filename: str = Field(
-        description="Filename (relative to workspace directory)"
-    )
+
+    operation: str = Field(description="Operation to perform: 'read', 'write', or 'exists'")
+    filename: str = Field(description="Filename (relative to workspace directory)")
     content: Union[str, dict, list, None] = Field(
         default="",
-        description="Content to write (string, dict, or list). Dicts/lists auto-convert to JSON."
+        description="Content to write (string, dict, or list). Dicts/lists auto-convert to JSON.",
     )
 
 
@@ -54,10 +50,7 @@ class WorkspaceTool(BaseTool):
         logger.info(f"📁 WorkspaceTool initialized: {self.workspace_dir}")
 
     def _run(
-        self, 
-        operation: str, 
-        filename: str, 
-        content: Union[str, dict, list, None] = None
+        self, operation: str, filename: str, content: Union[str, dict, list, None] = None
     ) -> Any:
         """Execute workspace operation.
 
@@ -75,7 +68,7 @@ class WorkspaceTool(BaseTool):
         # Handle None content
         if content is None:
             content = ""
-        
+
         # Auto-stringify JSON if dict/list is passed
         if isinstance(content, (dict, list)):
             try:
