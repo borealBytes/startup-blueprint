@@ -1,41 +1,59 @@
 synthesize_summary:
   description: >
-    Synthesize all review outputs into a final GitHub-flavored markdown summary.
+    Synthesize all review outputs into a comprehensive GitHub-flavored markdown summary
+    with ALL findings displayed in collapsible sections.
 
-    **YOUR MISSION**: Create a comprehensive summary by reading workspace JSON
-    files and extracting their key findings.
+    **YOUR MISSION**: Create a detailed summary by reading workspace JSON files
+    and extracting EVERY finding with full details (file paths, line numbers, fixes).
 
     **STEP-BY-STEP WORKFLOW**:
 
     1. **Read CI Summary** (REQUIRED):
        - Use WorkspaceTool: `operation="read", filename="ci_summary.json"`
-       - Extract: `status`, `passed`, `summary`, `criticalErrors` (if any)
-       - Include: CI status, error count, summary message
+       - Extract: `status`, `passed`, `summary`, `checks_performed`, `issue_analysis`
+       - Extract ALL: `critical_errors`, `warnings` (not just counts)
+       - Include full error messages and fix suggestions
 
-    2. **Read Quick Review**:
+    2. **Read Quick Review** (REQUIRED):
        - Use WorkspaceTool: `operation="read", filename="quick_review.json"`
-       - Extract: `status`, `summary`, key findings
-       - Include: Overall assessment, main concerns
+       - Extract: `status`, `summary`
+       - Extract ALL findings arrays:
+         * `critical`: ALL critical issues (not just top 3)
+         * `warnings`: ALL warnings
+         * `info`: ALL suggestions
+       - For EACH finding, extract:
+         * `title`: Issue title
+         * `file`: File path
+         * `line`: Line number/range
+         * `description`: What the problem is
+         * `fix_suggestion`: How to fix it
+         * `severity`: Severity level
 
     3. **Read Full Review** (if available):
        - Use WorkspaceTool: `operation="read", filename="full_review.json"`
        - Extract: `architecture`, `security`, `performance` findings
-       - Include: Critical/high severity items only (top 3-5)
+       - Filter for critical/high severity items
 
     4. **Read Router Decision**:
        - Use WorkspaceTool: `operation="read", filename="router_decision.json"`
        - Extract: `suggestions` array
-       - Include: Any router suggestions for improvements
 
-    5. **Synthesize into markdown**:
-       - Write using WorkspaceTool: `operation="write",
-    filename="final_summary.md"`
+    5. **Write comprehensive markdown with collapsible sections**:
+       - Use WorkspaceTool: `operation="write", filename="final_summary.md"`
 
-    **CRITICAL REQUIREMENTS**: - DO NOT just write headers - INCLUDE ACTUAL
-    CONTENT from each JSON file - If a file doesn't exist, write "Did not run" -
-    don't skip the section - Extract specific error messages, suggestions, and
-    findings - Keep total output under 50 lines but make every line count - DO
-    NOT wrap output in ```markdown code blocks
+    **CRITICAL FORMATTING REQUIREMENTS**:
+
+    - DO NOT summarize findings - show ALL of them
+    - Use HTML <details> tags for collapsible sections
+    - Critical issues: `<details open>` (expanded by default)
+    - Warnings/Suggestions: `<details>` (collapsed by default)
+    - Include severity emoji: 🔴 critical, 🟡 warning, 🔵 info
+    - Format each finding as:
+      ```
+      - 🔴 **Issue Title** `file.py:line_number`
+        - Description of the problem
+        - 💡 **Fix**: Specific fix suggestion
+      ```
 
     **EXAMPLE OUTPUT FORMAT**:
 
@@ -43,56 +61,103 @@ synthesize_summary:
 
     Review completed for PR #{pr_number} - {count} workflows executed.
 
-    **Commit**: `{commit_sha}` **Repository**: {repository} **Timestamp**:
-    {timestamp}
+    **Commit**: `{commit_sha}`
+    **Repository**: {repository}
+    **Workflows**: {workflows}
+    **Timestamp**: {timestamp}
 
     ---
 
     ### ✅ CI Analysis
+    **Status**: ✅ success
+    **Checks Performed**: format, lint, type-check, test
+    **Summary**: All CI checks passed successfully
 
-    **Status**: failure **Summary**: Core CI job failed - 1 critical error
-    detected
+    <details>
+    <summary><b>🔍 View CI Details</b></summary>
 
-    **Critical Errors**: - Type: CI Failure (exit code 1) - Message: Build
-    failed in 30 files commit (3221 additions, 582 deletions) - Fix: Review
-    GitHub Actions logs for specific TypeScript/Python errors
+    **What Was Checked**:
+    - Code formatting (Black, isort)
+    - Linting (pylint, flake8)
+    - Type checking (mypy)
+    - Unit tests
+
+    **Issue Analysis**:
+    - Root Cause: [if any issues were found]
+    - Fix Applied: [what was auto-fixed]
+    - Recommendation: [if any]
+    </details>
 
     ---
 
     ### ⚡ Quick Review
+    **Status**: completed
+    **Summary**: [extract full summary from quick_review.json]
 
-    **Status**: [extract from quick_review.json] **Key Findings**: [extract top
-    2-3 findings from summary field]
+    **Findings**:
+    - 🔴 5 critical issue(s)
+    - 🟡 12 warning(s)
+    - 🔵 6 suggestion(s)
+
+    <details open>
+    <summary><b>🔴 Critical Issues (5)</b></summary>
+
+    - 🔴 **Exception handling in main.py orchestrator lacks specificity** `.crewai/main.py:Multiple locations`
+      - Broad exception catching in all workflow steps. Only logs errors but continues execution without proper cleanup. Could mask critical failures.
+      - 💡 **Fix**: Implement granular exception handling per step. Add retry logic for transient failures. Add validation that required files were actually created before proceeding.
+
+    - 🔴 **Missing validation in WorkspaceTool.read_json()** `.crewai/tools/workspace_tool.py:134-139`
+      - Returns empty dict on JSON decode error without logging what went wrong. Makes debugging difficult.
+      - 💡 **Fix**: Log the filename and specific JSON error. Return None or raise specific exception instead of silent failure.
+
+    [... show ALL 5 critical issues ...]
+
+    </details>
+
+    <details>
+    <summary><b>🟡 Warnings (12)</b></summary>
+
+    [... show ALL 12 warnings with same format ...]
+
+    </details>
+
+    <details>
+    <summary><b>🔵 Suggestions (6)</b></summary>
+
+    [... show ALL 6 suggestions with same format ...]
+
+    </details>
 
     ---
 
-    ### 🔍 Full Review
-
-    **Status**: [if full_review.json exists, extract summary, else "Did not
-    run"] **Critical Issues**: [extract top 3 critical/high severity items if
-    available]
+    ### 🔍 Full Technical Review
+    Status: [if exists, show findings; else "Did not run"]
 
     ---
 
     ### 💡 Router Suggestions
 
-    [Include suggestions array from router_decision.json if present]
+    [Include suggestions from router_decision.json]
 
     ---
 
-    *🤖 Generated by CrewAI Router System*
+    *🤖 Generated by CrewAI Router System | ⏱️ {timestamp}*
 
-    **VALIDATION CHECKLIST** (verify before writing): ✓ CI Analysis section has
-    actual status and error details (not just "Status: unknown") ✓ Quick Review
-    section has extracted findings (not just "Did not run") ✓ Full Review
-    section has content if full_review.json exists ✓ No placeholder text like
-    "unknown" or "N/A" without explanation ✓ Total length is 30-50 lines with
-    actual content
+    **VALIDATION CHECKLIST** (verify before writing):
+    ✓ ALL critical issues shown (not just top 3)
+    ✓ ALL warnings shown (not just summary)
+    ✓ ALL suggestions shown
+    ✓ Each finding has: title, file:line, description, fix
+    ✓ Collapsible sections use correct HTML <details> syntax
+    ✓ Critical issues expanded by default (<details open>)
+    ✓ CI Analysis shows what was actually checked
+    ✓ No placeholder text without explanation
 
   expected_output: >
-    Comprehensive GitHub-flavored markdown summary (30-50 lines) saved to
-    final_summary.md with ACTUAL extracted content from each workflow's JSON
-    output. Must include specific error messages, findings, and suggestions -
-    not just section headers.
+    Comprehensive GitHub-flavored markdown summary saved to final_summary.md with
+    ALL findings displayed in collapsible HTML <details> sections. Each finding
+    must include file path, line number, description, and fix suggestion.
+    Critical issues expanded by default, warnings/suggestions collapsed.
+    Total output should be as long as needed to show all findings (typically 200-500 lines).
 
   output_file: final_summary.md
