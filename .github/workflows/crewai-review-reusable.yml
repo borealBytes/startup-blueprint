@@ -77,52 +77,59 @@ jobs:
           
           # Get all commits in this PR
           echo "📚 Getting PR commits..."
-          git log --format='%H|%s|%an|%ae|%aI' "origin/$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt
+          git log --format='%H|%s|%an|%ae|%aI' --no-merges "origin/$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt || true
           
-          # Convert to JSON array
-          echo '[' > .crewai/workspace/commits.json
-          FIRST=true
-          while IFS='|' read -r sha message author_name author_email author_date; do
-            if [ "$FIRST" = true ]; then
-              FIRST=false
-            else
-              echo ',' >> .crewai/workspace/commits.json
-            fi
-            
-            # Get stats for this commit
-            STATS=$(git show --stat --format='' "$sha" | tail -n 1)
-            ADDITIONS=0
-            DELETIONS=0
-            FILES=0
-            
-            if echo "$STATS" | grep -q "insertion"; then
-              ADDITIONS=$(echo "$STATS" | sed -n 's/.* \([0-9]\+\) insertion.*/\1/p')
-            fi
-            if echo "$STATS" | grep -q "deletion"; then
-              DELETIONS=$(echo "$STATS" | sed -n 's/.* \([0-9]\+\) deletion.*/\1/p')
-            fi
-            if echo "$STATS" | grep -q "file"; then
-              FILES=$(echo "$STATS" | sed -n 's/^ *\([0-9]\+\) file.*/\1/p')
-            fi
-            
-            cat >> .crewai/workspace/commits.json <<EOF
-            {
-              "sha": "${sha:0:8}",
-              "message": $(echo "$message" | jq -R .),
-              "author": {
-                "name": $(echo "$author_name" | jq -R .),
-                "email": $(echo "$author_email" | jq -R .),
-                "date": $(echo "$author_date" | jq -R .)
-              },
-              "stats": {
-                "additions": ${ADDITIONS:-0},
-                "deletions": ${DELETIONS:-0},
-                "files_changed": ${FILES:-0}
-              }
-            }
-EOF
-          done < /tmp/commits.txt
-          echo ']' >> .crewai/workspace/commits.json
+          # Build commits JSON array using jq
+          echo '[]' > .crewai/workspace/commits.json
+          
+          if [ -s /tmp/commits.txt ]; then
+            while IFS='|' read -r sha message author_name author_email author_date; do
+              # Get commit stats
+              STATS=$(git show --stat --format='' "$sha" 2>/dev/null | tail -n 1 || echo "")
+              ADDITIONS=0
+              DELETIONS=0
+              FILES=0
+              
+              if echo "$STATS" | grep -q "insertion"; then
+                ADDITIONS=$(echo "$STATS" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
+              fi
+              if echo "$STATS" | grep -q "deletion"; then
+                DELETIONS=$(echo "$STATS" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
+              fi
+              if echo "$STATS" | grep -q "file"; then
+                FILES=$(echo "$STATS" | grep -oE '^[[:space:]]*[0-9]+' | tr -d ' ' || echo 0)
+              fi
+              
+              # Build commit object and append to array
+              jq -n \
+                --arg sha "${sha:0:8}" \
+                --arg message "$message" \
+                --arg author_name "$author_name" \
+                --arg author_email "$author_email" \
+                --arg author_date "$author_date" \
+                --argjson additions "${ADDITIONS:-0}" \
+                --argjson deletions "${DELETIONS:-0}" \
+                --argjson files "${FILES:-0}" \
+                '{
+                  "sha": $sha,
+                  "message": $message,
+                  "author": {
+                    "name": $author_name,
+                    "email": $author_email,
+                    "date": $author_date
+                  },
+                  "stats": {
+                    "additions": $additions,
+                    "deletions": $deletions,
+                    "files_changed": $files
+                  }
+                }' > /tmp/commit.json
+              
+              # Append to array
+              jq '. += [input]' .crewai/workspace/commits.json /tmp/commit.json > /tmp/commits_new.json
+              mv /tmp/commits_new.json .crewai/workspace/commits.json
+            done < /tmp/commits.txt
+          fi
           
           COMMIT_COUNT=$(jq '. | length' .crewai/workspace/commits.json)
           echo "✅ Saved $COMMIT_COUNT commits to commits.json"
@@ -133,19 +140,26 @@ EOF
           ADDITIONS=$(echo "$PR_DATA" | jq -r '.additions')
           DELETIONS=$(echo "$PR_DATA" | jq -r '.deletions')
           
-          cat > .crewai/workspace/diff.json <<EOF
-          {
-            "pr_number": ${{ inputs.pr_number }},
-            "commit_sha": "${{ inputs.commit_sha }}",
-            "base_ref": "$BASE_REF",
-            "head_ref": "$HEAD_REF",
-            "labels": $(echo "$PR_LABELS" | jq -R 'split(",")'),
-            "files_changed": $CHANGED_FILES,
-            "additions": $ADDITIONS,
-            "deletions": $DELETIONS,
-            "total_changes": $((ADDITIONS + DELETIONS))
-          }
-EOF
+          jq -n \
+            --argjson pr_number "${{ inputs.pr_number }}" \
+            --arg commit_sha "${{ inputs.commit_sha }}" \
+            --arg base_ref "$BASE_REF" \
+            --arg head_ref "$HEAD_REF" \
+            --arg labels "$PR_LABELS" \
+            --argjson files_changed "$CHANGED_FILES" \
+            --argjson additions "$ADDITIONS" \
+            --argjson deletions "$DELETIONS" \
+            '{
+              "pr_number": $pr_number,
+              "commit_sha": $commit_sha,
+              "base_ref": $base_ref,
+              "head_ref": $head_ref,
+              "labels": ($labels | split(",")),
+              "files_changed": $files_changed,
+              "additions": $additions,
+              "deletions": $deletions,
+              "total_changes": ($additions + $deletions)
+            }' > .crewai/workspace/diff.json
           
           echo "✅ Saved PR metadata to diff.json"
           
