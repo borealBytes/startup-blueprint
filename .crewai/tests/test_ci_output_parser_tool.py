@@ -1,5 +1,6 @@
-"""Tests for CIOutputParserTool."""
+"""Tests for CI Output Parser Tool."""
 
+import os
 import pytest
 from tools.ci_output_parser_tool import CIOutputParserTool
 
@@ -7,40 +8,42 @@ from tools.ci_output_parser_tool import CIOutputParserTool
 class TestCIOutputParserTool:
     """Test suite for CIOutputParserTool."""
 
-    def test_parse_success_result(self, mock_env_vars):
-        """Test parsing successful CI result."""
+    def test_parse_success_result(self):
+        """Test parsing successful CI output."""
+        os.environ["COMMIT_SHA"] = "abc123"
         tool = CIOutputParserTool()
-        result = tool._run()
+        result = tool._run("All tests passed")
+        
+        # Result is a dict
+        assert isinstance(result, dict)
+        assert result["status"] == "success" or result["passed"] is True
 
-        assert "success" in result.lower()
-        # Should indicate CI passed
-        assert "passed" in result.lower() or "✅" in result or "success" in result.lower()
-
-    def test_parse_failure_result(self, mock_env_vars):
-        """Test parsing failed CI result."""
-        with patch.dict("os.environ", {"CORE_CI_RESULT": "failure"}, clear=False) as mock:
-            tool = CIOutputParserTool()
-            result = tool._run()
-
-            assert "failure" in result.lower() or "failed" in result.lower()
+    def test_parse_failure_result(self):
+        """Test parsing failed CI output."""
+        os.environ["COMMIT_SHA"] = "abc123"
+        tool = CIOutputParserTool()
+        result = tool._run("Tests failed with 3 errors")
+        
+        # Result is a dict
+        assert isinstance(result, dict)
+        assert result["status"] == "failure" or result["passed"] is False
 
     def test_parse_missing_env_var(self):
-        """Test behavior when CORE_CI_RESULT is not set."""
-        with patch.dict("os.environ", {}, clear=True):
-            tool = CIOutputParserTool()
-            result = tool._run()
-
-            # Should return some indication of missing data
-            assert result is not None
-
-    def test_output_includes_context(self, mock_env_vars):
-        """Test that output includes helpful context."""
+        """Test handling missing COMMIT_SHA."""
+        # Remove COMMIT_SHA if it exists
+        os.environ.pop("COMMIT_SHA", None)
         tool = CIOutputParserTool()
-        result = tool._run()
+        result = tool._run("Some output")
+        
+        # Should still return something, even without COMMIT_SHA
+        assert result is not None
 
-        # Should mention what was checked
-        # At minimum, should be informative
-        assert len(result) > 10  # Not just a single word
-
-
-from unittest.mock import patch
+    def test_output_includes_context(self):
+        """Test that output includes useful context."""
+        os.environ["COMMIT_SHA"] = "abc123"
+        tool = CIOutputParserTool()
+        result = tool._run("Build completed successfully")
+        
+        # Result is a dict with multiple fields
+        assert isinstance(result, dict)
+        assert len(result) > 2  # Should have multiple keys

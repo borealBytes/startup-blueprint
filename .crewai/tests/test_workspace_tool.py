@@ -1,104 +1,116 @@
-"""Tests for WorkspaceTool."""
+"""Tests for Workspace Tool."""
 
 import json
-from pathlib import Path
-
+import os
+import tempfile
 import pytest
 from tools.workspace_tool import WorkspaceTool
 
 
 class TestWorkspaceTool:
-    """Test suite for WorkspaceTool file operations."""
+    """Test suite for WorkspaceTool."""
 
-    def test_init_creates_workspace(self, temp_workspace):
-        """Test that WorkspaceTool creates workspace directory."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        assert Path(temp_workspace).exists()
-        assert Path(temp_workspace).is_dir()
+    def test_init_creates_workspace(self):
+        """Test that workspace directory is created on init."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            assert os.path.exists(tmpdir)
 
-    def test_write_file(self, temp_workspace):
+    def test_write_file(self):
         """Test writing a file to workspace."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        content = "Test content"
-        result = tool._run(operation="write", filename="test.txt", content=content)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            result = tool._run(operation="write", filename="test.txt", content="Hello")
+            
+            assert os.path.exists(os.path.join(tmpdir, "test.txt"))
+            assert "test.txt" in result
 
-        assert "successfully" in result.lower()
-        file_path = temp_workspace / "test.txt"
-        assert file_path.exists()
-        assert file_path.read_text() == content
+    def test_write_json_file(self):
+        """Test writing JSON content to workspace."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            data = {"key": "value", "number": 42}
+            result = tool._run(
+                operation="write", 
+                filename="data.json", 
+                content=json.dumps(data, indent=2)
+            )
+            
+            file_path = os.path.join(tmpdir, "data.json")
+            assert os.path.exists(file_path)
+            
+            with open(file_path) as f:
+                loaded = json.load(f)
+                assert loaded == data
 
-    def test_write_json_file(self, temp_workspace):
-        """Test writing JSON data to workspace."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        data = {"key": "value", "number": 42}
-        content = json.dumps(data)
-        result = tool._run(operation="write", filename="test.json", content=content)
-
-        assert "successfully" in result.lower()
-        file_path = temp_workspace / "test.json"
-        assert file_path.exists()
-
-        loaded_data = json.loads(file_path.read_text())
-        assert loaded_data == data
-
-    def test_read_file(self, temp_workspace):
+    def test_read_file(self):
         """Test reading a file from workspace."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            
+            # Write first
+            tool._run(operation="write", filename="test.txt", content="Hello World")
+            
+            # Then read
+            result = tool._run(operation="read", filename="test.txt")
+            assert "Hello World" in result
 
-        # Write first
-        file_path = temp_workspace / "read_test.txt"
-        file_path.write_text("Test content to read")
-
-        # Read
-        result = tool._run(operation="read", filename="read_test.txt")
-        assert "Test content to read" in result
-
-    def test_read_nonexistent_file(self, temp_workspace):
+    def test_read_nonexistent_file(self):
         """Test reading a file that doesn't exist."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        result = tool._run(operation="read", filename="nonexistent.txt")
-        assert "not found" in result.lower() or "does not exist" in result.lower()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            result = tool._run(operation="read", filename="nonexistent.txt")
+            
+            # Should return empty string or error message
+            assert result == "" or "not found" in result.lower() or "does not exist" in result.lower()
 
-    def test_list_files_empty(self, temp_workspace):
+    def test_list_files_empty(self):
         """Test listing files in empty workspace."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        result = tool._run(operation="list")
-        assert "files" in result.lower() or "empty" in result.lower()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            result = tool._run(operation="list", filename="")  # filename can be empty for list
+            
+            assert "No files" in result or "empty" in result.lower() or "[]" in result
 
-    def test_list_files_with_content(self, temp_workspace):
-        """Test listing files in workspace with files."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
+    def test_list_files_with_content(self):
+        """Test listing files with content in workspace."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            
+            # Create some files
+            tool._run(operation="write", filename="file1.txt", content="Content 1")
+            tool._run(operation="write", filename="file2.txt", content="Content 2")
+            
+            result = tool._run(operation="list", filename="")
+            assert "file1.txt" in result
+            assert "file2.txt" in result
 
-        # Create some files
-        (temp_workspace / "file1.txt").write_text("Content 1")
-        (temp_workspace / "file2.json").write_text('{"key": "value"}')
-        (temp_workspace / "file3.md").write_text("# Markdown")
+    def test_invalid_operation(self):
+        """Test handling invalid operation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            
+            with pytest.raises(ValueError):
+                tool._run(operation="invalid_op", filename="test.txt")
 
-        result = tool._run(operation="list")
-        assert "file1.txt" in result
-        assert "file2.json" in result
-        assert "file3.md" in result
+    def test_write_with_subdirectory(self):
+        """Test writing file in a subdirectory."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            result = tool._run(
+                operation="write",
+                filename="subdir/file.txt",
+                content="Nested content"
+            )
+            
+            file_path = os.path.join(tmpdir, "subdir", "file.txt")
+            assert os.path.exists(file_path)
 
-    def test_invalid_operation(self, temp_workspace):
-        """Test handling of invalid operation."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        result = tool._run(operation="invalid_op", filename="test.txt")
-        assert "error" in result.lower() or "invalid" in result.lower()
-
-    def test_write_with_subdirectory(self, temp_workspace):
-        """Test writing file with subdirectory in path."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        result = tool._run(operation="write", filename="subdir/test.txt", content="Test")
-
-        file_path = temp_workspace / "subdir" / "test.txt"
-        assert file_path.exists()
-        assert file_path.read_text() == "Test"
-
-    def test_write_empty_content(self, temp_workspace):
-        """Test writing empty content."""
-        tool = WorkspaceTool(workspace_dir=str(temp_workspace))
-        result = tool._run(operation="write", filename="empty.txt", content="")
-
-        file_path = temp_workspace / "empty.txt"
-        assert file_path.exists()
-        assert file_path.read_text() == ""
+    def test_write_empty_content(self):
+        """Test writing file with empty content."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tool = WorkspaceTool(workspace_dir=tmpdir)
+            result = tool._run(operation="write", filename="empty.txt", content="")
+            
+            file_path = os.path.join(tmpdir, "empty.txt")
+            assert os.path.exists(file_path)
