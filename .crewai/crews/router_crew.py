@@ -5,8 +5,6 @@ import os
 
 from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from tools.github_tools import CommitDiffTool, CommitInfoTool
-from tools.pr_metadata_tool import PRMetadataTool
 from tools.workspace_tool import WorkspaceTool
 
 logger = logging.getLogger(__name__)
@@ -71,17 +69,15 @@ class RouterCrew:
 
     @agent
     def router_agent(self) -> Agent:
-        """Create router agent with function calling enabled."""
+        """Create router agent with function calling enabled.
+        
+        IMPORTANT: The GitHub workflow has already prepared all data files
+        (diff.txt, commits.json, diff.json) in the workspace. The router
+        only needs WorkspaceTool to read these pre-prepared files.
+        """
         return Agent(
             config=self.agents_config["router_agent"],
-            # CRITICAL: @tool functions should NOT have () - they're already callable
-            # BaseTool subclasses MUST have () to instantiate
-            tools=[
-                PRMetadataTool(),  # BaseTool subclass - needs ()
-                CommitDiffTool,  # @tool function - NO ()
-                CommitInfoTool,  # @tool function - NO ()
-                WorkspaceTool(),  # BaseTool subclass - needs ()
-            ],
+            tools=[WorkspaceTool()],  # Only need workspace tool - data is pre-prepared
             llm=self.llm,  # Use LLM instance
             function_calling_llm=self.llm,  # CRITICAL: Enable function calling
             max_iter=10,  # Allow more iterations for tool use
