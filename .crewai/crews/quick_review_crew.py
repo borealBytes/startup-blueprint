@@ -3,7 +3,7 @@
 import logging
 import os
 
-from crewai import Agent, Crew, Process, Task, LLM
+from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from tools.workspace_tool import WorkspaceTool
 
@@ -24,7 +24,7 @@ class QuickReviewCrew:
             raise ValueError("OPENROUTER_API_KEY required")
 
         self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/xiaomi/mimo-v2-flash")
-        
+
         # Create LLM instance with function calling
         self.llm = LLM(
             model=self.model_name,
