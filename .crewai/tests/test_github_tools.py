@@ -4,7 +4,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from tools.github_tools import CommitDiffTool, CommitInfoTool
 
 
@@ -25,9 +24,7 @@ class TestCommitDiffTool:
         mock_get.return_value = mock_response
 
         tool = CommitDiffTool()
-        result = tool._run(
-            commit_sha="abc123def456", repository="test-owner/test-repo"
-        )
+        result = tool._run(commit_sha="abc123def456", repository="test-owner/test-repo")
 
         assert "abc123def456" in result
         assert "src/app.py" in result
@@ -76,9 +73,7 @@ class TestCommitInfoTool:
         mock_get.return_value = mock_response
 
         tool = CommitInfoTool()
-        result = tool._run(
-            commit_sha="abc123def456", repository="test-owner/test-repo"
-        )
+        result = tool._run(commit_sha="abc123def456", repository="test-owner/test-repo")
 
         assert "feat: add new feature" in result
         assert "fix: resolve bug" in result

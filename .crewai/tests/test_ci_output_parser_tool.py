@@ -1,7 +1,6 @@
 """Tests for CIOutputParserTool."""
 
 import pytest
-
 from tools.ci_output_parser_tool import CIOutputParserTool
 
 
@@ -19,9 +18,7 @@ class TestCIOutputParserTool:
 
     def test_parse_failure_result(self, mock_env_vars):
         """Test parsing failed CI result."""
-        with patch.dict(
-            "os.environ", {"CORE_CI_RESULT": "failure"}, clear=False
-        ) as mock:
+        with patch.dict("os.environ", {"CORE_CI_RESULT": "failure"}, clear=False) as mock:
             tool = CIOutputParserTool()
             result = tool._run()
 

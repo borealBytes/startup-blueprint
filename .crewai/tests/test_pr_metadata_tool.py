@@ -4,7 +4,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from tools.pr_metadata_tool import PRMetadataTool
 
 
