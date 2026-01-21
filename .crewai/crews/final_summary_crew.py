@@ -2,6 +2,7 @@
 
 import logging
 import os
+from pathlib import Path
 
 from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
@@ -32,6 +33,9 @@ class FinalSummaryCrew:
             base_url="https://openrouter.ai/api/v1",
         )
 
+        # Get workspace path (absolute)
+        self.workspace_dir = (Path(__file__).parent.parent / "workspace").resolve()
+
     @agent
     def executive_summary_agent(self) -> Agent:
         """Create executive summary agent."""
@@ -48,9 +52,13 @@ class FinalSummaryCrew:
     @task
     def synthesize_summary(self) -> Task:
         """Synthesize final summary task."""
+        # CRITICAL: Set output_file with full path to force file creation
+        output_file = str(self.workspace_dir / "final_summary.md")
+        
         return Task(
             config=self.tasks_config["synthesize_summary"],
             agent=self.executive_summary_agent(),
+            output_file=output_file,  # Force markdown output to file
         )
 
     @crew

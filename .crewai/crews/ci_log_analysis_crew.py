@@ -2,6 +2,7 @@
 
 import logging
 import os
+from pathlib import Path
 
 from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
@@ -16,7 +17,7 @@ class CILogAnalysisCrew:
     """CI log analysis crew."""
 
     agents_config = "../config/agents.yaml"
-    tasks_config = "../config/tasks/ci_log_analysis_tasks.yaml"  # Fixed: was ci_log_tasks.yaml
+    tasks_config = "../config/tasks/ci_log_analysis_tasks.yaml"
 
     def __init__(self):
         """Initialize CI log analysis crew."""
@@ -32,6 +33,9 @@ class CILogAnalysisCrew:
             api_key=api_key,
             base_url="https://openrouter.ai/api/v1",
         )
+
+        # Get workspace path (absolute)
+        self.workspace_dir = (Path(__file__).parent.parent / "workspace").resolve()
 
     @agent
     def ci_analyst(self) -> Agent:
@@ -52,11 +56,13 @@ class CILogAnalysisCrew:
     @task
     def analyze_ci_logs(self) -> Task:
         """Analyze CI logs task."""
+        # CRITICAL: Set output_json with full path to force file creation
+        output_file = str(self.workspace_dir / "ci_summary.json")
+        
         return Task(
-            config=self.tasks_config[
-                "parse_ci_output"
-            ],  # Task name from ci_log_analysis_tasks.yaml
+            config=self.tasks_config["parse_ci_output"],
             agent=self.ci_analyst(),
+            output_json=output_file,  # Force JSON output to file
         )
 
     @crew
