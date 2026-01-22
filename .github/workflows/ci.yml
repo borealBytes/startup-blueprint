@@ -9,44 +9,65 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Step 1: Run core CI (format, lint, link check, test detection)
-  core-ci:
-    name: Core CI
-    uses: ./.github/workflows/core-ci-reusable.yml
+  ##############################################################################
+  # CORE CI
+  ##############################################################################
+
+  format-and-lint:
+    name: Format & Lint
+    uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
-  # Step 2: Run detected tests in parallel
-  # Each test type is a separate job that runs conditionally
-  
+  test-detection:
+    name: Detect Tests to Run
+    needs: [format-and-lint]
+    uses: ./.github/workflows/test-orchestration-reusable.yml
+    secrets: inherit
+
+  ##############################################################################
+  # TESTS
+  ##############################################################################
+
+  test-documentation-links:
+    name: Test Documentation Links
+    needs: [format-and-lint]
+    uses: ./.github/workflows/link-check-reusable.yml
+    with:
+      commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
+    secrets: inherit
+
   test-crewai:
     name: Test CrewAI
-    needs: [core-ci]
+    needs: [format-and-lint, test-detection]
     if: |
       always() &&
-      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
-      contains(needs.core-ci.outputs.test-matrix, 'test-crewai-reusable.yml')
+      (needs.format-and-lint.result == 'success' || needs.format-and-lint.result == 'failure') &&
+      contains(needs.test-detection.outputs.test-matrix, 'test-crewai-reusable.yml')
     uses: ./.github/workflows/test-crewai-reusable.yml
     with:
-      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+      commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
     secrets: inherit
 
-  # Add more test jobs here as needed:
+  # Future test jobs can be added here:
   # test-node:
   #   name: Test Node Apps
-  #   needs: [core-ci]
+  #   needs: [format-and-lint, test-detection]
   #   if: |
   #     always() &&
-  #     (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
-  #     contains(needs.core-ci.outputs.test-matrix, 'test-node-reusable.yml')
+  #     (needs.format-and-lint.result == 'success' || needs.format-and-lint.result == 'failure') &&
+  #     contains(needs.test-detection.outputs.test-matrix, 'test-node-reusable.yml')
   #   uses: ./.github/workflows/test-node-reusable.yml
   #   with:
-  #     commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+  #     commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
   #   secrets: inherit
 
-  # Step 3: Run CrewAI review ONLY if core CI completes (success or failure)
+  ##############################################################################
+  # CREWAI REVIEW
+  ##############################################################################
+
   crewai-review:
     name: CrewAI Code Review
-    needs: [core-ci, test-crewai]
+    needs: [format-and-lint, test-detection, test-documentation-links, test-crewai]
     # Run if:
     # - Core CI completed (success OR failure - we want to analyze failures too!)
     # - Tests completed or were skipped
@@ -54,7 +75,8 @@ jobs:
     # - Not a draft PR
     if: |
       always() &&
-      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      (needs.format-and-lint.result == 'success' || needs.format-and-lint.result == 'failure') &&
+      (needs.test-documentation-links.result == 'success' || needs.test-documentation-links.result == 'failure' || needs.test-documentation-links.result == 'skipped') &&
       (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
@@ -63,6 +85,6 @@ jobs:
     with:
       pr_number: ${{ github.event.pull_request.number }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
-      core_ci_result: ${{ needs.core-ci.result }}
+      core_ci_result: ${{ needs.format-and-lint.result }}
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
