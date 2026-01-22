@@ -1,0 +1,75 @@
+name: CrewAI Test
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        required: false
+        type: string
+        description: 'Commit SHA to test'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    defaults:
+      run:
+        working-directory: .crewai
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: '.crewai/pyproject.toml'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov
+
+      - name: Run tests
+        run: |
+          echo "🧪 Running CrewAI tests..."
+          pytest tests/ -v --cov=. --cov-report=term-missing || {
+            echo "❌ Tests failed"
+            exit 1
+          }
+
+      - name: Validate configuration files
+        run: |
+          echo "🔍 Validating YAML configuration files..."
+          python -c "
+import yaml
+from pathlib import Path
+
+config_dir = Path('config')
+if config_dir.exists():
+    for yaml_file in config_dir.rglob('*.yaml'):
+        try:
+            with open(yaml_file) as f:
+                yaml.safe_load(f)
+            print(f'✅ {yaml_file.relative_to(config_dir)}')
+        except Exception as e:
+            print(f'❌ {yaml_file.relative_to(config_dir)}: {e}')
+            exit(1)
+else:
+    print('⚠️ No config directory found')
+          "
+
+      - name: Test summary
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ CrewAI tests passed"
+          else
+            echo "❌ CrewAI tests failed"
+          fi
