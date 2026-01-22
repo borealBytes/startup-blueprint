@@ -47,23 +47,23 @@ jobs:
       - name: Validate configuration files
         run: |
           echo "🔍 Validating YAML configuration files..."
-          python -c "
-import yaml
-from pathlib import Path
+          python -c '
+          import yaml
+          from pathlib import Path
 
-config_dir = Path('config')
-if config_dir.exists():
-    for yaml_file in config_dir.rglob('*.yaml'):
-        try:
-            with open(yaml_file) as f:
-                yaml.safe_load(f)
-            print(f'✅ {yaml_file.relative_to(config_dir)}')
-        except Exception as e:
-            print(f'❌ {yaml_file.relative_to(config_dir)}: {e}')
-            exit(1)
-else:
-    print('⚠️ No config directory found')
-          "
+          config_dir = Path("config")
+          if config_dir.exists():
+              for yaml_file in config_dir.rglob("*.yaml"):
+                  try:
+                      with open(yaml_file) as f:
+                          yaml.safe_load(f)
+                      print(f"✅ {yaml_file.relative_to(config_dir)}")
+                  except Exception as e:
+                      print(f"❌ {yaml_file.relative_to(config_dir)}: {e}")
+                      exit(1)
+          else:
+              print("⚠️ No config directory found")
+          '
 
       - name: Test summary
         if: always()
