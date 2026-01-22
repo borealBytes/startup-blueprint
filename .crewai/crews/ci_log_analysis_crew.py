@@ -16,7 +16,7 @@ class CILogAnalysisCrew:
     """CI log analysis crew."""
 
     agents_config = "../config/agents.yaml"
-    tasks_config = "../config/tasks/ci_log_tasks.yaml"
+    tasks_config = "../config/tasks/ci_log_analysis_tasks.yaml"
 
     def __init__(self):
         """Initialize CI log analysis crew."""
@@ -52,9 +52,12 @@ class CILogAnalysisCrew:
     @task
     def analyze_ci_logs(self) -> Task:
         """Analyze CI logs task."""
+        # Use output_file (not output_json) - CrewAI writes string content to file
+        # Agent returns JSON as string, CrewAI writes it to ci_summary.json
         return Task(
-            config=self.tasks_config["analyze_ci_logs"],
+            config=self.tasks_config["parse_ci_output"],
             agent=self.ci_analyst(),
+            output_file="ci_summary.json",  # Direct file write
         )
 
     @crew

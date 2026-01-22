@@ -877,21 +877,21 @@ jobs:
         id: detect_tests
         run: |
           echo "🔍 Detecting testable directories..."
-          
+
           TEST_JOBS='[]'
-          
+
           # Check for .crewai/
           if [ -d ".crewai" ] && [ -f ".crewai/pyproject.toml" ]; then
             echo "✅ Found .crewai/ directory with pyproject.toml"
             TEST_JOBS=$(echo "$TEST_JOBS" | jq -c '. + [{"name": "crewai", "path": ".crewai", "workflow": "test-crewai-reusable.yml"}]')
           fi
-          
+
           # Check for apps/*/ directories with package.json or go.mod or pyproject.toml
           if [ -d "apps" ]; then
             for app_dir in apps/*/; do
               if [ -d "$app_dir" ]; then
                 APP_NAME=$(basename "$app_dir")
-                
+
                 if [ -f "${app_dir}package.json" ]; then
                   echo "✅ Found Node.js app: $APP_NAME"
                   TEST_JOBS=$(echo "$TEST_JOBS" | jq -c ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-node-reusable.yml\"}]")
@@ -905,10 +905,10 @@ jobs:
               fi
             done
           fi
-          
+
           # Output matrix (compact JSON, no whitespace)
           echo "matrix={\"include\":$TEST_JOBS}" >> $GITHUB_OUTPUT
-          
+
           # Check if we have any tests
           TEST_COUNT=$(echo "$TEST_JOBS" | jq 'length')
           if [ "$TEST_COUNT" -gt 0 ]; then
@@ -918,7 +918,7 @@ jobs:
             echo "has-tests=false" >> $GITHUB_OUTPUT
             echo "⏭️ No testable directories found"
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🧪 Test Detection" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

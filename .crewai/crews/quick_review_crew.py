@@ -48,10 +48,12 @@ class QuickReviewCrew:
     @task
     def quick_code_review(self) -> Task:
         """Quick code review task."""
-        # CRITICAL: Task name must match YAML key
+        # Agent writes output directly using WorkspaceTool
+        # No output_file needed - agent calls WorkspaceTool(operation="write", filename="quick_review.json")
         return Task(
-            config=self.tasks_config["quick_code_review"],  # Fixed: was "quick_code_check"
+            config=self.tasks_config["quick_code_review"],
             agent=self.quick_reviewer(),
+            # output_file removed - agent writes directly via WorkspaceTool
         )
 
     @crew

@@ -48,9 +48,11 @@ class FinalSummaryCrew:
     @task
     def synthesize_summary(self) -> Task:
         """Synthesize final summary task."""
+        # CRITICAL: Use filename only (not full path) - CrewAI writes to CWD
         return Task(
             config=self.tasks_config["synthesize_summary"],
             agent=self.executive_summary_agent(),
+            output_file="final_summary.md",  # Just filename - CrewAI handles path
         )
 
     @crew

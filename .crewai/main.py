@@ -73,6 +73,31 @@ def get_env_vars():
     return env_vars
 
 
+def get_workspace_diagnostics():
+    """Get current workspace state for debugging.
+
+    Returns:
+        dict: Workspace state including files present and their sizes
+    """
+    try:
+        workspace = WorkspaceTool()
+        workspace_dir = Path(__file__).parent / "workspace"
+
+        files_info = {}
+        if workspace_dir.exists():
+            for file_path in workspace_dir.iterdir():
+                if file_path.is_file():
+                    files_info[file_path.name] = {"size": file_path.stat().st_size, "exists": True}
+
+        return {
+            "workspace_path": str(workspace_dir),
+            "files": files_info,
+            "file_count": len(files_info),
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def run_router(env_vars):
     """Run router crew to decide workflows."""
     logger.info("=" * 60)
@@ -100,7 +125,29 @@ def run_router(env_vars):
                     logger.info(f"  - {suggestion}")
             return decision
         else:
-            logger.warning("⚠️ Router decision not found in workspace - using defaults")
+            # Enhanced error logging with workspace diagnostics
+            workspace_state = get_workspace_diagnostics()
+            logger.warning(
+                f"⚠️ Router did NOT write router_decision.json\n"
+                f"  Agent: RouterCrew router_agent\n"
+                f"  Workflow: analyze_pr_and_route\n"
+                f"  Expected file: router_decision.json\n"
+                f"  Workspace state: {json.dumps(workspace_state, indent=2)}"
+            )
+            logger.info("📋 Router task result output (for debugging):")
+            # Increased truncation limit from 500 to 2000 chars
+            result_str = str(result)
+            logger.info(result_str[:2000])
+            if len(result_str) > 2000:
+                logger.info(f"... (truncated, total length: {len(result_str)} chars)")
+
+            # Try to extract specific error fields if available
+            if hasattr(result, "raw"):
+                logger.info(f"Agent raw output: {str(result.raw)[:1000]}")
+            if hasattr(result, "pydantic"):
+                logger.info(f"Agent pydantic output: {str(result.pydantic)[:1000]}")
+
+            logger.info("⚠️ Using default workflows due to missing router output")
             return {
                 "workflows": ["ci-log-analysis", "quick-review"],
                 "suggestions": [],
@@ -108,7 +155,13 @@ def run_router(env_vars):
             }
 
     except Exception as e:
-        logger.error(f"❌ Router failed: {e}", exc_info=True)
+        workspace_state = get_workspace_diagnostics()
+        logger.error(
+            f"❌ Router failed: {e}\n"
+            f"  Exception type: {type(e).__name__}\n"
+            f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
+            exc_info=True,
+        )
         # Return default workflows on failure
         return {
             "workflows": ["ci-log-analysis", "quick-review"],
@@ -131,7 +184,20 @@ def run_ci_analysis(env_vars):
         # Validate output file was created
         workspace = WorkspaceTool()
         if not workspace.exists("ci_summary.json"):
-            logger.warning("⚠️ CI analysis did not create ci_summary.json - creating fallback")
+            workspace_state = get_workspace_diagnostics()
+            logger.warning(
+                f"⚠️ CI analysis did NOT write ci_summary.json\n"
+                f"  Agent: CILogAnalysisCrew ci_analyst\n"
+                f"  Workflow: parse_ci_output\n"
+                f"  Expected file: ci_summary.json\n"
+                f"  Workspace state: {json.dumps(workspace_state, indent=2)}"
+            )
+            logger.info("📋 CI analysis result output (for debugging):")
+            result_str = str(result)
+            logger.info(result_str[:2000])
+            if len(result_str) > 2000:
+                logger.info(f"... (truncated, total length: {len(result_str)} chars)")
+
             workspace.write_json(
                 "ci_summary.json",
                 {
@@ -142,10 +208,18 @@ def run_ci_analysis(env_vars):
                     "warnings": [],
                 },
             )
+        else:
+            logger.info("✅ Verified ci_summary.json exists in workspace")
 
         return result
     except Exception as e:
-        logger.error(f"❌ CI analysis failed: {e}", exc_info=True)
+        workspace_state = get_workspace_diagnostics()
+        logger.error(
+            f"❌ CI analysis failed: {e}\n"
+            f"  Exception type: {type(e).__name__}\n"
+            f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
+            exc_info=True,
+        )
         # Write error to workspace
         workspace = WorkspaceTool()
         workspace.write_json(
@@ -167,12 +241,27 @@ def run_quick_review():
     try:
         quick_crew = QuickReviewCrew()
         result = quick_crew.crew().kickoff()
-        logger.info("✅ Quick review complete")
+        logger.info("✅ Quick review task complete")
 
         # CRITICAL: Validate output file was created
         workspace = WorkspaceTool()
         if not workspace.exists("quick_review.json"):
-            logger.warning("⚠️ Quick review did not create quick_review.json - creating fallback")
+            workspace_state = get_workspace_diagnostics()
+            logger.error(
+                f"❌ CRITICAL: Quick review did NOT write quick_review.json!\n"
+                f"  Agent: QuickReviewCrew code_reviewer\n"
+                f"  Workflow: quick_code_review\n"
+                f"  Expected file: quick_review.json\n"
+                f"  Workspace state: {json.dumps(workspace_state, indent=2)}"
+            )
+            logger.info("📋 Quick review result output (for debugging):")
+            result_str = str(result)
+            logger.info(result_str[:2000])  # Increased from 1000 to 2000
+            if len(result_str) > 2000:
+                logger.info(f"... (truncated, total length: {len(result_str)} chars)")
+
+            logger.warning("⚠️ Creating fallback quick_review.json with empty arrays")
+
             # Try to extract from result if available
             workspace.write_json(
                 "quick_review.json",
@@ -185,11 +274,29 @@ def run_quick_review():
                 },
             )
         else:
-            logger.info("✅ Verified quick_review.json exists in workspace")
+            # Validate the JSON has expected structure
+            review_data = workspace.read_json("quick_review.json")
+            total_findings = (
+                len(review_data.get("critical", []))
+                + len(review_data.get("warnings", []))
+                + len(review_data.get("info", []))
+            )
+            logger.info(
+                f"✅ Verified quick_review.json exists with {total_findings} total findings"
+            )
+            logger.info(f"   - Critical: {len(review_data.get('critical', []))}")
+            logger.info(f"   - Warnings: {len(review_data.get('warnings', []))}")
+            logger.info(f"   - Info: {len(review_data.get('info', []))}")
 
         return result
     except Exception as e:
-        logger.error(f"❌ Quick review failed: {e}", exc_info=True)
+        workspace_state = get_workspace_diagnostics()
+        logger.error(
+            f"❌ Quick review failed: {e}\n"
+            f"  Exception type: {type(e).__name__}\n"
+            f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
+            exc_info=True,
+        )
         workspace = WorkspaceTool()
         workspace.write_json(
             "quick_review.json",
@@ -219,7 +326,13 @@ def run_full_review(env_vars):
         logger.info("✅ Full review complete")
         return result
     except Exception as e:
-        logger.error(f"❌ Full review failed: {e}", exc_info=True)
+        workspace_state = get_workspace_diagnostics()
+        logger.error(
+            f"❌ Full review failed: {e}\n"
+            f"  Exception type: {type(e).__name__}\n"
+            f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
+            exc_info=True,
+        )
         workspace = WorkspaceTool()
         workspace.write_json(
             "full_review.json",
@@ -254,7 +367,7 @@ def run_final_summary(env_vars, workflows_executed):
         workflows_executed: List of workflows that were executed
     """
     logger.info("=" * 60)
-    logger.info("📝 STEP 6: Final Summary - Synthesizing all reviews")
+    logger.info("📋 STEP 6: Final Summary - Synthesizing all reviews")
     logger.info("=" * 60)
 
     try:
@@ -268,13 +381,20 @@ def run_final_summary(env_vars, workflows_executed):
                 "commit_sha": env_vars["commit_sha"],
                 "repository": env_vars["repository"],
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
-                "count": workflow_count,  # Add count parameter to fix template variable error
+                "count": workflow_count,
+                "workflows": ", ".join(workflows_executed),  # Fix: Add workflows parameter
             }
         )
         logger.info("✅ Final summary complete")
         return result
     except Exception as e:
-        logger.error(f"❌ Final summary failed: {e}", exc_info=True)
+        workspace_state = get_workspace_diagnostics()
+        logger.error(
+            f"❌ Final summary failed: {e}\n"
+            f"  Exception type: {type(e).__name__}\n"
+            f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
+            exc_info=True,
+        )
         return None
 
 

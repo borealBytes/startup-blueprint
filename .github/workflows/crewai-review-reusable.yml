@@ -34,70 +34,105 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0  # Full history for commit analysis
 
-      - name: Prepare PR data for CrewAI agents
+      - name: Prepare PR data using local git (no GitHub API)
         id: prepare-data
         run: |
           set -e
           
-          echo "📦 Preparing PR data for AI agents"
+          echo "📦 Preparing PR data using LOCAL GIT ONLY (no GitHub API for diff)"
           
           # Create workspace directory
           mkdir -p .crewai/workspace
           
-          # Get PR information using GitHub API
-          PR_DATA=$(gh pr view ${{ inputs.pr_number }} --json number,title,body,labels,files,additions,deletions,changedFiles,baseRefName,headRefName)
+          # Get base and head refs from github.event context (no API call needed)
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          HEAD_REF="${{ github.event.pull_request.head.ref }}"
           
-          echo "📊 PR Metadata:"
-          echo "$PR_DATA" | jq -r '.number, .title, .changedFiles'
-          
-          # Extract base and head refs
-          BASE_REF=$(echo "$PR_DATA" | jq -r '.baseRefName')
-          HEAD_REF=$(echo "$PR_DATA" | jq -r '.headRefName')
+          # Fallback to main if somehow empty
+          if [ -z "$BASE_REF" ]; then
+            BASE_REF="main"
+            echo "⚠️ BASE_REF empty, defaulting to main"
+          fi
           
           echo "📍 Base: $BASE_REF, Head: $HEAD_REF"
+          echo "📍 Commit SHA: ${{ inputs.commit_sha }}"
           
-          # Fetch the base branch
-          git fetch origin "$BASE_REF:$BASE_REF" || true
+          # Fetch the base branch if not present (only git operation needed)
+          echo "🔄 Fetching base branch: $BASE_REF"
+          git fetch origin "$BASE_REF:$BASE_REF" 2>/dev/null || \
+            git fetch origin "$BASE_REF" 2>/dev/null || \
+            echo "⚠️ Could not fetch $BASE_REF, using existing ref"
           
-          # Generate FULL PR diff (base..head) - this is what agents need!
-          echo "📝 Generating full PR diff (base..head)..."
-          git diff "origin/$BASE_REF...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
+          # Generate FULL PR diff using git (base..head) - NO API CALL
+          echo "📝 Generating full PR diff using: origin/$BASE_REF...${{ inputs.commit_sha }}"
+          git diff "origin/$BASE_REF...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt 2>/dev/null || \
+            git diff "$BASE_REF...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
           
           DIFF_SIZE=$(wc -c < .crewai/workspace/diff.txt)
           echo "✅ Full PR diff saved: $DIFF_SIZE bytes"
           
+          # Fallback if diff is too small (might indicate ref issue)
           if [ "$DIFF_SIZE" -lt 100 ]; then
-            echo "⚠️ Warning: Diff is suspiciously small. Trying alternative method..."
-            # Fallback: use merge-base
-            MERGE_BASE=$(git merge-base "origin/$BASE_REF" "${{ inputs.commit_sha }}")
-            git diff "$MERGE_BASE...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
-            DIFF_SIZE=$(wc -c < .crewai/workspace/diff.txt)
-            echo "✅ Fallback diff saved: $DIFF_SIZE bytes"
+            echo "⚠️ Warning: Diff is suspiciously small ($DIFF_SIZE bytes)"
+            echo "🔄 Trying alternative method with merge-base..."
+            
+            # Find merge base and diff from there
+            MERGE_BASE=$(git merge-base "origin/$BASE_REF" "${{ inputs.commit_sha }}" 2>/dev/null || \
+                        git merge-base "$BASE_REF" "${{ inputs.commit_sha }}")
+            
+            if [ -n "$MERGE_BASE" ]; then
+              echo "📍 Merge base: ${MERGE_BASE:0:8}"
+              git diff "$MERGE_BASE...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
+              DIFF_SIZE=$(wc -c < .crewai/workspace/diff.txt)
+              echo "✅ Fallback diff saved: $DIFF_SIZE bytes"
+            else
+              echo "❌ Could not determine merge base"
+            fi
           fi
           
-          # Get all commits in this PR
-          echo "📚 Getting PR commits..."
-          git log --format='%H|%s|%an|%ae|%aI' --no-merges "origin/$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt || true
+          # Count files changed and lines using git diff stats (no API needed)
+          echo "📊 Calculating diff statistics..."
+          DIFF_STATS=$(git diff --stat "origin/$BASE_REF...${{ inputs.commit_sha }}" 2>/dev/null || \
+                      git diff --stat "$BASE_REF...${{ inputs.commit_sha }}")
           
-          # Build commits JSON array using jq
+          # Extract stats from git diff output
+          # Example: "5 files changed, 123 insertions(+), 45 deletions(-)"
+          FILES_CHANGED=$(echo "$DIFF_STATS" | tail -n 1 | grep -oE '^[[:space:]]*[0-9]+' | tr -d ' ' || echo "0")
+          ADDITIONS=$(echo "$DIFF_STATS" | tail -n 1 | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo "0")
+          DELETIONS=$(echo "$DIFF_STATS" | tail -n 1 | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
+          
+          # Default to 0 if extraction failed
+          FILES_CHANGED=${FILES_CHANGED:-0}
+          ADDITIONS=${ADDITIONS:-0}
+          DELETIONS=${DELETIONS:-0}
+          
+          echo "📊 Stats: $FILES_CHANGED files, +$ADDITIONS/-$DELETIONS lines"
+          
+          # Get all commits in this PR using local git (no API)
+          echo "📚 Getting PR commits from local git..."
+          git log --format='%H|%s|%an|%ae|%aI' --no-merges "origin/$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt 2>/dev/null || \
+            git log --format='%H|%s|%an|%ae|%aI' --no-merges "$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt 2>/dev/null || \
+            echo "" > /tmp/commits.txt
+          
+          # Build commits JSON array
           echo '[]' > .crewai/workspace/commits.json
           
           if [ -s /tmp/commits.txt ]; then
             while IFS='|' read -r sha message author_name author_email author_date; do
-              # Get commit stats
+              # Get commit stats from git
               STATS=$(git show --stat --format='' "$sha" 2>/dev/null | tail -n 1 || echo "")
-              ADDITIONS=0
-              DELETIONS=0
-              FILES=0
+              COMMIT_ADDITIONS=0
+              COMMIT_DELETIONS=0
+              COMMIT_FILES=0
               
               if echo "$STATS" | grep -q "insertion"; then
-                ADDITIONS=$(echo "$STATS" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
+                COMMIT_ADDITIONS=$(echo "$STATS" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
               fi
               if echo "$STATS" | grep -q "deletion"; then
-                DELETIONS=$(echo "$STATS" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
+                COMMIT_DELETIONS=$(echo "$STATS" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
               fi
               if echo "$STATS" | grep -q "file"; then
-                FILES=$(echo "$STATS" | grep -oE '^[[:space:]]*[0-9]+' | tr -d ' ' || echo 0)
+                COMMIT_FILES=$(echo "$STATS" | grep -oE '^[[:space:]]*[0-9]+' | tr -d ' ' || echo 0)
               fi
               
               # Build commit object and append to array
@@ -107,9 +142,9 @@ jobs:
                 --arg author_name "$author_name" \
                 --arg author_email "$author_email" \
                 --arg author_date "$author_date" \
-                --argjson additions "${ADDITIONS:-0}" \
-                --argjson deletions "${DELETIONS:-0}" \
-                --argjson files "${FILES:-0}" \
+                --argjson additions "${COMMIT_ADDITIONS:-0}" \
+                --argjson deletions "${COMMIT_DELETIONS:-0}" \
+                --argjson files "${COMMIT_FILES:-0}" \
                 '{
                   "sha": $sha,
                   "message": $message,
@@ -134,19 +169,19 @@ jobs:
           COMMIT_COUNT=$(jq '. | length' .crewai/workspace/commits.json)
           echo "✅ Saved $COMMIT_COUNT commits to commits.json"
           
-          # Create diff metadata JSON (for router)
-          PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels | map(.name) | join(",")')
-          CHANGED_FILES=$(echo "$PR_DATA" | jq -r '.changedFiles')
-          ADDITIONS=$(echo "$PR_DATA" | jq -r '.additions')
-          DELETIONS=$(echo "$PR_DATA" | jq -r '.deletions')
+          # Get PR labels from github.event context (no API call)
+          PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
           
+          echo "🏷️ PR Labels: $PR_LABELS"
+          
+          # Create diff metadata JSON (for router)
           jq -n \
             --argjson pr_number "${{ inputs.pr_number }}" \
             --arg commit_sha "${{ inputs.commit_sha }}" \
             --arg base_ref "$BASE_REF" \
             --arg head_ref "$HEAD_REF" \
             --arg labels "$PR_LABELS" \
-            --argjson files_changed "$CHANGED_FILES" \
+            --argjson files_changed "$FILES_CHANGED" \
             --argjson additions "$ADDITIONS" \
             --argjson deletions "$DELETIONS" \
             '{
@@ -154,7 +189,7 @@ jobs:
               "commit_sha": $commit_sha,
               "base_ref": $base_ref,
               "head_ref": $head_ref,
-              "labels": ($labels | split(",")),
+              "labels": ($labels | split(",") | map(select(length > 0))),
               "files_changed": $files_changed,
               "additions": $additions,
               "deletions": $deletions,
@@ -165,15 +200,15 @@ jobs:
           
           # Summary
           echo ""
-          echo "📋 Data prepared for CrewAI:"
+          echo "📋 Data prepared for CrewAI (LOCAL GIT - NO API CALLS FOR DIFF):"
           echo "  - diff.txt: $DIFF_SIZE bytes (full PR diff)"
           echo "  - commits.json: $COMMIT_COUNT commits"
           echo "  - diff.json: PR metadata"
-          echo "  - Files changed: $CHANGED_FILES"
+          echo "  - Files changed: $FILES_CHANGED"
           echo "  - Lines: +$ADDITIONS/-$DELETIONS"
-          
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "  - Labels: $PR_LABELS"
+          echo ""
+          echo "✅ All data extracted from local git - no GitHub API calls for diff!"
 
       - name: Setup UV (Python Package Manager)
         uses: astral-sh/setup-uv@v5
@@ -198,7 +233,7 @@ jobs:
           COMMIT_SHA: ${{ inputs.commit_sha }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           
-          # CI Context (NEW: from core-ci job)
+          # CI Context (from core-ci job)
           CORE_CI_RESULT: ${{ inputs.core_ci_result }}
           
           # GitHub Actions Context
