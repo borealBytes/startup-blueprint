@@ -39,6 +39,32 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
 
+      - name: Fetch PR diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p workspace
+          echo "📥 Fetching PR #${{ inputs.pr_number }} diff..."
+          
+          # Fetch diff using GitHub API
+          curl -L \
+            -H "Accept: application/vnd.github.v3.diff" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ inputs.pr_number }}" \
+            -o workspace/diff.txt
+          
+          # Verify diff was downloaded
+          if [ -s workspace/diff.txt ]; then
+            DIFF_SIZE=$(wc -c < workspace/diff.txt)
+            echo "✅ Downloaded PR diff ($DIFF_SIZE bytes)"
+            echo "📄 First 5 lines:"
+            head -n 5 workspace/diff.txt
+          else
+            echo "❌ Failed to download PR diff"
+            exit 1
+          fi
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
