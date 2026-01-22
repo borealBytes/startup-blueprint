@@ -1,0 +1,41 @@
+name: Test & Build
+
+on:
+  workflow_call:
+    inputs:
+      changed_workspaces:
+        required: true
+        type: string
+        description: 'JSON array of changed workspaces'
+      commit_sha:
+        required: true
+        type: string
+        description: 'Commit SHA to test'
+
+jobs:
+  # Documentation links (always runs if .md files changed)
+  docs-links:
+    name: Documentation Links
+    if: contains(inputs.changed_workspaces, 'docs')
+    uses: ./.github/workflows/workspaces/docs-links-test.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+    secrets: inherit
+
+  # CrewAI testing
+  crewai:
+    name: CrewAI
+    if: contains(inputs.changed_workspaces, 'crewai')
+    uses: ./.github/workflows/workspaces/crewai-test.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+    secrets: inherit
+
+  # Website (FUTURE - uncomment when ready)
+  # website:
+  #   name: Website
+  #   if: contains(inputs.changed_workspaces, 'website')
+  #   uses: ./.github/workflows/workspaces/website-test-build.yml
+  #   with:
+  #     commit_sha: ${{ inputs.commit_sha }}
+  #   secrets: inherit

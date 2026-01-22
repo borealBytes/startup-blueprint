@@ -1,0 +1,25 @@
+name: Core CI
+
+on:
+  workflow_call:
+    outputs:
+      changed_workspaces:
+        description: 'JSON array of changed workspaces'
+        value: ${{ jobs.detect-changes.outputs.workspaces }}
+      final_commit_sha:
+        description: 'Final commit SHA after all checks'
+        value: ${{ jobs.format-lint.outputs.commit_sha }}
+
+jobs:
+  format-lint:
+    name: Format & Lint
+    uses: ./.github/workflows/jobs/format-lint.yml
+    secrets: inherit
+
+  detect-changes:
+    name: Detect Changes
+    needs: [format-lint]
+    uses: ./.github/workflows/jobs/detect-changes.yml
+    with:
+      commit_sha: ${{ needs.format-lint.outputs.commit_sha }}
+    secrets: inherit

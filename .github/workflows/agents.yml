@@ -1,0 +1,27 @@
+name: AI Agents
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+        description: 'Pull request number'
+      commit_sha:
+        required: true
+        type: string
+        description: 'Commit SHA to review'
+      core_ci_result:
+        required: true
+        type: string
+        description: 'Result from core-ci (success/failure)'
+
+jobs:
+  crewai-review:
+    name: CrewAI Review
+    uses: ./.github/workflows/agents/crewai-review.yml
+    with:
+      pr_number: ${{ inputs.pr_number }}
+      commit_sha: ${{ inputs.commit_sha }}
+      core_ci_result: ${{ inputs.core_ci_result }}
+    secrets: inherit

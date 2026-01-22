@@ -1,0 +1,91 @@
+name: Detect Changes
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        required: true
+        type: string
+        description: 'Commit SHA to analyze'
+    outputs:
+      workspaces:
+        description: 'JSON array of changed workspaces'
+        value: ${{ jobs.detect.outputs.workspaces }}
+
+jobs:
+  detect:
+    name: Detect Workspaces
+    runs-on: ubuntu-latest
+    outputs:
+      workspaces: ${{ steps.detect.outputs.workspaces }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+
+      - name: Detect changed workspaces
+        id: detect
+        run: |
+          # Get changed files
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ inputs.commit_sha }}"
+          else
+            # For push events, compare with parent commit
+            BASE="$(git rev-parse HEAD^)"
+            HEAD="${{ inputs.commit_sha }}"
+          fi
+          
+          echo "📊 Comparing $BASE...$HEAD"
+          CHANGED_FILES=$(git diff --name-only $BASE $HEAD || echo "")
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "⚠️ No changed files detected, using default workspaces"
+            WORKSPACES_JSON='["crewai", "docs"]'
+          else
+            echo "📁 Changed files:"
+            echo "$CHANGED_FILES"
+            
+            # Map files to workspaces
+            WORKSPACES=()
+            
+            # CrewAI workspace
+            if echo "$CHANGED_FILES" | grep -q "^\.crewai/"; then
+              WORKSPACES+=("crewai")
+              echo "  ✓ Detected: crewai"
+            fi
+            
+            # Website workspace (FUTURE)
+            if echo "$CHANGED_FILES" | grep -q "^apps/website/"; then
+              WORKSPACES+=("website")
+              echo "  ✓ Detected: website"
+            fi
+            
+            # Documentation
+            if echo "$CHANGED_FILES" | grep -q "\.md$"; then
+              WORKSPACES+=("docs")
+              echo "  ✓ Detected: docs"
+            fi
+            
+            # CI/CD workflows themselves
+            if echo "$CHANGED_FILES" | grep -q "^\.github/workflows/"; then
+              # When workflows change, test all workspaces
+              WORKSPACES=("crewai" "docs")
+              echo "  ✓ Workflows changed - testing all workspaces"
+            fi
+            
+            # Convert to JSON array
+            if [ ${#WORKSPACES[@]} -eq 0 ]; then
+              echo "ℹ️ No workspaces matched, defaulting to docs"
+              WORKSPACES_JSON='["docs"]'
+            else
+              WORKSPACES_JSON=$(printf '%s\n' "${WORKSPACES[@]}" | jq -R . | jq -s . | jq -c .)
+            fi
+          fi
+          
+          echo "workspaces=$WORKSPACES_JSON" >> $GITHUB_OUTPUT
+          echo ""
+          echo "📦 Changed workspaces: $WORKSPACES_JSON"

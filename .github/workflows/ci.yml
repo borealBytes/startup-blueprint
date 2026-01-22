@@ -1,7 +1,9 @@
-name: CI
+name: CI Pipeline
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 permissions:
   contents: write
@@ -9,70 +11,49 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Core CI - foundation for all subsequent jobs
-  core-ci-format-lint:
-    name: "Core CI » Format & Lint"
-    uses: ./.github/workflows/format-lint-reusable.yml
+  # PHASE 1: Quality gates (always runs)
+  core-ci:
+    name: Core CI
+    uses: ./.github/workflows/core-ci.yml
     secrets: inherit
 
-  core-ci-detect-tests:
-    name: "Core CI » Detect Tests"
-    needs: [core-ci-format-lint]
-    uses: ./.github/workflows/test-orchestration-reusable.yml
-    secrets: inherit
-
-  # Tests - run conditionally based on detection
-  test-docs-links:
-    name: "Tests » Documentation Links"
-    needs: [core-ci-format-lint, core-ci-detect-tests]
-    uses: ./.github/workflows/link-check-reusable.yml
+  # PHASE 2: Test & Build (conditional on core-ci completion)
+  test-build:
+    name: Test & Build
+    needs: [core-ci]
+    if: always() && (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/test-build.yml
     with:
-      commit_sha: ${{ needs.core-ci-format-lint.outputs.final-commit-sha }}
+      changed_workspaces: ${{ needs.core-ci.outputs.changed_workspaces }}
+      commit_sha: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
     secrets: inherit
 
-  test-crewai:
-    name: "Tests » CrewAI"
-    needs: [core-ci-format-lint, core-ci-detect-tests]
+  # PHASE 3: Deploy (only on success, environment-aware)
+  deploy:
+    name: Deploy
+    needs: [core-ci, test-build]
+    if: |
+      needs.test-build.result == 'success' &&
+      (github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'deploy:preview'))
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      changed_workspaces: ${{ needs.core-ci.outputs.changed_workspaces }}
+    secrets: inherit
+
+  # PHASE 4: AI Agents (analysis, runs after test-build)
+  agents:
+    name: AI Agents
+    needs: [core-ci, test-build]
     if: |
       always() &&
-      (needs.core-ci-format-lint.result == 'success' || needs.core-ci-format-lint.result == 'failure') &&
-      contains(needs.core-ci-detect-tests.outputs.test-matrix, 'test-crewai-reusable.yml')
-    uses: ./.github/workflows/test-crewai-reusable.yml
-    with:
-      commit_sha: ${{ needs.core-ci-format-lint.outputs.final-commit-sha }}
-    secrets: inherit
-
-  # Future test jobs:
-  # test-node:
-  #   name: "Tests » Node.js Apps"
-  #   needs: [core-ci-format-lint, core-ci-detect-tests]
-  #   if: |
-  #     always() &&
-  #     (needs.core-ci-format-lint.result == 'success' || needs.core-ci-format-lint.result == 'failure') &&
-  #     contains(needs.core-ci-detect-tests.outputs.test-matrix, 'test-node-reusable.yml')
-  #   uses: ./.github/workflows/test-node-reusable.yml
-  #   with:
-  #     commit_sha: ${{ needs.core-ci-format-lint.outputs.final-commit-sha }}
-  #   secrets: inherit
-
-  # Review - runs after all tests complete
-  review-crewai:
-    name: "Review » CrewAI"
-    needs: [core-ci-format-lint, core-ci-detect-tests, test-docs-links, test-crewai]
-    # Run if core CI completed (success or failure) and tests finished
-    # Skip for bot PRs and drafts
-    if: |
-      always() &&
-      (needs.core-ci-format-lint.result == 'success' || needs.core-ci-format-lint.result == 'failure') &&
-      (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
-      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft &&
       github.actor != 'dependabot[bot]' &&
-      github.actor != 'renovate[bot]' &&
-      !github.event.pull_request.draft
-    uses: ./.github/workflows/crewai-review-reusable.yml
+      github.actor != 'renovate[bot]'
+    uses: ./.github/workflows/agents.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
-      core_ci_result: ${{ needs.core-ci-format-lint.result }}
-    secrets:
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      core_ci_result: ${{ needs.core-ci.result }}
+    secrets: inherit

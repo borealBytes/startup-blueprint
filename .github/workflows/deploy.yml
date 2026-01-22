@@ -1,0 +1,38 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'Deployment environment (preview or production)'
+      changed_workspaces:
+        required: true
+        type: string
+        description: 'JSON array of changed workspaces'
+
+jobs:
+  # Website deployment (FUTURE - uncomment when ready)
+  # website:
+  #   name: Website → ${{ inputs.environment }}
+  #   if: contains(inputs.changed_workspaces, 'website')
+  #   uses: ./.github/workflows/environments/${{ inputs.environment }}-deploy.yml
+  #   with:
+  #     workspace: website
+  #     build_artifact: website-build
+  #   secrets: inherit
+  #   environment:
+  #     name: ${{ inputs.environment }}
+  #     url: ${{ inputs.environment == 'production' && 'https://credibilitymarkets.com' || 'https://preview.credibilitymarkets.com' }}
+
+  # Placeholder job (remove when real deployments exist)
+  placeholder:
+    name: No deployments configured
+    runs-on: ubuntu-latest
+    steps:
+      - name: Info
+        run: |
+          echo "ℹ️ No deployments configured yet"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Changed workspaces: ${{ inputs.changed_workspaces }}"
