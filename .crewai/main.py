@@ -100,7 +100,9 @@ def run_router(env_vars):
                     logger.info(f"  - {suggestion}")
             return decision
         else:
-            logger.warning("⚠️ Router did NOT write router_decision.json - agent may not be calling WorkspaceTool.write()")
+            logger.warning(
+                "⚠️ Router did NOT write router_decision.json - agent may not be calling WorkspaceTool.write()"
+            )
             logger.info("📝 Router task result output (for debugging):")
             logger.info(str(result)[:500])  # First 500 chars
             logger.info("⚠️ Using default workflows due to missing router output")
@@ -134,7 +136,9 @@ def run_ci_analysis(env_vars):
         # Validate output file was created
         workspace = WorkspaceTool()
         if not workspace.exists("ci_summary.json"):
-            logger.warning("⚠️ CI analysis did NOT write ci_summary.json - agent may not be calling WorkspaceTool.write()")
+            logger.warning(
+                "⚠️ CI analysis did NOT write ci_summary.json - agent may not be calling WorkspaceTool.write()"
+            )
             logger.info("📝 CI analysis result output (for debugging):")
             logger.info(str(result)[:500])
             workspace.write_json(
@@ -184,7 +188,7 @@ def run_quick_review():
             logger.info("📝 Quick review result output (for debugging):")
             logger.info(str(result)[:1000])  # First 1000 chars to see what agent returned
             logger.warning("⚠️ Creating fallback quick_review.json with empty arrays")
-            
+
             # Try to extract from result if available
             workspace.write_json(
                 "quick_review.json",
@@ -200,11 +204,13 @@ def run_quick_review():
             # Validate the JSON has expected structure
             review_data = workspace.read_json("quick_review.json")
             total_findings = (
-                len(review_data.get("critical", [])) +
-                len(review_data.get("warnings", [])) +
-                len(review_data.get("info", []))
+                len(review_data.get("critical", []))
+                + len(review_data.get("warnings", []))
+                + len(review_data.get("info", []))
             )
-            logger.info(f"✅ Verified quick_review.json exists with {total_findings} total findings")
+            logger.info(
+                f"✅ Verified quick_review.json exists with {total_findings} total findings"
+            )
             logger.info(f"   - Critical: {len(review_data.get('critical', []))}")
             logger.info(f"   - Warnings: {len(review_data.get('warnings', []))}")
             logger.info(f"   - Info: {len(review_data.get('info', []))}")
