@@ -16,14 +16,14 @@ jobs:
   # Runs first - gates all subsequent phases
   # ============================================================================
 
-  01-core-ci-format-lint:
+  phase1_format_lint:
     name: "Phase 1: Core CI » Format & Lint"
     uses: ./.github/workflows/jobs/format-lint.yml
     secrets: inherit
 
-  01-core-ci-detect-changes:
+  phase1_detect_changes:
     name: "Phase 1: Core CI » Detect Changes"
-    needs: [01-core-ci-format-lint]
+    needs: [phase1_format_lint]
     uses: ./.github/workflows/jobs/detect-changes.yml
     secrets: inherit
 
@@ -32,41 +32,41 @@ jobs:
   # Runs after Core CI, conditional on workspace changes
   # ============================================================================
 
-  02-test-docs-links:
+  phase2_test_docs_links:
     name: "Phase 2: Test » Documentation Links"
-    needs: [01-core-ci-format-lint, 01-core-ci-detect-changes]
+    needs: [phase1_format_lint, phase1_detect_changes]
     if: |
       always() &&
-      (needs.01-core-ci-format-lint.result == 'success' || needs.01-core-ci-format-lint.result == 'failure') &&
-      contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'docs')
+      (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
+      contains(needs.phase1_detect_changes.outputs.workspaces, 'docs')
     uses: ./.github/workflows/workspaces/docs-links-test.yml
     with:
-      commit_sha: ${{ needs.01-core-ci-format-lint.outputs.final-commit-sha }}
+      commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
     secrets: inherit
 
-  02-test-crewai:
+  phase2_test_crewai:
     name: "Phase 2: Test » CrewAI"
-    needs: [01-core-ci-format-lint, 01-core-ci-detect-changes]
+    needs: [phase1_format_lint, phase1_detect_changes]
     if: |
       always() &&
-      (needs.01-core-ci-format-lint.result == 'success' || needs.01-core-ci-format-lint.result == 'failure') &&
-      contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'crewai')
+      (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
+      contains(needs.phase1_detect_changes.outputs.workspaces, 'crewai')
     uses: ./.github/workflows/workspaces/crewai-test.yml
     with:
-      commit_sha: ${{ needs.01-core-ci-format-lint.outputs.final-commit-sha }}
+      commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
     secrets: inherit
 
   # Future workspace: Website Test & Build
-  # 02-test-build-website:
+  # phase2_test_build_website:
   #   name: "Phase 2: Test+Build » Website"
-  #   needs: [01-core-ci-format-lint, 01-core-ci-detect-changes]
+  #   needs: [phase1_format_lint, phase1_detect_changes]
   #   if: |
   #     always() &&
-  #     (needs.01-core-ci-format-lint.result == 'success' || needs.01-core-ci-format-lint.result == 'failure') &&
-  #     contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'website')
+  #     (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
+  #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website')
   #   uses: ./.github/workflows/workspaces/website-test-build.yml
   #   with:
-  #     commit_sha: ${{ needs.01-core-ci-format-lint.outputs.final-commit-sha }}
+  #     commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
   #   secrets: inherit
 
   # ============================================================================
@@ -75,12 +75,12 @@ jobs:
   # ============================================================================
 
   # Future: Website Preview Deploy (on PR with label or push to staging)
-  # 03-deploy-website-preview:
+  # phase3_deploy_website_preview:
   #   name: "Phase 3: Deploy » Website (Preview)"
-  #   needs: [01-core-ci-detect-changes, 02-test-build-website]
+  #   needs: [phase1_detect_changes, phase2_test_build_website]
   #   if: |
-  #     needs.02-test-build-website.result == 'success' &&
-  #     contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'website') &&
+  #     needs.phase2_test_build_website.result == 'success' &&
+  #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website') &&
   #     (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy:preview'))
   #   uses: ./.github/workflows/environments/preview-deploy.yml
   #   with:
@@ -92,12 +92,12 @@ jobs:
   #     url: https://preview.credibilitymarkets.com
 
   # Future: Website Production Deploy (on push to main)
-  # 03-deploy-website-production:
+  # phase3_deploy_website_production:
   #   name: "Phase 3: Deploy » Website (Production)"
-  #   needs: [01-core-ci-detect-changes, 02-test-build-website]
+  #   needs: [phase1_detect_changes, phase2_test_build_website]
   #   if: |
-  #     needs.02-test-build-website.result == 'success' &&
-  #     contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'website') &&
+  #     needs.phase2_test_build_website.result == 'success' &&
+  #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website') &&
   #     github.ref == 'refs/heads/main' &&
   #     github.event_name == 'push'
   #   uses: ./.github/workflows/environments/production-deploy.yml
@@ -114,13 +114,13 @@ jobs:
   # Runs after tests complete, analyzes code and posts review
   # ============================================================================
 
-  04-agent-crewai-review:
+  phase4_agent_crewai_review:
     name: "Phase 4: Agent » CrewAI Review"
     needs: [
-      01-core-ci-format-lint,
-      01-core-ci-detect-changes,
-      02-test-docs-links,
-      02-test-crewai
+      phase1_format_lint,
+      phase1_detect_changes,
+      phase2_test_docs_links,
+      phase2_test_crewai
     ]
     if: |
       always() &&
@@ -128,13 +128,13 @@ jobs:
       !github.event.pull_request.draft &&
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
-      (needs.01-core-ci-format-lint.result == 'success' || needs.01-core-ci-format-lint.result == 'failure') &&
-      (needs.02-test-docs-links.result == 'success' || needs.02-test-docs-links.result == 'failure' || needs.02-test-docs-links.result == 'skipped') &&
-      (needs.02-test-crewai.result == 'success' || needs.02-test-crewai.result == 'failure' || needs.02-test-crewai.result == 'skipped')
+      (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
+      (needs.phase2_test_docs_links.result == 'success' || needs.phase2_test_docs_links.result == 'failure' || needs.phase2_test_docs_links.result == 'skipped') &&
+      (needs.phase2_test_crewai.result == 'success' || needs.phase2_test_crewai.result == 'failure' || needs.phase2_test_crewai.result == 'skipped')
     uses: ./.github/workflows/agents/crewai-review.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
-      core_ci_result: ${{ needs.01-core-ci-format-lint.result }}
+      core_ci_result: ${{ needs.phase1_format_lint.result }}
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
