@@ -9,35 +9,31 @@ permissions:
   pull-requests: write
 
 jobs:
-  ##############################################################################
-  # PHASE 1: CORE CI
-  ##############################################################################
-
+  # Step 1: Core CI - Format, lint, and detect tests
   format-and-lint:
-    name: "Core CI: Format & Lint"
+    name: Format & Lint
     uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
   detect-tests:
-    name: "Core CI: Detect Tests to Run"
+    name: Detect Tests to Run
     needs: [format-and-lint]
     uses: ./.github/workflows/test-orchestration-reusable.yml
     secrets: inherit
 
-  ##############################################################################
-  # PHASE 2: TESTS (CONDITIONAL)
-  ##############################################################################
+  # Step 2: Run detected tests in parallel
+  # Each test type is a separate job that runs conditionally
 
   test-docs-links:
-    name: "Test: Check Documentation Links"
-    needs: [format-and-lint]
+    name: Test Documentation Links
+    needs: [format-and-lint, detect-tests]
     uses: ./.github/workflows/link-check-reusable.yml
     with:
       commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
     secrets: inherit
 
   test-crewai:
-    name: "Test: CrewAI"
+    name: Test CrewAI
     needs: [format-and-lint, detect-tests]
     if: |
       always() &&
@@ -48,9 +44,9 @@ jobs:
       commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
     secrets: inherit
 
-  # Future test jobs:
+  # Add more test jobs here as needed:
   # test-node:
-  #   name: "Test: Node.js Apps"
+  #   name: Test Node Apps
   #   needs: [format-and-lint, detect-tests]
   #   if: |
   #     always() &&
@@ -61,15 +57,15 @@ jobs:
   #     commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
   #   secrets: inherit
 
-  ##############################################################################
-  # PHASE 3: CREWAI REVIEW
-  ##############################################################################
-
+  # Step 3: Run CrewAI review after all tests complete
   crewai-review:
-    name: "CrewAI Review"
+    name: CrewAI Code Review
     needs: [format-and-lint, detect-tests, test-docs-links, test-crewai]
-    # Run after all tests complete (success/failure/skipped)
-    # Skip for bot PRs and drafts
+    # Run if:
+    # - Core CI completed (success OR failure - we want to analyze failures too!)
+    # - Tests completed or were skipped
+    # - Not a bot PR
+    # - Not a draft PR
     if: |
       always() &&
       (needs.format-and-lint.result == 'success' || needs.format-and-lint.result == 'failure') &&
