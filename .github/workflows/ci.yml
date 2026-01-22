@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   # ============================================================================
-  # PHASE 1: Core CI - Quality Gates & Change Detection
+  # PHASE 1: Core CI - Quality Gates
   # ============================================================================
 
   core-ci:
@@ -20,25 +20,16 @@ jobs:
     uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
-  detect-changes:
-    name: Detect Changes
-    needs: [core-ci]
-    uses: ./.github/workflows/test-orchestration-reusable.yml
-    with:
-      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
-    secrets: inherit
-
   # ============================================================================
-  # PHASE 2: Tests & Builds - Run in parallel based on detected changes
+  # PHASE 2: Tests & Builds - Run in parallel when relevant files change
   # ============================================================================
 
   test-docs-links:
     name: Test Docs Links
-    needs: [core-ci, detect-changes]
+    needs: [core-ci]
     if: |
       always() &&
-      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
-      contains(needs.detect-changes.outputs.workspaces, 'docs')
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
     uses: ./.github/workflows/link-check-reusable.yml
     with:
       commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
@@ -46,11 +37,10 @@ jobs:
 
   test-crewai:
     name: Test CrewAI
-    needs: [core-ci, detect-changes]
+    needs: [core-ci]
     if: |
       always() &&
-      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
-      contains(needs.detect-changes.outputs.workspaces, 'crewai')
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
     uses: ./.github/workflows/test-crewai-reusable.yml
     with:
       commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
@@ -59,11 +49,10 @@ jobs:
   # Future workspace tests can be added here:
   # test-website:
   #   name: Test Website
-  #   needs: [core-ci, detect-changes]
+  #   needs: [core-ci]
   #   if: |
   #     always() &&
-  #     (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
-  #     contains(needs.detect-changes.outputs.workspaces, 'website')
+  #     (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
   #   uses: ./.github/workflows/website-test-build-reusable.yml
   #   with:
   #     commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
@@ -76,10 +65,9 @@ jobs:
   # Future: Preview and production deployments
   # deploy-preview:
   #   name: Deploy to Preview
-  #   needs: [detect-changes, test-website]
+  #   needs: [test-website]
   #   if: |
   #     needs.test-website.result == 'success' &&
-  #     contains(needs.detect-changes.outputs.workspaces, 'website') &&
   #     github.event_name == 'pull_request' &&
   #     contains(github.event.pull_request.labels.*.name, 'deploy:preview')
   #   uses: ./.github/workflows/preview-deploy-reusable.yml
@@ -93,10 +81,9 @@ jobs:
 
   # deploy-production:
   #   name: Deploy to Production
-  #   needs: [detect-changes, test-website]
+  #   needs: [test-website]
   #   if: |
   #     needs.test-website.result == 'success' &&
-  #     contains(needs.detect-changes.outputs.workspaces, 'website') &&
   #     github.ref == 'refs/heads/main' &&
   #     github.event_name == 'push'
   #   uses: ./.github/workflows/production-deploy-reusable.yml
@@ -114,7 +101,7 @@ jobs:
 
   crewai-review:
     name: CrewAI Code Review
-    needs: [core-ci, detect-changes, test-docs-links, test-crewai]
+    needs: [core-ci, test-docs-links, test-crewai]
     if: |
       always() &&
       github.event_name == 'pull_request' &&
