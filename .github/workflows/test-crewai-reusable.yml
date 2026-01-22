@@ -1,0 +1,144 @@
+name: Test CrewAI (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to test'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  test-crewai:
+    name: Test CrewAI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        working-directory: .crewai
+        run: |
+          echo "📦 Installing CrewAI dependencies..."
+          uv sync
+
+      - name: Run unit tests
+        id: unit_tests
+        working-directory: .crewai
+        continue-on-error: true
+        run: |
+          if [ -d "tests" ]; then
+            echo "🧪 Running unit tests..."
+            uv run python -m pytest tests/ -v --tb=short
+
+            if [ $? -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped (no tests/ directory)" >> $GITHUB_OUTPUT
+            echo "⏭️ No tests directory found, skipping unit tests"
+          fi
+
+      - name: Run integration tests
+        id: integration_tests
+        working-directory: .crewai
+        continue-on-error: true
+        run: |
+          if [ -d "tests/integration" ]; then
+            echo "🧪 Running integration tests..."
+            uv run python -m pytest tests/integration/ -v --tb=short
+
+            if [ $? -eq 0 ]; then
+              echo "status=✅ Passed" >> $GITHUB_OUTPUT
+            else
+              echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            echo "status=⏭️ Skipped (no tests/integration directory)" >> $GITHUB_OUTPUT
+            echo "⏭️ No integration tests found, skipping"
+          fi
+
+      - name: Check code imports
+        id: import_check
+        working-directory: .crewai
+        continue-on-error: true
+        run: |
+          echo "🔍 Checking if Python modules can be imported..."
+
+          uv run python -c "import crew; print('✅ crew module imports successfully')" 2>&1 | tee /tmp/import_check.log
+
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "status=✅ Passed" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            cat /tmp/import_check.log
+            exit 1
+          fi
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## 🧪 CrewAI Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tested commit:** \`${{ inputs.commit_sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Unit Tests** | ${{ steps.unit_tests.outputs.status || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Integration Tests** | ${{ steps.integration_tests.outputs.status || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Import Check** | ${{ steps.import_check.outputs.status || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check if any tests failed
+          # FIX: Use 'outcome' instead of 'conclusion' to check actual test results
+          # 'outcome' shows the step's actual result (success/failure)
+          # 'conclusion' shows 'success' even when continue-on-error is true
+          FAILED=false
+          if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.integration_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.import_check.outcome }}" == "failure" ]]; then
+            FAILED=true
+          fi
+
+          if [ "$FAILED" == "true" ]; then
+            echo "### ❌ Tests Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review the test failures above and fix the issues." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ All Tests Passed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All CrewAI tests completed successfully!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail job if tests failed
+        if: always()
+        run: |
+          # FIX: Use 'outcome' instead of 'conclusion' for accurate failure detection
+          if [[ "${{ steps.unit_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.integration_tests.outcome }}" == "failure" ]] || \
+             [[ "${{ steps.import_check.outcome }}" == "failure" ]]; then
+            echo "❌ One or more tests failed"
+            exit 1
+          fi

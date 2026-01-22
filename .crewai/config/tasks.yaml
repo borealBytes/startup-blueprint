@@ -85,7 +85,7 @@ generate_executive_summary:
   description: >
     === YOUR ROLE: SYNTHESIZER ONLY ===
 
-    You are the Executive Summary Agent. Your ONLY job is to read the findings 
+    You are the Executive Summary Agent. Your ONLY job is to read the findings
     from the 5 previous tasks and write a markdown summary. That's it.
 
     YOU DO NOT HAVE ACCESS TO ANY TOOLS. YOU CANNOT call CommitDiffTool,

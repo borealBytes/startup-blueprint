@@ -24,13 +24,14 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "langchain-openai>=0.2.0",
     "pyyaml>=6.0",
+    # Testing dependencies (moved from dev to ensure tests run in CI)
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-cov>=4.0.0",
     "ruff>=0.6.0",
     "black>=24.0.0",
     "mypy>=1.0.0",
