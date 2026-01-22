@@ -1,0 +1,83 @@
+name: Documentation Links Test
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        required: true
+        type: string
+        description: 'Commit SHA to test'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Validate Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+
+      - name: Find markdown files
+        id: find-files
+        run: |
+          echo "🔍 Finding markdown files..."
+          MARKDOWN_FILES=$(find . -type f -name "*.md" | grep -v node_modules | grep -v ".git/")
+          echo "$MARKDOWN_FILES"
+          
+          FILE_COUNT=$(echo "$MARKDOWN_FILES" | wc -l)
+          echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "📝 Found $FILE_COUNT markdown files"
+
+      - name: Check internal links
+        run: |
+          echo "🔗 Checking internal links..."
+          # Simple check for broken relative links
+          # Look for [text](path) where path doesn't exist
+          
+          BROKEN_LINKS=0
+          while IFS= read -r file; do
+            # Extract relative links from markdown
+            grep -oP '\[.*?\]\((?!http).*?\)' "$file" | grep -oP '\(\K[^)]+' | while read -r link; do
+              # Remove anchor (#section)
+              link_path="${link%%#*}"
+              
+              # Skip empty or anchor-only links
+              [ -z "$link_path" ] && continue
+              
+              # Resolve relative to file location
+              link_dir=$(dirname "$file")
+              full_path="$link_dir/$link_path"
+              
+              if [ ! -e "$full_path" ]; then
+                echo "❌ Broken link in $file: $link"
+                BROKEN_LINKS=$((BROKEN_LINKS + 1))
+              fi
+            done
+          done < <(find . -type f -name "*.md" | grep -v node_modules | grep -v ".git/")
+          
+          if [ $BROKEN_LINKS -gt 0 ]; then
+            echo "❌ Found $BROKEN_LINKS broken links"
+            exit 1
+          else
+            echo "✅ All internal links valid"
+          fi
+
+      - name: Check for common issues
+        run: |
+          echo "🔍 Checking for common documentation issues..."
+          
+          # Check for TODO/FIXME markers
+          echo "Searching for TODO/FIXME markers..."
+          if grep -r "TODO\|FIXME" . --include="*.md" | grep -v node_modules | grep -v ".git/"; then
+            echo "⚠️ Found TODO/FIXME markers (informational only)"
+          else
+            echo "✅ No TODO/FIXME markers"
+          fi
+          
+          echo "✅ Documentation checks complete"
