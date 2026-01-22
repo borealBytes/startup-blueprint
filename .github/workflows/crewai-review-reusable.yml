@@ -1,4 +1,4 @@
-name: CrewAI Code Review (Reusable)
+name: CrewAI Review
 
 on:
   workflow_call:

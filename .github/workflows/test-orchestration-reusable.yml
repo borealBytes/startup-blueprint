@@ -1,4 +1,4 @@
-name: Detect Tests to Run (Reusable)
+name: Detect Tests
 
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-name: Test CrewAI (Reusable)
+name: Test CrewAI
 
 on:
   workflow_call:

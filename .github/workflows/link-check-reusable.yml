@@ -1,4 +1,4 @@
-name: Check Documentation Links (Reusable)
+name: Check Documentation Links
 
 on:
   workflow_call:

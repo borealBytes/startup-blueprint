@@ -1,4 +1,4 @@
-name: Format & Lint (Reusable)
+name: Format & Lint
 
 on:
   workflow_call:
