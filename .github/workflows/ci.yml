@@ -10,26 +10,26 @@ permissions:
 
 jobs:
   ##############################################################################
-  # CORE CI
+  # PHASE 1: CORE CI
   ##############################################################################
 
   format-and-lint:
-    name: Format & Lint
+    name: "Core CI: Format & Lint"
     uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
-  test-detection:
-    name: Detect Tests to Run
+  detect-tests:
+    name: "Core CI: Detect Tests to Run"
     needs: [format-and-lint]
     uses: ./.github/workflows/test-orchestration-reusable.yml
     secrets: inherit
 
   ##############################################################################
-  # TESTS
+  # PHASE 2: TESTS (CONDITIONAL)
   ##############################################################################
 
-  test-documentation-links:
-    name: Test Documentation Links
+  test-docs-links:
+    name: "Test: Check Documentation Links"
     needs: [format-and-lint]
     uses: ./.github/workflows/link-check-reusable.yml
     with:
@@ -37,46 +37,43 @@ jobs:
     secrets: inherit
 
   test-crewai:
-    name: Test CrewAI
-    needs: [format-and-lint, test-detection]
+    name: "Test: CrewAI"
+    needs: [format-and-lint, detect-tests]
     if: |
       always() &&
       (needs.format-and-lint.result == 'success' || needs.format-and-lint.result == 'failure') &&
-      contains(needs.test-detection.outputs.test-matrix, 'test-crewai-reusable.yml')
+      contains(needs.detect-tests.outputs.test-matrix, 'test-crewai-reusable.yml')
     uses: ./.github/workflows/test-crewai-reusable.yml
     with:
       commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
     secrets: inherit
 
-  # Future test jobs can be added here:
+  # Future test jobs:
   # test-node:
-  #   name: Test Node Apps
-  #   needs: [format-and-lint, test-detection]
+  #   name: "Test: Node.js Apps"
+  #   needs: [format-and-lint, detect-tests]
   #   if: |
   #     always() &&
   #     (needs.format-and-lint.result == 'success' || needs.format-and-lint.result == 'failure') &&
-  #     contains(needs.test-detection.outputs.test-matrix, 'test-node-reusable.yml')
+  #     contains(needs.detect-tests.outputs.test-matrix, 'test-node-reusable.yml')
   #   uses: ./.github/workflows/test-node-reusable.yml
   #   with:
   #     commit_sha: ${{ needs.format-and-lint.outputs.final-commit-sha }}
   #   secrets: inherit
 
   ##############################################################################
-  # CREWAI REVIEW
+  # PHASE 3: CREWAI REVIEW
   ##############################################################################
 
   crewai-review:
-    name: CrewAI Code Review
-    needs: [format-and-lint, test-detection, test-documentation-links, test-crewai]
-    # Run if:
-    # - Core CI completed (success OR failure - we want to analyze failures too!)
-    # - Tests completed or were skipped
-    # - Not a bot PR
-    # - Not a draft PR
+    name: "CrewAI Review"
+    needs: [format-and-lint, detect-tests, test-docs-links, test-crewai]
+    # Run after all tests complete (success/failure/skipped)
+    # Skip for bot PRs and drafts
     if: |
       always() &&
       (needs.format-and-lint.result == 'success' || needs.format-and-lint.result == 'failure') &&
-      (needs.test-documentation-links.result == 'success' || needs.test-documentation-links.result == 'failure' || needs.test-documentation-links.result == 'skipped') &&
+      (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
       (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
