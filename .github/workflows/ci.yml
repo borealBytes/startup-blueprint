@@ -12,78 +12,76 @@ permissions:
 
 jobs:
   # ============================================================================
-  # PHASE 1: CORE CI - Quality Gates & Change Detection
-  # Runs first - gates all subsequent phases
+  # PHASE 1: Core CI - Quality Gates & Change Detection
   # ============================================================================
 
-  phase1_format_lint:
-    name: "Phase 1: Core CI » Format & Lint"
+  core-ci:
+    name: Core CI
     uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
-  phase1_detect_changes:
-    name: "Phase 1: Core CI » Detect Changes"
-    needs: [phase1_format_lint]
+  detect-changes:
+    name: Detect Changes
+    needs: [core-ci]
     uses: ./.github/workflows/test-orchestration-reusable.yml
     with:
-      commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
     secrets: inherit
 
   # ============================================================================
-  # PHASE 2: TEST & BUILD - Per-Workspace Testing & Building
-  # Runs after Core CI, conditional on workspace changes
+  # PHASE 2: Tests & Builds - Run in parallel based on detected changes
   # ============================================================================
 
-  phase2_test_docs_links:
-    name: "Phase 2: Test » Documentation Links"
-    needs: [phase1_format_lint, phase1_detect_changes]
+  test-docs-links:
+    name: Test Docs Links
+    needs: [core-ci, detect-changes]
     if: |
       always() &&
-      (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
-      contains(needs.phase1_detect_changes.outputs.workspaces, 'docs')
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      contains(needs.detect-changes.outputs.workspaces, 'docs')
     uses: ./.github/workflows/link-check-reusable.yml
     with:
-      commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
     secrets: inherit
 
-  phase2_test_crewai:
-    name: "Phase 2: Test » CrewAI"
-    needs: [phase1_format_lint, phase1_detect_changes]
+  test-crewai:
+    name: Test CrewAI
+    needs: [core-ci, detect-changes]
     if: |
       always() &&
-      (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
-      contains(needs.phase1_detect_changes.outputs.workspaces, 'crewai')
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      contains(needs.detect-changes.outputs.workspaces, 'crewai')
     uses: ./.github/workflows/test-crewai-reusable.yml
     with:
-      commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
     secrets: inherit
 
-  # Future workspace: Website Test & Build
-  # phase2_test_build_website:
-  #   name: "Phase 2: Test+Build » Website"
-  #   needs: [phase1_format_lint, phase1_detect_changes]
+  # Future workspace tests can be added here:
+  # test-website:
+  #   name: Test Website
+  #   needs: [core-ci, detect-changes]
   #   if: |
   #     always() &&
-  #     (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
-  #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website')
+  #     (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+  #     contains(needs.detect-changes.outputs.workspaces, 'website')
   #   uses: ./.github/workflows/website-test-build-reusable.yml
   #   with:
-  #     commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
+  #     commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
   #   secrets: inherit
 
   # ============================================================================
-  # PHASE 3: DEPLOY - Environment-Aware Deployments
-  # Runs after tests succeed, deploys to preview or production
+  # PHASE 3: Deployments - Environment-aware deployments
   # ============================================================================
 
-  # Future: Website Preview Deploy (on PR with label or push to staging)
-  # phase3_deploy_website_preview:
-  #   name: "Phase 3: Deploy » Website (Preview)"
-  #   needs: [phase1_detect_changes, phase2_test_build_website]
+  # Future: Preview and production deployments
+  # deploy-preview:
+  #   name: Deploy to Preview
+  #   needs: [detect-changes, test-website]
   #   if: |
-  #     needs.phase2_test_build_website.result == 'success' &&
-  #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website') &&
-  #     (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy:preview'))
+  #     needs.test-website.result == 'success' &&
+  #     contains(needs.detect-changes.outputs.workspaces, 'website') &&
+  #     github.event_name == 'pull_request' &&
+  #     contains(github.event.pull_request.labels.*.name, 'deploy:preview')
   #   uses: ./.github/workflows/preview-deploy-reusable.yml
   #   with:
   #     workspace: website
@@ -91,15 +89,14 @@ jobs:
   #   secrets: inherit
   #   environment:
   #     name: preview
-  #     url: https://preview.credibilitymarkets.com
+  #     url: https://preview.startup-blueprint.dev
 
-  # Future: Website Production Deploy (on push to main)
-  # phase3_deploy_website_production:
-  #   name: "Phase 3: Deploy » Website (Production)"
-  #   needs: [phase1_detect_changes, phase2_test_build_website]
+  # deploy-production:
+  #   name: Deploy to Production
+  #   needs: [detect-changes, test-website]
   #   if: |
-  #     needs.phase2_test_build_website.result == 'success' &&
-  #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website') &&
+  #     needs.test-website.result == 'success' &&
+  #     contains(needs.detect-changes.outputs.workspaces, 'website') &&
   #     github.ref == 'refs/heads/main' &&
   #     github.event_name == 'push'
   #   uses: ./.github/workflows/production-deploy-reusable.yml
@@ -109,34 +106,28 @@ jobs:
   #   secrets: inherit
   #   environment:
   #     name: production
-  #     url: https://credibilitymarkets.com
+  #     url: https://startup-blueprint.dev
 
   # ============================================================================
-  # PHASE 4: AGENTS - AI-Powered Analysis & Review
-  # Runs after tests complete, analyzes code and posts review
+  # PHASE 4: AI Agents - Code review and analysis
   # ============================================================================
 
-  phase4_agent_crewai_review:
-    name: "Phase 4: Agent » CrewAI Review"
-    needs: [
-      phase1_format_lint,
-      phase1_detect_changes,
-      phase2_test_docs_links,
-      phase2_test_crewai
-    ]
+  crewai-review:
+    name: CrewAI Code Review
+    needs: [core-ci, detect-changes, test-docs-links, test-crewai]
     if: |
       always() &&
       github.event_name == 'pull_request' &&
       !github.event.pull_request.draft &&
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
-      (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
-      (needs.phase2_test_docs_links.result == 'success' || needs.phase2_test_docs_links.result == 'failure' || needs.phase2_test_docs_links.result == 'skipped') &&
-      (needs.phase2_test_crewai.result == 'success' || needs.phase2_test_crewai.result == 'failure' || needs.phase2_test_crewai.result == 'skipped')
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
+      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped')
     uses: ./.github/workflows/crewai-review-reusable.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
-      core_ci_result: ${{ needs.phase1_format_lint.result }}
+      core_ci_result: ${{ needs.core-ci.result }}
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
