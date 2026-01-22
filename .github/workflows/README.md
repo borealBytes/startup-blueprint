@@ -1,6 +1,6 @@
 # CI/CD Workflow Architecture
 
-> **Monorepo-friendly, phase-based orchestration for scalable CI/CD**
+> **Simplified, phase-based orchestration with self-contained change detection**
 
 ## 📊 Architecture Overview
 
@@ -12,15 +12,14 @@ Pull Request / Push
     ┌────────────────────────┐
     │  PHASE 1: CORE CI       │
     │  - Format & Lint        │
-    │  - Detect Changes       │
     └──────────┬─────────────┘
                │
     ┌──────────┼─────────────┐
     │  PHASE 2: TEST & BUILD  │
-    │  (conditional)          │
-    │  - Docs Links           │
-    │  - CrewAI               │
-    │  - Website (future)     │
+    │  (self-detecting)       │
+    │  - Docs Links           │ ← Checks if .md files changed
+    │  - CrewAI               │ ← Checks if .crewai/ changed
+    │  - Website (future)     │ ← Will check apps/website/
     └──────────┬─────────────┘
                │
     ┌──────────┼─────────────┐
@@ -41,54 +40,67 @@ Pull Request / Push
 
 ```
 .github/workflows/
-├── ci.yml                      # 📥 MAIN ORCHESTRATOR (start here)
-│                               # Single workflow with 4 phases
-│                               # This is what you see in GitHub UI
+├── ci.yml                          # 📥 MAIN ORCHESTRATOR (start here)
+│                                   # Single workflow with 4 phases
+│                                   # This is what you see in GitHub UI
 │
-├── jobs/                       # 🔧 Phase 1: Core CI Jobs
-│   ├── format-lint.yml        # Ruff format & lint checks
-│   └── detect-changes.yml     # Monorepo change detection
+├── format-lint-reusable.yml       # 🔧 Phase 1: Core CI
+│                                   # Ruff format & lint checks
 │
-├── workspaces/                 # 🧪 Phase 2: Per-Workspace Testing
-│   ├── docs-links-test.yml    # Documentation link validation
-│   ├── crewai-test.yml        # CrewAI tests & validation
-│   └── website-test-build.yml # (Future) Website test+build
+├── link-check-reusable.yml        # 🧪 Phase 2: Docs Testing
+│                                   # Self-detecting: runs if .md changed
 │
-├── environments/               # 🚀 Phase 3: Deployment (future)
-│   ├── preview-deploy.yml     # Deploy to preview env
-│   └── production-deploy.yml  # Deploy to production
+├── test-crewai-reusable.yml       # 🧪 Phase 2: CrewAI Testing
+│                                   # Self-detecting: runs if .crewai/ changed
 │
-└── agents/                     # 🤖 Phase 4: AI Agents
-    └── crewai-review.yml      # AI-powered code review
+├── crewai-review-reusable.yml     # 🤖 Phase 4: AI Code Review
+│                                   # AI-powered review agent
+│
+├── agents/                         # 🤖 Agent configurations
+│   └── crewai-review.yml          # CrewAI review job config
+│
+├── jobs/                           # 🔧 Reusable job components
+│   └── (empty - detect-changes removed)
+│
+└── workspaces/                     # 📦 Future workspace configs
+    └── (future website/api workflows)
 ```
 
 ## 📝 How It Works
 
 ### Phase 1: Core CI (Always Runs)
 
-**Jobs:**
-- `01-core-ci-format-lint` - Checks code formatting and linting
-- `01-core-ci-detect-changes` - Determines which workspaces changed
+**Job:** `core-ci`
+- Checks code formatting with Ruff
+- Lints Python code
+- Auto-fixes and commits if needed
 
 **Outputs:**
-- `workspaces` (JSON array) - List of changed workspaces: `["crewai", "docs"]`
-- `final-commit-sha` - SHA to use for subsequent jobs
+- `final-commit-sha` - SHA to use for subsequent jobs (after any auto-fixes)
 
-### Phase 2: Test & Build (Conditional)
+### Phase 2: Test & Build (Self-Detecting)
 
-**Jobs run ONLY if their workspace changed:**
+**Each test workflow detects its own relevant changes:**
 
-```yaml
-if: contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'crewai')
+```bash
+# link-check-reusable.yml checks:
+git diff $BASE $HEAD | grep -E '\.md$|^docs/'
+
+# test-crewai-reusable.yml checks:
+git diff $BASE $HEAD | grep '^.crewai/'
 ```
 
-**Current workspaces:**
-- `docs` - Runs if any `.md` files changed
-- `crewai` - Runs if `.crewai/` changed
+**Behavior:**
+- ✅ If relevant files changed → Runs tests
+- ⏭️ If no relevant changes → Skips gracefully with summary message
 
-**Future workspaces:**
-- `website` - Will run if `apps/website/` changes
-- `api` - Will run if `apps/api/` changes
+**Current tests:**
+- `test-docs-links` - Validates markdown links
+- `test-crewai` - Runs CrewAI test suite
+
+**Future tests:**
+- `test-website` - Will check `apps/website/` changes
+- `test-api` - Will check `apps/api/` changes
 
 ### Phase 3: Deploy (On Success)
 
@@ -96,27 +108,27 @@ if: contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'crewai')
 
 ```yaml
 # Uncomment when ready to deploy
-03-deploy-website-preview:     # PRs with 'deploy:preview' label
-03-deploy-website-production:  # Push to main branch
+deploy-preview:     # PRs with 'deploy:preview' label
+deploy-production:  # Push to main branch
 ```
 
 ### Phase 4: Agents (Parallel)
 
 **Runs after Core CI completes:**
 - CrewAI Review - AI-powered code analysis
-- Posts review comment to PR
-- Uses local git (no GitHub API calls for diff)
+- Posts review to GitHub Actions summary
+- Uses local git (no GitHub API rate limits)
 
 ## ➕ Adding a New Workspace
 
 Let's say you want to add `apps/website/`:
 
-### Step 1: Create Test Workflow
+### Step 1: Create Reusable Test Workflow
 
-**File:** `.github/workflows/workspaces/website-test-build.yml`
+**File:** `.github/workflows/test-website-reusable.yml`
 
 ```yaml
-name: Website Test & Build
+name: Test Website
 
 on:
   workflow_call:
@@ -125,20 +137,54 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  test-build:
+  run:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_sha }}
-      
+          ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Check if website files changed
+        id: check
+        run: |
+          set -e
+          echo "🔍 Checking if website files changed..."
+          
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          
+          CHANGED_FILES=$(git diff --name-only $BASE $HEAD | grep '^apps/website/' || true)
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "⏭️  No website files changed - skipping"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Website files changed"
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup Node
+        if: steps.check.outputs.should_run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
       
       - name: Install & Test
+        if: steps.check.outputs.should_run == 'true'
         working-directory: apps/website
         run: |
           npm ci
@@ -146,60 +192,58 @@ jobs:
           npm run build
       
       - name: Upload build artifact
+        if: steps.check.outputs.should_run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: website-build
           path: apps/website/dist
+
+      - name: Add summary for skipped tests
+        if: always() && steps.check.outputs.should_run == 'false'
+        run: |
+          echo "## 🌐 Website Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⏭️ **Skipped** - No website files changed" >> $GITHUB_STEP_SUMMARY
 ```
 
-### Step 2: Update Change Detection
-
-**File:** `.github/workflows/jobs/detect-changes.yml`
-
-```bash
-# Add this to the detection script:
-if echo "$CHANGED_FILES" | grep -q "^apps/website/"; then
-  echo "✅ Website workspace changed"
-  WORKSPACES+=("website")
-fi
-```
-
-### Step 3: Add to Main Orchestrator
+### Step 2: Add to Main Orchestrator
 
 **File:** `.github/workflows/ci.yml`
 
-Uncomment the website job:
+Uncomment and update the website job:
 
 ```yaml
-02-test-build-website:
-  name: "Phase 2: Test+Build » Website"
-  needs: [01-core-ci-format-lint, 01-core-ci-detect-changes]
+test-website:
+  name: Test Website
+  needs: [core-ci]
   if: |
-    contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'website')
-  uses: ./.github/workflows/workspaces/website-test-build.yml
+    always() &&
+    (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+  uses: ./.github/workflows/test-website-reusable.yml
   with:
-    commit_sha: ${{ needs.01-core-ci-format-lint.outputs.final-commit-sha }}
+    commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
   secrets: inherit
 ```
 
-### Step 4: (Optional) Add Deployment
+### Step 3: (Optional) Add Deployment
 
 Uncomment deploy jobs in `ci.yml`:
 
 ```yaml
-03-deploy-website-preview:
-  name: "Phase 3: Deploy » Website (Preview)"
-  needs: [01-core-ci-detect-changes, 02-test-build-website]
+deploy-preview:
+  name: Deploy to Preview
+  needs: [test-website]
   if: |
-    needs.02-test-build-website.result == 'success' &&
+    needs.test-website.result == 'success' &&
     github.event_name == 'pull_request' &&
     contains(github.event.pull_request.labels.*.name, 'deploy:preview')
-  uses: ./.github/workflows/environments/preview-deploy.yml
+  uses: ./.github/workflows/preview-deploy-reusable.yml
   # ... rest of config
 ```
 
 **Done!** 🎉 Your website now:
 - Tests only when `apps/website/` changes
+- Skips gracefully when no changes
 - Builds automatically
 - Can deploy to preview (with label)
 - Deploys to production (on main push)
@@ -210,23 +254,27 @@ Uncomment deploy jobs in `ci.yml`:
 
 **Check:**
 1. Did your changes affect the workspace path?
-2. Is the path pattern correct in `detect-changes.yml`?
-3. Is the job condition in `ci.yml` correct?
+2. Look at the Actions summary - should say "Skipped" if no changes detected
+3. Check the change detection script in the reusable workflow
 
 **Debug:**
 ```bash
 # Run change detection locally
-git diff main...your-branch --name-only
+git diff origin/main...HEAD --name-only | grep '^apps/website/'
 ```
 
-### "All tests run even though I only changed one file"
+### "Tests ran but I didn't change any files in that workspace"
 
 **This happens when:**
-- You changed `.github/workflows/` (CI affects all workspaces)
-- The change detection script has an issue
+- The base commit doesn't exist (first push to branch)
+- Git fetch depth is too shallow
 
-**Intended behavior:**
-- CI changes = run all tests (safety)
+**Solution:**
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0  # ← Make sure this is set
+```
 
 ### "Deploy job didn't run"
 
@@ -237,79 +285,88 @@ git diff main...your-branch --name-only
 
 ## 📊 Best Practices
 
-### 1. Keep Workspaces Isolated
+### 1. Keep Workflows Self-Contained
 
-✅ **Good:**
+Each reusable workflow should:
+- Detect its own relevant file changes
+- Skip gracefully if no changes
+- Not depend on centralized change detection
+
+### 2. Use Consistent Change Detection Pattern
+
 ```yaml
-defaults:
-  run:
-    working-directory: apps/website
-```
+# Step 1: Detect changes
+- name: Check if X files changed
+  id: check
+  run: |
+    CHANGED_FILES=$(git diff --name-only $BASE $HEAD | grep '^path/' || true)
+    if [ -z "$CHANGED_FILES" ]; then
+      echo "should_run=false" >> $GITHUB_OUTPUT
+    else
+      echo "should_run=true" >> $GITHUB_OUTPUT
+    fi
 
-❌ **Avoid:**
-```yaml
-run: cd apps/website && npm test && cd ../api && npm test
-```
+# Step 2: Conditional steps
+- name: Do work
+  if: steps.check.outputs.should_run == 'true'
+  run: ...
 
-### 2. Use Meaningful Job Names
-
-✅ **Good:**
-```yaml
-02-test-build-website:
-  name: "Phase 2: Test+Build » Website"
-```
-
-❌ **Avoid:**
-```yaml
-test-1:
-  name: "Test"
+# Step 3: Skipped summary
+- name: Add summary for skipped
+  if: always() && steps.check.outputs.should_run == 'false'
+  run: |
+    echo "⏭️ **Skipped** - No relevant changes" >> $GITHUB_STEP_SUMMARY
 ```
 
 ### 3. Pass Commit SHA Forward
 
-Always use the SHA from format-lint job:
+Always use the SHA from core-ci:
 
 ```yaml
 with:
-  commit_sha: ${{ needs.01-core-ci-format-lint.outputs.final-commit-sha }}
+  commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
 ```
 
 This ensures all jobs test the same commit (even if auto-fixes were pushed).
 
-### 4. Make Jobs Self-Contained
+### 4. Always Use `fetch-depth: 0`
 
-Each workspace workflow should:
-- Check out code
-- Set up environment
-- Run tests
-- Upload artifacts (if needed)
-- Not depend on other workspace jobs
+Required for change detection:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0  # ← Essential for git diff to work
+```
 
 ## 📚 Reference
 
 ### Job Naming Convention
 
 ```
-<phase>-<category>-<workspace>
+<phase>-<purpose>
 
 Examples:
-01-core-ci-format-lint
-02-test-crewai
-02-test-build-website
-03-deploy-website-preview
-04-agent-crewai-review
+core-ci
+test-docs-links
+test-crewai
+test-website
+deploy-preview
+crewai-review
 ```
 
 ### Conditional Execution Patterns
 
-**Run if workspace changed:**
+**Run after core-ci (success or failure):**
 ```yaml
-if: contains(needs.01-core-ci-detect-changes.outputs.workspaces, 'website')
+if: |
+  always() &&
+  (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
 ```
 
 **Run if tests passed:**
 ```yaml
-if: needs.02-test-build-website.result == 'success'
+if: needs.test-website.result == 'success'
 ```
 
 **Run on main branch only:**
@@ -330,8 +387,40 @@ if: |
 - [GitHub Actions: workflow_call](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_call)
 - [GitHub Actions: Conditional Execution](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idif)
 
+## 🎯 Design Decisions
+
+### Why Self-Contained Change Detection?
+
+**Before:** Centralized `detect-changes` job → all workflows depend on it
+
+**After:** Each workflow detects its own changes
+
+**Benefits:**
+1. **Simpler:** No complex workspace mapping JSON
+2. **More maintainable:** Change detection logic lives with the workflow it controls
+3. **Easier to debug:** Look at one file instead of multiple
+4. **More flexible:** Each workflow can have custom detection rules
+5. **Better UX:** Clear "Skipped" messages in Actions summary
+
+### Why Not Use GitHub's `paths` Filter?
+
+GitHub's built-in `paths` works at the workflow level, not job level:
+
+```yaml
+# This would create separate workflows
+on:
+  pull_request:
+    paths:
+      - 'apps/website/**'
+```
+
+We want:
+- Single workflow entry point (`ci.yml`)
+- Reusable workflow components
+- Change detection at job execution time
+
 ---
 
 **Last Updated:** 2026-01-22  
-**Maintainer:** DevOps Team  
+**Architecture:** Phase-based with self-contained change detection  
 **Questions?** Open an issue or ask in #dev-ops
