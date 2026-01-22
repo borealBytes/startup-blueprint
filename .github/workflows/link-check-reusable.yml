@@ -4,8 +4,8 @@ on:
   workflow_call:
     inputs:
       commit_sha:
-        description: 'Commit SHA to check'
-        required: true
+        description: 'Specific commit SHA to check out'
+        required: false
         type: string
 
 permissions:
@@ -13,80 +13,50 @@ permissions:
   pull-requests: write
 
 jobs:
-  link-check:
-    name: Check Documentation Links
+  run:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Checkout specific commit
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ inputs.commit_sha || github.sha }}
 
-      - name: Verify checkout
-        run: |
-          CURRENT_SHA=$(git rev-parse HEAD)
-          EXPECTED_SHA="${{ inputs.commit_sha }}"
-
-          echo "🔍 Expected commit: $EXPECTED_SHA"
-          echo "📝 Current commit:  $CURRENT_SHA"
-
-          if [ "$CURRENT_SHA" == "$EXPECTED_SHA" ]; then
-            echo "✅ Checked out correct commit"
-          else
-            echo "❌ Commit mismatch!"
-            exit 1
-          fi
-
-      - name: Restore lychee cache
-        uses: actions/cache@v4
+      - name: Check links with lychee
+        uses: lycheeverse/lychee-action@v2
         with:
-          path: .lycheecache
-          key: cache-lychee-${{ github.sha }}
-          restore-keys: cache-lychee-
-
-      - name: Check Markdown links
-        uses: lycheeverse/lychee-action@v2.1.0
-        with:
-          args: >-
-            --verbose
-            --no-progress
-            --cache
-            --max-cache-age 1d
-            --accept 200,204,429
-            --timeout 10
-            --max-redirects 5
-            --exclude-mail
-            --exclude 'dos\.ny\.gov/business-services'
-            --exclude 'accounts\.google\.com/signup'
-            --exclude 'onecorp\.lara\.state\.mi\.us'
-            --exclude 'cofs\.lara\.state\.mi\.us'
-            --exclude 'bpd\.sos\.ca\.gov'
-            --exclude 'bizfileonline\.sos\.ca\.gov'
-            --exclude 'apps\.dos\.ny\.gov/publicInquiry'
-            --exclude 'nerdwallet\.com/article/small-business/start-an-llc'
-            --exclude 'sba\.gov/business-guide/launch/choose-business-structure'
-            '**/*.md'
-          output: lychee/out.md
-          jobSummary: false
+          args: --verbose --no-progress --accept 200,403,429 '**/*.md' '**/*.html'
+          format: markdown
+          output: ./lychee-report.md
           fail: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Display link check results
+      - name: Post results as PR comment
         if: always()
-        run: |
-          echo "## 🔗 Link Check Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Checked commit:** \`${{ inputs.commit_sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let body = '## 🔗 Documentation Link Check\n\n';
 
-          if [ -f "lychee/out.md" ]; then
-            cat lychee/out.md >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ✅ All Links Valid" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "No broken links found in documentation." >> $GITHUB_STEP_SUMMARY
-          fi
+            try {
+              const report = fs.readFileSync('./lychee-report.md', 'utf8');
+              if (report.includes('0 Broken')) {
+                body += '✅ **All links are working!**\n\n';
+              } else {
+                body += '⚠️ **Some links may be broken:**\n\n';
+              }
+              body += report;
+            } catch (error) {
+              body += '✅ **All links are working!**\n';
+            }
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: body
+            });

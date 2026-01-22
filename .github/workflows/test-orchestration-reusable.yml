@@ -5,17 +5,16 @@ on:
     outputs:
       test-matrix:
         description: 'JSON matrix of test jobs to run'
-        value: ${{ jobs.test-orchestration.outputs.matrix }}
+        value: ${{ jobs.run.outputs.matrix }}
       has-tests:
         description: 'Whether any tests need to be run'
-        value: ${{ jobs.test-orchestration.outputs.has-tests }}
+        value: ${{ jobs.run.outputs.has-tests }}
 
 permissions:
   contents: read
 
 jobs:
-  test-orchestration:
-    name: Detect Tests to Run
+  run:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:

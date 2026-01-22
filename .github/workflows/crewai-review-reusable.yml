@@ -4,233 +4,86 @@ on:
   workflow_call:
     inputs:
       pr_number:
+        description: 'Pull request number'
         required: true
-        type: string
-        description: "Pull request number"
+        type: number
       commit_sha:
+        description: 'Commit SHA to review'
         required: true
         type: string
-        description: "Commit SHA to review"
       core_ci_result:
-        required: false
+        description: 'Result of Core CI job (success/failure)'
+        required: true
         type: string
-        default: "success"
-        description: "Result from core-ci job (success/failure)"
     secrets:
       OPENROUTER_API_KEY:
         required: true
-        description: "OpenRouter API key for AI models"
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  crewai-review:
-    name: AI Review
+  run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: .crewai
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0  # Full history for commit analysis
+          fetch-depth: 0
 
-      - name: Prepare PR data for CrewAI agents
-        id: prepare-data
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: '.crewai/pyproject.toml'
+
+      - name: Install dependencies
         run: |
-          set -e
+          python -m pip install --upgrade pip
+          pip install -e .
 
-          echo "📦 Preparing PR data for AI agents"
+      - name: Configure environment
+        run: |
+          echo "PR_NUMBER=${{ inputs.pr_number }}" >> $GITHUB_ENV
+          echo "COMMIT_SHA=${{ inputs.commit_sha }}" >> $GITHUB_ENV
+          echo "CORE_CI_RESULT=${{ inputs.core_ci_result }}" >> $GITHUB_ENV
+          echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" >> $GITHUB_ENV
 
-          # Create workspace directory
-          mkdir -p .crewai/workspace
+      - name: Run CrewAI code review
+        run: |
+          python main.py
 
-          # Get PR information using GitHub API
-          PR_DATA=$(gh pr view ${{ inputs.pr_number }} --json number,title,body,labels,files,additions,deletions,changedFiles,baseRefName,headRefName)
-
-          echo "📊 PR Metadata:"
-          echo "$PR_DATA" | jq -r '.number, .title, .changedFiles'
-
-          # Extract base and head refs
-          BASE_REF=$(echo "$PR_DATA" | jq -r '.baseRefName')
-          HEAD_REF=$(echo "$PR_DATA" | jq -r '.headRefName')
-
-          echo "📍 Base: $BASE_REF, Head: $HEAD_REF"
-
-          # Fetch the base branch
-          git fetch origin "$BASE_REF:$BASE_REF" || true
-
-          # Generate FULL PR diff (base..head) - this is what agents need!
-          echo "📝 Generating full PR diff (base..head)..."
-          git diff "origin/$BASE_REF...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
-
-          DIFF_SIZE=$(wc -c < .crewai/workspace/diff.txt)
-          echo "✅ Full PR diff saved: $DIFF_SIZE bytes"
-
-          if [ "$DIFF_SIZE" -lt 100 ]; then
-            echo "⚠️ Warning: Diff is suspiciously small. Trying alternative method..."
-            # Fallback: use merge-base
-            MERGE_BASE=$(git merge-base "origin/$BASE_REF" "${{ inputs.commit_sha }}")
-            git diff "$MERGE_BASE...${{ inputs.commit_sha }}" > .crewai/workspace/diff.txt
-            DIFF_SIZE=$(wc -c < .crewai/workspace/diff.txt)
-            echo "✅ Fallback diff saved: $DIFF_SIZE bytes"
+      - name: Read review summary
+        id: review
+        run: |
+          if [ -f "workspace/final_summary.md" ]; then
+            SUMMARY=$(cat workspace/final_summary.md)
+            echo "summary<<EOF" >> $GITHUB_OUTPUT
+            echo "$SUMMARY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "summary=⚠️ Review generation failed. Check workflow logs." >> $GITHUB_OUTPUT
           fi
 
-          # Get all commits in this PR
-          echo "📚 Getting PR commits..."
-          git log --format='%H|%s|%an|%ae|%aI' --no-merges "origin/$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt || true
-
-          # Build commits JSON array using jq
-          echo '[]' > .crewai/workspace/commits.json
-
-          if [ -s /tmp/commits.txt ]; then
-            while IFS='|' read -r sha message author_name author_email author_date; do
-              # Get commit stats
-              STATS=$(git show --stat --format='' "$sha" 2>/dev/null | tail -n 1 || echo "")
-              ADDITIONS=0
-              DELETIONS=0
-              FILES=0
-
-              if echo "$STATS" | grep -q "insertion"; then
-                ADDITIONS=$(echo "$STATS" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
-              fi
-              if echo "$STATS" | grep -q "deletion"; then
-                DELETIONS=$(echo "$STATS" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
-              fi
-              if echo "$STATS" | grep -q "file"; then
-                FILES=$(echo "$STATS" | grep -oE '^[[:space:]]*[0-9]+' | tr -d ' ' || echo 0)
-              fi
-
-              # Build commit object and append to array
-              jq -n \
-                --arg sha "${sha:0:8}" \
-                --arg message "$message" \
-                --arg author_name "$author_name" \
-                --arg author_email "$author_email" \
-                --arg author_date "$author_date" \
-                --argjson additions "${ADDITIONS:-0}" \
-                --argjson deletions "${DELETIONS:-0}" \
-                --argjson files "${FILES:-0}" \
-                '{
-                  "sha": $sha,
-                  "message": $message,
-                  "author": {
-                    "name": $author_name,
-                    "email": $author_email,
-                    "date": $author_date
-                  },
-                  "stats": {
-                    "additions": $additions,
-                    "deletions": $deletions,
-                    "files_changed": $files
-                  }
-                }' > /tmp/commit.json
-
-              # Append to array
-              jq '. += [input]' .crewai/workspace/commits.json /tmp/commit.json > /tmp/commits_new.json
-              mv /tmp/commits_new.json .crewai/workspace/commits.json
-            done < /tmp/commits.txt
-          fi
-
-          COMMIT_COUNT=$(jq '. | length' .crewai/workspace/commits.json)
-          echo "✅ Saved $COMMIT_COUNT commits to commits.json"
-
-          # Create diff metadata JSON (for router)
-          PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels | map(.name) | join(",")')
-          CHANGED_FILES=$(echo "$PR_DATA" | jq -r '.changedFiles')
-          ADDITIONS=$(echo "$PR_DATA" | jq -r '.additions')
-          DELETIONS=$(echo "$PR_DATA" | jq -r '.deletions')
-
-          jq -n \
-            --argjson pr_number "${{ inputs.pr_number }}" \
-            --arg commit_sha "${{ inputs.commit_sha }}" \
-            --arg base_ref "$BASE_REF" \
-            --arg head_ref "$HEAD_REF" \
-            --arg labels "$PR_LABELS" \
-            --argjson files_changed "$CHANGED_FILES" \
-            --argjson additions "$ADDITIONS" \
-            --argjson deletions "$DELETIONS" \
-            '{
-              "pr_number": $pr_number,
-              "commit_sha": $commit_sha,
-              "base_ref": $base_ref,
-              "head_ref": $head_ref,
-              "labels": ($labels | split(",")),
-              "files_changed": $files_changed,
-              "additions": $additions,
-              "deletions": $deletions,
-              "total_changes": ($additions + $deletions)
-            }' > .crewai/workspace/diff.json
-
-          echo "✅ Saved PR metadata to diff.json"
-
-          # Summary
-          echo ""
-          echo "📋 Data prepared for CrewAI:"
-          echo "  - diff.txt: $DIFF_SIZE bytes (full PR diff)"
-          echo "  - commits.json: $COMMIT_COUNT commits"
-          echo "  - diff.json: PR metadata"
-          echo "  - Files changed: $CHANGED_FILES"
-          echo "  - Lines: +$ADDITIONS/-$DELETIONS"
-
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup UV (Python Package Manager)
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-          cache-dependency-glob: ".crewai/pyproject.toml"
-
-      - name: Install CrewAI dependencies
-        working-directory: .crewai
-        run: |
-          uv sync
-
-      - name: Run CrewAI Router-Based Review
-        working-directory: .crewai
-        env:
-          # API Keys
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          # GitHub Context
-          PR_NUMBER: ${{ inputs.pr_number }}
-          COMMIT_SHA: ${{ inputs.commit_sha }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-
-          # CI Context (NEW: from core-ci job)
-          CORE_CI_RESULT: ${{ inputs.core_ci_result }}
-
-          # GitHub Actions Context
-          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
-          GITHUB_EVENT_PATH: ${{ github.event_path }}
-        run: |
-          echo "🚀 Starting CrewAI Router-Based Review System"
-          echo "📦 Repository: $GITHUB_REPOSITORY"
-          echo "🔗 PR: #$PR_NUMBER"
-          echo "📝 Commit: ${COMMIT_SHA:0:8}"
-          echo "✅ Core CI: $CORE_CI_RESULT"
-          echo ""
-          echo "📂 Workspace data available:"
-          ls -lh workspace/*.{txt,json} 2>/dev/null || echo "  (checking...)"
-          echo ""
-
-          uv run main.py
-
-      - name: Upload Review Trace
+      - name: Post review as PR comment
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/github-script@v7
         with:
-          name: crewai-review-trace-pr-${{ inputs.pr_number }}
-          path: .crewai/workspace/trace/
-          retention-days: 30
-          if-no-files-found: warn
-
-      - name: Upload Complete Workspace
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: crewai-workspace-pr-${{ inputs.pr_number }}
-          path: .crewai/workspace/
-          retention-days: 7
-          if-no-files-found: warn
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const summary = `${{ steps.review.outputs.summary }}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pr_number }},
+              body: summary
+            });
