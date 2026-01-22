@@ -43,36 +43,36 @@ jobs:
         run: |
           set -e
           mkdir -p workspace
-          
+
           echo "📦 Preparing PR data using LOCAL GIT (no API calls)"
-          
+
           # Get base and head refs from github.event context
           BASE_REF="${{ github.event.pull_request.base.ref }}"
           HEAD_REF="${{ github.event.pull_request.head.ref }}"
-          
+
           # Fallback to main if empty
           if [ -z "$BASE_REF" ]; then
             BASE_REF="main"
             echo "⚠️ BASE_REF empty, defaulting to main"
           fi
-          
+
           echo "📍 Base: $BASE_REF, Head: $HEAD_REF"
           echo "📍 Commit SHA: ${{ inputs.commit_sha }}"
-          
+
           # Fetch base branch
           echo "🔄 Fetching base branch: $BASE_REF"
           git fetch origin "$BASE_REF:$BASE_REF" 2>/dev/null || \
             git fetch origin "$BASE_REF" 2>/dev/null || \
             echo "⚠️ Could not fetch $BASE_REF"
-          
+
           # Generate PR diff using git
           echo "📝 Generating PR diff: origin/$BASE_REF...${{ inputs.commit_sha }}"
           git diff "origin/$BASE_REF...${{ inputs.commit_sha }}" > workspace/diff.txt 2>/dev/null || \
             git diff "$BASE_REF...${{ inputs.commit_sha }}" > workspace/diff.txt
-          
+
           DIFF_SIZE=$(wc -c < workspace/diff.txt)
           echo "✅ PR diff saved: $DIFF_SIZE bytes"
-          
+
           # Fallback for small diffs
           if [ "$DIFF_SIZE" -lt 100 ]; then
             echo "⚠️ Diff suspiciously small, trying merge-base..."
@@ -84,28 +84,28 @@ jobs:
               echo "✅ Fallback diff: $DIFF_SIZE bytes"
             fi
           fi
-          
+
           # Calculate diff stats
           echo "📊 Calculating stats..."
           DIFF_STATS=$(git diff --stat "origin/$BASE_REF...${{ inputs.commit_sha }}" 2>/dev/null || \
                       git diff --stat "$BASE_REF...${{ inputs.commit_sha }}")
-          
+
           FILES_CHANGED=$(echo "$DIFF_STATS" | tail -n 1 | grep -oE '^[[:space:]]*[0-9]+' | tr -d ' ' || echo "0")
           ADDITIONS=$(echo "$DIFF_STATS" | tail -n 1 | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo "0")
           DELETIONS=$(echo "$DIFF_STATS" | tail -n 1 | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
-          
+
           FILES_CHANGED=${FILES_CHANGED:-0}
           ADDITIONS=${ADDITIONS:-0}
           DELETIONS=${DELETIONS:-0}
-          
+
           echo "📊 Stats: $FILES_CHANGED files, +$ADDITIONS/-$DELETIONS"
-          
+
           # Extract commits
           echo "📚 Getting commits..."
           git log --format='%H|%s|%an|%ae|%aI' --no-merges "origin/$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt 2>/dev/null || \
             git log --format='%H|%s|%an|%ae|%aI' --no-merges "$BASE_REF..${{ inputs.commit_sha }}" > /tmp/commits.txt 2>/dev/null || \
             echo "" > /tmp/commits.txt
-          
+
           # Build commits JSON
           echo '[]' > workspace/commits.json
           if [ -s /tmp/commits.txt ]; then
@@ -114,7 +114,7 @@ jobs:
               COMMIT_ADDITIONS=$(echo "$STATS" | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo 0)
               COMMIT_DELETIONS=$(echo "$STATS" | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo 0)
               COMMIT_FILES=$(echo "$STATS" | grep -oE '^[[:space:]]*[0-9]+' | tr -d ' ' || echo 0)
-              
+
               jq -n \
                 --arg sha "${sha:0:8}" \
                 --arg message "$message" \
@@ -130,19 +130,19 @@ jobs:
                   "author": {"name": $author_name, "email": $author_email, "date": $author_date},
                   "stats": {"additions": $additions, "deletions": $deletions, "files_changed": $files}
                 }' > /tmp/commit.json
-              
+
               jq '. += [input]' workspace/commits.json /tmp/commit.json > /tmp/commits_new.json
               mv /tmp/commits_new.json workspace/commits.json
             done < /tmp/commits.txt
           fi
-          
+
           COMMIT_COUNT=$(jq '. | length' workspace/commits.json)
           echo "✅ Saved $COMMIT_COUNT commits"
-          
+
           # Get labels from context
           PR_LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
           echo "🏷️ Labels: $PR_LABELS"
-          
+
           # Create metadata JSON
           jq -n \
             --argjson pr_number "${{ inputs.pr_number }}" \
@@ -164,7 +164,7 @@ jobs:
               "deletions": $deletions,
               "total_changes": ($additions + $deletions)
             }' > workspace/diff.json
-          
+
           echo "✅ Metadata saved"
           echo ""
           echo "📋 Summary (LOCAL GIT - NO API):"
