@@ -1,0 +1,110 @@
+name: Detect Changes
+
+on:
+  workflow_call:
+    outputs:
+      workspaces:
+        description: 'JSON array of changed workspaces'
+        value: ${{ jobs.detect.outputs.workspaces }}
+      workspaces_list:
+        description: 'Human-readable list of changed workspaces'
+        value: ${{ jobs.detect.outputs.workspaces_list }}
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    outputs:
+      workspaces: ${{ steps.detect.outputs.workspaces }}
+      workspaces_list: ${{ steps.detect.outputs.workspaces_list }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed workspaces
+        id: detect
+        run: |
+          set -e
+          
+          echo "🔍 Detecting changed workspaces..."
+          
+          # Determine base and head for diff
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+            echo "📊 PR: $BASE...$HEAD"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+            echo "📊 Push: $BASE...$HEAD"
+          fi
+          
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only $BASE $HEAD || echo "")
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "⚠️ No changed files detected"
+            echo 'workspaces=[]' >> $GITHUB_OUTPUT
+            echo 'workspaces_list=none' >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "📄 Changed files:"
+          echo "$CHANGED_FILES" | head -n 10
+          if [ $(echo "$CHANGED_FILES" | wc -l) -gt 10 ]; then
+            echo "... and $(( $(echo "$CHANGED_FILES" | wc -l) - 10 )) more"
+          fi
+          echo ""
+          
+          # Initialize workspace array
+          WORKSPACES=()
+          
+          # Check for CrewAI workspace changes
+          if echo "$CHANGED_FILES" | grep -q "^\.crewai/"; then
+            echo "✅ CrewAI workspace changed"
+            WORKSPACES+=("crewai")
+          fi
+          
+          # Check for documentation changes
+          if echo "$CHANGED_FILES" | grep -q "\.md$\|^docs/"; then
+            echo "✅ Documentation changed"
+            WORKSPACES+=("docs")
+          fi
+          
+          # Check for website workspace changes (FUTURE)
+          # if echo "$CHANGED_FILES" | grep -q "^apps/website/"; then
+          #   echo "✅ Website workspace changed"
+          #   WORKSPACES+=("website")
+          # fi
+          
+          # Check for API workspace changes (FUTURE)
+          # if echo "$CHANGED_FILES" | grep -q "^apps/api/"; then
+          #   echo "✅ API workspace changed"
+          #   WORKSPACES+=("api")
+          # fi
+          
+          # Check for CI/GitHub workflow changes (affects all)
+          if echo "$CHANGED_FILES" | grep -q "^\.github/workflows/"; then
+            echo "⚠️ CI workflows changed - will run all tests"
+            WORKSPACES=("crewai" "docs")
+          fi
+          
+          # Convert to JSON array
+          if [ ${#WORKSPACES[@]} -eq 0 ]; then
+            WORKSPACES_JSON='[]'
+            WORKSPACES_LIST="none"
+          else
+            WORKSPACES_JSON=$(printf '%s\n' "${WORKSPACES[@]}" | jq -R . | jq -s .)
+            WORKSPACES_LIST=$(printf '%s\n' "${WORKSPACES[@]}" | paste -sd ',' -)
+          fi
+          
+          echo ""
+          echo "📦 Changed workspaces: $WORKSPACES_JSON"
+          echo "📋 Human-readable: $WORKSPACES_LIST"
+          
+          echo "workspaces=$WORKSPACES_JSON" >> $GITHUB_OUTPUT
+          echo "workspaces_list=$WORKSPACES_LIST" >> $GITHUB_OUTPUT
