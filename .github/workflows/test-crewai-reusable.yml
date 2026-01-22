@@ -79,19 +79,6 @@ jobs:
           echo "🧪 Running CrewAI tests..."
           pytest tests/ -v --tb=short
 
-      - name: Upload CrewAI workspace and traces
-        if: always() && steps.check.outputs.should_run == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: crewai-workspace-${{ github.run_id }}
-          path: |
-            .crewai/workspace/
-            .crewai/*.log
-            .crewai/traces/
-            .crewai/outputs/
-          retention-days: 7
-          if-no-files-found: ignore
-
       - name: Generate test summary
         if: always() && steps.check.outputs.should_run == 'true'
         run: |
@@ -102,8 +89,6 @@ jobs:
           else
             echo "❌ **Some tests failed.**" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "💾 **Artifacts uploaded:** CrewAI workspace files and traces" >> $GITHUB_STEP_SUMMARY
 
       - name: Add summary for skipped tests
         if: always() && steps.check.outputs.should_run == 'false'
