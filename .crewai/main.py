@@ -100,7 +100,10 @@ def run_router(env_vars):
                     logger.info(f"  - {suggestion}")
             return decision
         else:
-            logger.warning("⚠️ Router decision not found in workspace - using defaults")
+            logger.warning("⚠️ Router did NOT write router_decision.json - agent may not be calling WorkspaceTool.write()")
+            logger.info("📝 Router task result output (for debugging):")
+            logger.info(str(result)[:500])  # First 500 chars
+            logger.info("⚠️ Using default workflows due to missing router output")
             return {
                 "workflows": ["ci-log-analysis", "quick-review"],
                 "suggestions": [],
@@ -131,7 +134,9 @@ def run_ci_analysis(env_vars):
         # Validate output file was created
         workspace = WorkspaceTool()
         if not workspace.exists("ci_summary.json"):
-            logger.warning("⚠️ CI analysis did not create ci_summary.json - creating fallback")
+            logger.warning("⚠️ CI analysis did NOT write ci_summary.json - agent may not be calling WorkspaceTool.write()")
+            logger.info("📝 CI analysis result output (for debugging):")
+            logger.info(str(result)[:500])
             workspace.write_json(
                 "ci_summary.json",
                 {
@@ -142,6 +147,8 @@ def run_ci_analysis(env_vars):
                     "warnings": [],
                 },
             )
+        else:
+            logger.info("✅ Verified ci_summary.json exists in workspace")
 
         return result
     except Exception as e:
@@ -167,12 +174,17 @@ def run_quick_review():
     try:
         quick_crew = QuickReviewCrew()
         result = quick_crew.crew().kickoff()
-        logger.info("✅ Quick review complete")
+        logger.info("✅ Quick review task complete")
 
         # CRITICAL: Validate output file was created
         workspace = WorkspaceTool()
         if not workspace.exists("quick_review.json"):
-            logger.warning("⚠️ Quick review did not create quick_review.json - creating fallback")
+            logger.error("❌ CRITICAL: Quick review did NOT write quick_review.json!")
+            logger.error("❌ This means the agent completed but didn't call WorkspaceTool.write()")
+            logger.info("📝 Quick review result output (for debugging):")
+            logger.info(str(result)[:1000])  # First 1000 chars to see what agent returned
+            logger.warning("⚠️ Creating fallback quick_review.json with empty arrays")
+            
             # Try to extract from result if available
             workspace.write_json(
                 "quick_review.json",
@@ -185,7 +197,17 @@ def run_quick_review():
                 },
             )
         else:
-            logger.info("✅ Verified quick_review.json exists in workspace")
+            # Validate the JSON has expected structure
+            review_data = workspace.read_json("quick_review.json")
+            total_findings = (
+                len(review_data.get("critical", [])) +
+                len(review_data.get("warnings", [])) +
+                len(review_data.get("info", []))
+            )
+            logger.info(f"✅ Verified quick_review.json exists with {total_findings} total findings")
+            logger.info(f"   - Critical: {len(review_data.get('critical', []))}")
+            logger.info(f"   - Warnings: {len(review_data.get('warnings', []))}")
+            logger.info(f"   - Info: {len(review_data.get('info', []))}")
 
         return result
     except Exception as e:
