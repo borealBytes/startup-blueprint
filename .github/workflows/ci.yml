@@ -18,13 +18,15 @@ jobs:
 
   phase1_format_lint:
     name: "Phase 1: Core CI » Format & Lint"
-    uses: ./.github/workflows/jobs/format-lint.yml
+    uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
   phase1_detect_changes:
     name: "Phase 1: Core CI » Detect Changes"
     needs: [phase1_format_lint]
-    uses: ./.github/workflows/jobs/detect-changes.yml
+    uses: ./.github/workflows/test-orchestration-reusable.yml
+    with:
+      commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
     secrets: inherit
 
   # ============================================================================
@@ -39,7 +41,7 @@ jobs:
       always() &&
       (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
       contains(needs.phase1_detect_changes.outputs.workspaces, 'docs')
-    uses: ./.github/workflows/workspaces/docs-links-test.yml
+    uses: ./.github/workflows/link-check-reusable.yml
     with:
       commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
     secrets: inherit
@@ -51,7 +53,7 @@ jobs:
       always() &&
       (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
       contains(needs.phase1_detect_changes.outputs.workspaces, 'crewai')
-    uses: ./.github/workflows/workspaces/crewai-test.yml
+    uses: ./.github/workflows/test-crewai-reusable.yml
     with:
       commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
     secrets: inherit
@@ -64,7 +66,7 @@ jobs:
   #     always() &&
   #     (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
   #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website')
-  #   uses: ./.github/workflows/workspaces/website-test-build.yml
+  #   uses: ./.github/workflows/website-test-build-reusable.yml
   #   with:
   #     commit_sha: ${{ needs.phase1_format_lint.outputs.final-commit-sha }}
   #   secrets: inherit
@@ -82,7 +84,7 @@ jobs:
   #     needs.phase2_test_build_website.result == 'success' &&
   #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website') &&
   #     (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy:preview'))
-  #   uses: ./.github/workflows/environments/preview-deploy.yml
+  #   uses: ./.github/workflows/preview-deploy-reusable.yml
   #   with:
   #     workspace: website
   #     build_artifact: website-build
@@ -100,7 +102,7 @@ jobs:
   #     contains(needs.phase1_detect_changes.outputs.workspaces, 'website') &&
   #     github.ref == 'refs/heads/main' &&
   #     github.event_name == 'push'
-  #   uses: ./.github/workflows/environments/production-deploy.yml
+  #   uses: ./.github/workflows/production-deploy-reusable.yml
   #   with:
   #     workspace: website
   #     build_artifact: website-build
@@ -131,7 +133,7 @@ jobs:
       (needs.phase1_format_lint.result == 'success' || needs.phase1_format_lint.result == 'failure') &&
       (needs.phase2_test_docs_links.result == 'success' || needs.phase2_test_docs_links.result == 'failure' || needs.phase2_test_docs_links.result == 'skipped') &&
       (needs.phase2_test_crewai.result == 'success' || needs.phase2_test_crewai.result == 'failure' || needs.phase2_test_crewai.result == 'skipped')
-    uses: ./.github/workflows/agents/crewai-review.yml
+    uses: ./.github/workflows/crewai-review-reusable.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
