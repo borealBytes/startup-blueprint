@@ -75,27 +75,24 @@ def get_env_vars():
 
 def get_workspace_diagnostics():
     """Get current workspace state for debugging.
-    
+
     Returns:
         dict: Workspace state including files present and their sizes
     """
     try:
         workspace = WorkspaceTool()
         workspace_dir = Path(__file__).parent / "workspace"
-        
+
         files_info = {}
         if workspace_dir.exists():
             for file_path in workspace_dir.iterdir():
                 if file_path.is_file():
-                    files_info[file_path.name] = {
-                        "size": file_path.stat().st_size,
-                        "exists": True
-                    }
-        
+                    files_info[file_path.name] = {"size": file_path.stat().st_size, "exists": True}
+
         return {
             "workspace_path": str(workspace_dir),
             "files": files_info,
-            "file_count": len(files_info)
+            "file_count": len(files_info),
         }
     except Exception as e:
         return {"error": str(e)}
@@ -143,13 +140,13 @@ def run_router(env_vars):
             logger.info(result_str[:2000])
             if len(result_str) > 2000:
                 logger.info(f"... (truncated, total length: {len(result_str)} chars)")
-            
+
             # Try to extract specific error fields if available
-            if hasattr(result, 'raw'):
+            if hasattr(result, "raw"):
                 logger.info(f"Agent raw output: {str(result.raw)[:1000]}")
-            if hasattr(result, 'pydantic'):
+            if hasattr(result, "pydantic"):
                 logger.info(f"Agent pydantic output: {str(result.pydantic)[:1000]}")
-            
+
             logger.info("⚠️ Using default workflows due to missing router output")
             return {
                 "workflows": ["ci-log-analysis", "quick-review"],
@@ -163,7 +160,7 @@ def run_router(env_vars):
             f"❌ Router failed: {e}\n"
             f"  Exception type: {type(e).__name__}\n"
             f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
-            exc_info=True
+            exc_info=True,
         )
         # Return default workflows on failure
         return {
@@ -200,7 +197,7 @@ def run_ci_analysis(env_vars):
             logger.info(result_str[:2000])
             if len(result_str) > 2000:
                 logger.info(f"... (truncated, total length: {len(result_str)} chars)")
-            
+
             workspace.write_json(
                 "ci_summary.json",
                 {
@@ -221,7 +218,7 @@ def run_ci_analysis(env_vars):
             f"❌ CI analysis failed: {e}\n"
             f"  Exception type: {type(e).__name__}\n"
             f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
-            exc_info=True
+            exc_info=True,
         )
         # Write error to workspace
         workspace = WorkspaceTool()
@@ -262,7 +259,7 @@ def run_quick_review():
             logger.info(result_str[:2000])  # Increased from 1000 to 2000
             if len(result_str) > 2000:
                 logger.info(f"... (truncated, total length: {len(result_str)} chars)")
-            
+
             logger.warning("⚠️ Creating fallback quick_review.json with empty arrays")
 
             # Try to extract from result if available
@@ -298,7 +295,7 @@ def run_quick_review():
             f"❌ Quick review failed: {e}\n"
             f"  Exception type: {type(e).__name__}\n"
             f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
-            exc_info=True
+            exc_info=True,
         )
         workspace = WorkspaceTool()
         workspace.write_json(
@@ -334,7 +331,7 @@ def run_full_review(env_vars):
             f"❌ Full review failed: {e}\n"
             f"  Exception type: {type(e).__name__}\n"
             f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
-            exc_info=True
+            exc_info=True,
         )
         workspace = WorkspaceTool()
         workspace.write_json(
@@ -396,7 +393,7 @@ def run_final_summary(env_vars, workflows_executed):
             f"❌ Final summary failed: {e}\n"
             f"  Exception type: {type(e).__name__}\n"
             f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
-            exc_info=True
+            exc_info=True,
         )
         return None
 
