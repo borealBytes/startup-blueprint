@@ -84,10 +84,10 @@ Pull Request / Push
 
 ```bash
 # link-check-reusable.yml checks:
-git diff $BASE $HEAD | grep -E '\.md$|^docs/'
+git diff $BASE $HEAD --name-only | grep -E '\.md$'
 
 # test-crewai-reusable.yml checks:
-git diff $BASE $HEAD | grep '^.crewai/'
+git diff $BASE $HEAD --name-only | grep '^\.crewai/'
 ```
 
 **Behavior:**
