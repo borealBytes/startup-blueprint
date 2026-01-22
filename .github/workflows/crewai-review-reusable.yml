@@ -195,3 +195,13 @@ jobs:
       - name: Run CrewAI code review
         run: |
           python main.py
+
+      - name: Upload agent workspace artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crewai-agent-workspace-pr${{ inputs.pr_number }}-${{ github.run_id }}
+          path: |
+            .crewai/workspace/
+          retention-days: 7
+          if-no-files-found: warn
