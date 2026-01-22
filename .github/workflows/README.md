@@ -1,205 +1,238 @@
-# GitHub Actions Workflows
+# CI/CD Orchestration Structure
 
-## Orchestrated CI Pipeline
+Scalable, phase-based CI/CD orchestration for our monorepo.
 
-This directory contains a **modular, orchestrated CI workflow** that runs comprehensive checks before allowing AI-powered code review.
+## 📐 Architecture Overview
 
----
-
-## 📁 Workflow Files
-
-### 1. **`ci.yml`** - Main Orchestrator
-**Purpose:** Entry point that coordinates the entire CI pipeline  
-**Triggers:** Every pull request  
-**What it does:**
-- Runs Core CI first (format, lint, type check, link check)
-- Only runs CrewAI review if Core CI succeeds
-- Skips AI review for:
-  - Bot PRs (`dependabot[bot]`, `renovate[bot]`)
-  - Draft PRs
-
-```yaml
-on:
-  pull_request:
-
-jobs:
-  core-ci:
-    uses: ./.github/workflows/core-ci-reusable.yml
-  
-  crewai-review:
-    needs: [core-ci]
-    if: needs.core-ci.result == 'success' && !draft && !bot
-    uses: ./.github/workflows/crewai-review-reusable.yml
 ```
-
----
-
-### 2. **`core-ci-reusable.yml`** - Format, Lint, Test
-**Purpose:** Comprehensive code quality checks  
-**What it does:**
-
-**Formatting:**
-- ✨ Prettier (JS/TS/JSON/MD/YAML/CSS)
-- 🐍 Black (Python)
-- 🔀 isort (Python imports)
-- 🗄️ SQLFluff (SQL - PostgreSQL/DuckDB)
-- 🎨 stylelint (CSS/SCSS)
-- 📝 markdownlint
-- 🦴 gofmt (Go)
-
-**Linting:**
-- 🔍 ESLint (JS/TS)
-- 🐍 flake8 (Python)
-- 📄 yamllint (YAML)
-- 🐚 shellcheck (Bash)
-- 🦴 golangci-lint (Go)
-- 💬 commitlint (Conventional Commits)
-
-**Type Checking:**
-- 🔷 TypeScript compiler (tsc --noEmit)
-
-**Link Validation:**
-- 🔗 lychee (Markdown link checker with cache)
-
-**Auto-fix & Commit:**
-- If formatting/linting issues found, auto-commits fixes
-- Outputs final commit SHA for next steps
-- Prevents workflow files from being modified
-
----
-
-### 3. **`crewai-review-reusable.yml`** - AI Code Review
-**Purpose:** Multi-model AI code review using CrewAI agents  
-**What it does:**
-- Reviews the exact commit after Core CI (uses SHA from Core CI output)
-- Runs multiple specialized AI agents:
-  - Code quality review
-  - Security vulnerability scan
-  - Architecture analysis
-- Posts review as PR comment
-- Uploads logs as artifacts
-
-**Requirements:**
-- `OPENROUTER_API_KEY` secret must be set
-- `.crewai/` directory with review agents
-- Only runs if Core CI passes ✅
-
----
+ci.yml (main orchestrator)
+├─ Phase 1: core-ci.yml (Quality Gates)
+│  ├─ jobs/format-lint.yml
+│  └─ jobs/detect-changes.yml
+│
+├─ Phase 2: test-build.yml (Test & Build)
+│  ├─ workspaces/crewai-test.yml
+│  ├─ workspaces/docs-links-test.yml
+│  └─ workspaces/website-test-build.yml (FUTURE)
+│
+├─ Phase 3: deploy.yml (Deploy)
+│  ├─ environments/preview-deploy.yml (FUTURE)
+│  └─ environments/production-deploy.yml (FUTURE)
+│
+└─ Phase 4: agents.yml (AI Analysis)
+   └─ agents/crewai-review.yml
+```
 
 ## 🔄 Execution Flow
 
-```mermaid
-graph TD
-    A[PR Created/Updated] --> B[CI Orchestrator]
-    B --> C[Core CI: Format & Lint]
-    C -->|✅ Success| D[Core CI: Link Check]
-    C -->|❌ Failed| E[Stop - Fix Issues]
-    D -->|✅ Success| F{Check Conditions}
-    D -->|❌ Failed| E
-    F -->|Bot PR?| G[Skip CrewAI]
-    F -->|Draft PR?| G
-    F -->|✅ Ready| H[CrewAI Review]
-    H --> I[Post Review Comment]
-    I --> J[Done]
-    G --> J
+### Pull Request Flow
+```
+PR Opened/Updated
+  ↓
+[Phase 1] Core CI
+  ├─ Format & Lint → Auto-fix → Commit
+  └─ Detect Changes → Output: ["crewai", "docs"]
+  ↓
+[Phase 2] Test & Build (parallel)
+  ├─ CrewAI Test (if .crewai/ changed)
+  ├─ Docs Links (if *.md changed)
+  └─ Website Test+Build (if apps/website/ changed) [FUTURE]
+  ↓
+[Phase 3] Deploy (if label:deploy:preview)
+  └─ Preview Environment [FUTURE]
+  ↓
+[Phase 4] AI Agents (parallel with Phase 3)
+  └─ CrewAI Code Review → Post PR comment
 ```
 
----
+### Main Branch Flow
+```
+Push to main
+  ↓
+[Phase 1] Core CI
+  ├─ Format & Lint
+  └─ Detect Changes
+  ↓
+[Phase 2] Test & Build
+  ├─ All changed workspaces
+  ↓
+[Phase 3] Deploy to Production
+  └─ Deploy changed workspaces [FUTURE]
+  ↓
+[Phase 4] AI Agents (skipped - not a PR)
+```
 
-## 🔐 Secrets Management
+## 📁 Directory Structure
 
-### Automatic Secrets (No Configuration Needed)
-- `GITHUB_TOKEN` - Auto-provided by GitHub Actions
-  - Used for: Checkout, PR comments, API access
-  - **Cannot** be explicitly declared in `workflow_call` secrets
+```
+.github/workflows/
+├── ci.yml                    # Main orchestrator (entry point)
+├── core-ci.yml               # Phase 1: Quality gates
+├── test-build.yml            # Phase 2: Test & build orchestrator
+├── deploy.yml                # Phase 3: Deploy orchestrator
+├── agents.yml                # Phase 4: AI agents orchestrator
+│
+├── jobs/                     # Utility jobs
+│   ├── format-lint.yml       # Code formatting & linting
+│   └── detect-changes.yml    # Workspace change detection
+│
+├── workspaces/               # Per-workspace test+build
+│   ├── crewai-test.yml       # CrewAI testing
+│   ├── docs-links-test.yml   # Documentation validation
+│   └── website-test-build.yml # Website test+build [FUTURE]
+│
+├── environments/             # Per-environment deployment
+│   ├── preview-deploy.yml    # Preview environment [FUTURE]
+│   └── production-deploy.yml # Production environment [FUTURE]
+│
+└── agents/                   # AI agents
+    └── crewai-review.yml     # Code review agent
+```
 
-### Required Secrets (Must Configure)
-- `OPENROUTER_API_KEY` - Required for CrewAI review
-  - Add in: Repository Settings → Secrets → Actions
-  - Get from: https://openrouter.ai/
+## ➕ Adding New Workspaces
 
----
+### Example: Adding a Website Workspace
 
-## 🎯 Why This Architecture?
+**1. Update change detection** (`jobs/detect-changes.yml`):
+```yaml
+# Add detection logic
+if echo "$CHANGED_FILES" | grep -q "^apps/website/"; then
+  WORKSPACES+=("website")
+  echo "  ✓ Detected: website"
+fi
+```
 
-### ✅ Benefits
+**2. Create workspace workflow** (`workspaces/website-test-build.yml`):
+```yaml
+name: Website Test & Build
 
-1. **No Wasted Resources**
-   - CrewAI doesn't run if code doesn't pass basic checks
-   - Saves API costs and compute time
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        required: true
+        type: string
 
-2. **Single Workflow Run**
-   - Shows as one "CI" workflow in GitHub UI
-   - Clean, professional appearance
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-build
+          path: dist/
+```
 
-3. **Modular & Maintainable**
-   - Three files instead of one monolith
-   - Easy to modify individual steps
-   - Reusable workflows for future projects
+**3. Add to test-build orchestrator** (`test-build.yml`):
+```yaml
+website:
+  name: Website
+  if: contains(inputs.changed_workspaces, 'website')
+  uses: ./.github/workflows/workspaces/website-test-build.yml
+  with:
+    commit_sha: ${{ inputs.commit_sha }}
+  secrets: inherit
+```
 
-4. **Clear Dependencies**
-   - `needs: [core-ci]` makes execution order explicit
-   - Conditional logic prevents unwanted runs
+**4. Add deployment** (when ready):
+```yaml
+# In deploy.yml
+website:
+  name: Website → ${{ inputs.environment }}
+  if: contains(inputs.changed_workspaces, 'website')
+  uses: ./.github/workflows/environments/${{ inputs.environment }}-deploy.yml
+  with:
+    workspace: website
+  secrets: inherit
+```
 
-5. **Smart Skipping**
-   - Doesn't waste AI review on bot PRs
-   - Doesn't review drafts (saves reviews for ready PRs)
+## 🌍 Environment Management
 
----
+### Preview Environment
+- **Trigger**: PR with `deploy:preview` label
+- **URL**: `https://preview.credibilitymarkets.com`
+- **Purpose**: Test changes before production
 
-## 🚀 Usage
+### Production Environment
+- **Trigger**: Push to `main` branch
+- **URL**: `https://credibilitymarkets.com`
+- **Purpose**: Live production site
 
-### For Developers
-**Just open a PR!** The workflow runs automatically.
+### Environment-Specific Secrets
+```yaml
+# In deploy.yml
+environment:
+  name: ${{ inputs.environment }}
+  url: ${{ inputs.environment == 'production' && 
+          'https://credibilitymarkets.com' || 
+          'https://preview.credibilitymarkets.com' }}
+```
 
-### What to Expect
-1. Core CI runs (1-3 minutes)
-   - Auto-commits format/lint fixes if needed
-2. Link check validates docs (30 seconds)
-3. CrewAI review analyzes code (2-5 minutes)
-4. Review posted as PR comment
+## 🎯 Conditional Execution
 
-### If CI Fails
-- Check the "Core CI" job logs
-- Fix the issues locally
-- Push your changes
-- Workflow re-runs automatically
+Workspaces only run when their files change:
 
-### If CrewAI Review Fails
-- Check the "CrewAI Code Review" job logs
-- Review logs available as downloadable artifacts
-- Does not block PR merge (informational only)
+```yaml
+# test-build.yml
+crewai:
+  name: CrewAI
+  if: contains(inputs.changed_workspaces, 'crewai')
+  uses: ./.github/workflows/workspaces/crewai-test.yml
+```
 
----
+Change detection maps file paths to workspaces:
+- `.crewai/**` → `crewai`
+- `apps/website/**` → `website`
+- `**/*.md` → `docs`
+- `.github/workflows/**` → ALL workspaces
 
 ## 🔧 Troubleshooting
 
-### Workflow Not Running?
-1. Check PR is not a draft
-2. Verify workflow files are on the base branch
-3. Check branch protection rules
+### Workflow not running?
+1. Check if workspace was detected: View "Detect Changes" job output
+2. Verify file paths match detection logic in `jobs/detect-changes.yml`
+3. Check `if:` conditions in orchestrator workflows
 
-### CrewAI Review Skipped?
-- ✅ Expected if Core CI failed
-- ✅ Expected if PR is draft
-- ✅ Expected if opened by bot
+### Format & lint failing?
+1. Format should auto-fix and commit
+2. If manual fixes needed, check commit history
+3. Run locally: `black .` and `isort .`
 
-### Format/Lint Auto-Commit Loop?
-- Check `.gitignore` excludes generated files
-- Verify formatters are deterministic
-- Review "Unstage workflow files" safeguard step
+### Deploy not triggering?
+1. **PR**: Add `deploy:preview` label
+2. **Main**: Verify push to `main` branch
+3. Check if workspace changed (deploy.yml conditions)
+
+### AI agent not running?
+1. Check PR is not draft
+2. Verify not a bot PR (dependabot, renovate)
+3. Confirm core-ci completed
+
+## 📊 Benefits
+
+✅ **Scalable** - Easy to add workspaces  
+✅ **Efficient** - Only test/build what changed  
+✅ **Clear** - Obvious where things run  
+✅ **Maintainable** - DRY with reusable workflows  
+✅ **Environment-aware** - Preview vs production  
+✅ **Monorepo-friendly** - Path-based detection  
+
+## 🚀 Future Enhancements
+
+- [ ] Website deployment to Cloudflare Pages
+- [ ] API workspace with test+build+deploy
+- [ ] E2E testing workflow
+- [ ] Security scanning (SAST/DAST)
+- [ ] Performance testing
+- [ ] Release automation
 
 ---
 
-## 📚 References
-
-- [GitHub Actions: Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)
-- [Conventional Commits](https://www.conventionalcommits.org/)
-- [CrewAI Documentation](https://docs.crewai.com/)
-- [OpenRouter API](https://openrouter.ai/docs)
-
----
-
-**Last Updated:** 2026-01-18  
-**Architecture Version:** 1.0  
-**Status:** ✅ Production Ready
+**Last updated**: 2026-01-22  
+**Status**: Production-ready orchestration framework
