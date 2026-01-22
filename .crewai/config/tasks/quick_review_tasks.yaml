@@ -6,10 +6,8 @@ quick_code_review:
     **YOU MUST COMPLETE BOTH STEPS**: 1. Analyze the code changes 2. **WRITE the
     output to quick_review.json using WorkspaceTool**
 
-    **INPUTS AVAILABLE**:
-    - diff.txt (full PR diff)
-    - commits.json (commit history)
-    - diff.json (PR metadata)
+    **INPUTS AVAILABLE**: - diff.txt (full PR diff) - commits.json (commit
+    history) - diff.json (PR metadata)
 
     **STEP 1: Read and Analyze**
 
@@ -112,12 +110,11 @@ quick_code_review:
     Does content have all required fields? - [ ] Are arrays (critical, warnings,
     info) present even if empty?
 
-    **IMPORTANT**:
-    - Focus on NEW/CHANGED code only (lines starting with `+` in diff) - Ignore
-    formatting/style if CI handles it - Provide specific line numbers from the
-    diff - Every finding MUST have a concrete fix suggestion - Be concise - this
-    is a "quick" review - **YOU MUST WRITE THE FILE - do not just return JSON as
-    text**
+    **IMPORTANT**: - Focus on NEW/CHANGED code only (lines starting with `+` in
+    diff) - Ignore formatting/style if CI handles it - Provide specific line
+    numbers from the diff - Every finding MUST have a concrete fix suggestion -
+    Be concise - this is a "quick" review - **YOU MUST WRITE THE FILE - do not
+    just return JSON as text**
 
   expected_output: >
     Confirmation that quick_review.json has been written to workspace using
