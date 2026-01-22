@@ -2,6 +2,11 @@ name: Detect Tests
 
 on:
   workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to checkout and test'
+        required: false
+        type: string
     outputs:
       test-matrix:
         description: 'JSON matrix of test jobs to run'
@@ -24,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
 
       - name: Detect which tests to run
         id: detect_tests
