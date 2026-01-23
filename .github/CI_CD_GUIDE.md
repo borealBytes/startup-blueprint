@@ -474,7 +474,7 @@ If you encounter issues:
 
 1. **Check CI logs** — Click failed job in GitHub Actions
 2. **Review this guide** — Common issues documented above
-3. **Check workflow** — [`workflows/core-ci-reusable.yml`](workflows/core-ci-reusable.yml)
+3. **Check workflow** — [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 4. **Open an issue** — Include:
    - Workflow run link
    - Error message
@@ -482,6 +482,6 @@ If you encounter issues:
 
 ---
 
-**Last updated:** 2026-01-19  
+**Last updated:** 2026-01-23  
 **Maintainer:** @borealBytes  
 **Workflow:** Universal CI-first format/lint for web agents, GitHub editor, and local dev
