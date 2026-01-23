@@ -144,13 +144,15 @@ jobs:
           npx prettier --write \
             "**/*.{js,ts,jsx,tsx,json,md,yml,yaml,css,scss,html}" \
             --ignore-path .gitignore \
-            --log-level warn
+            --log-level warn 2>&1 | tee /tmp/prettier.log
 
-          if [ $? -eq 0 ]; then
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -eq 0 ]; then
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
             git diff --name-only > /tmp/prettier_changes.txt
           else
             echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            echo "errors=$(grep -c "Error" /tmp/prettier.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
             exit 1
           fi
 
@@ -168,13 +170,15 @@ jobs:
               -not -path "./venv/*" \
               -not -path "./build/*" \
               -not -path "./dist/*" \
-              | xargs black --quiet
+              | xargs black --quiet 2>&1 | tee /tmp/black.log
 
-            if [ $? -eq 0 ]; then
+            EXIT_CODE=${PIPESTATUS[0]}
+            if [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
               git diff --name-only > /tmp/black_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              echo "errors=$(grep -c "error" /tmp/black.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
               exit 1
             fi
           else
@@ -197,13 +201,15 @@ jobs:
               -not -path "./venv/*" \
               -not -path "./build/*" \
               -not -path "./dist/*" \
-              | xargs isort --quiet
+              | xargs isort --quiet 2>&1 | tee /tmp/isort.log
 
-            if [ $? -eq 0 ]; then
+            EXIT_CODE=${PIPESTATUS[0]}
+            if [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
               git diff --name-only > /tmp/isort_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              echo "errors=$(grep -c "ERROR" /tmp/isort.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
               exit 1
             fi
           else
@@ -219,15 +225,19 @@ jobs:
           if [ "${{ steps.check_sql.outputs.exists }}" == "true" ]; then
             echo "🗄️  Running SQLFluff formatter and linter..."
 
-            sqlfluff fix --dialect postgres --force . \
-              --exclude-rules ambiguous.column_count
+            # Use sqlite dialect for D1 databases
+            sqlfluff fix --dialect sqlite --force . \
+              --exclude-rules ambiguous.column_count 2>&1 | tee /tmp/sqlfluff.log
 
-            if sqlfluff lint --dialect postgres . \
-              --exclude-rules ambiguous.column_count; then
+            if sqlfluff lint --dialect sqlite . \
+              --exclude-rules ambiguous.column_count 2>&1 | tee -a /tmp/sqlfluff.log; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
               git diff --name-only > /tmp/sqlfluff_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              # Count actual violations, not just lines
+              echo "errors=$(grep -c "^L:" /tmp/sqlfluff.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
+              echo "warnings=$(grep -c "WARNING" /tmp/sqlfluff.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
               exit 1
             fi
           else
@@ -250,6 +260,8 @@ jobs:
               --fix \
               --ignore-path .gitignore \
               --max-warnings 0 \
+              --format json \
+              --output-file /tmp/eslint.json \
               2>&1 | tee /tmp/eslint.log
 
             EXIT_CODE=${PIPESTATUS[0]}
@@ -263,6 +275,16 @@ jobs:
               git diff --name-only > /tmp/eslint_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              # Parse JSON output for detailed error counts
+              if [ -f /tmp/eslint.json ]; then
+                ERROR_COUNT=$(jq '[.[].errorCount] | add // 0' /tmp/eslint.json 2>/dev/null || echo 0)
+                WARN_COUNT=$(jq '[.[].warningCount] | add // 0' /tmp/eslint.json 2>/dev/null || echo 0)
+                echo "errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
+                echo "warnings=$WARN_COUNT" >> $GITHUB_OUTPUT
+              else
+                echo "errors=1" >> $GITHUB_OUTPUT
+                echo "warnings=0" >> $GITHUB_OUTPUT
+              fi
               exit 1
             fi
           else
@@ -279,13 +301,15 @@ jobs:
             pnpm exec stylelint \
               "**/*.{css,scss}" \
               --fix \
-              --allow-empty-input
+              --allow-empty-input 2>&1 | tee /tmp/stylelint.log
 
-            if [ $? -eq 0 ]; then
+            EXIT_CODE=${PIPESTATUS[0]}
+            if [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
               git diff --name-only > /tmp/stylelint_changes.txt
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              echo "errors=$(grep -c "×" /tmp/stylelint.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
               exit 1
             fi
           else
@@ -303,13 +327,16 @@ jobs:
             "#node_modules" \
             "#.github" \
             --fix \
-            --config .markdownlint.json
+            --config .markdownlint.json 2>&1 | tee /tmp/markdownlint.log
 
-          if [ $? -eq 0 ]; then
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -eq 0 ]; then
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
             git diff --name-only > /tmp/markdownlint_changes.txt
           else
             echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            # Count errors from output
+            echo "errors=$(grep -c "MD[0-9]\{3\}" /tmp/markdownlint.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
             exit 1
           fi
 
@@ -318,11 +345,14 @@ jobs:
         continue-on-error: true
         run: |
           if command -v yamllint &> /dev/null; then
-            yamllint .
-            if [ $? -eq 0 ]; then
+            yamllint . 2>&1 | tee /tmp/yamllint.log
+            EXIT_CODE=${PIPESTATUS[0]}
+            if [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              echo "errors=$(grep -c "error" /tmp/yamllint.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
+              echo "warnings=$(grep -c "warning" /tmp/yamllint.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
               exit 1
             fi
           else
@@ -336,11 +366,16 @@ jobs:
         run: |
           if command -v shellcheck &> /dev/null; then
             if find . -type f -name "*.sh" -not -path "./node_modules/*" | grep -q .; then
-              find . -type f -name "*.sh" -not -path "./node_modules/*" -exec shellcheck {} +
-              if [ $? -eq 0 ]; then
+              find . -type f -name "*.sh" -not -path "./node_modules/*" \
+                -exec shellcheck --format=gcc {} + 2>&1 | tee /tmp/shellcheck.log
+              EXIT_CODE=${PIPESTATUS[0]}
+              if [ $EXIT_CODE -eq 0 ]; then
                 echo "status=✅ Passed" >> $GITHUB_OUTPUT
               else
                 echo "status=❌ Failed" >> $GITHUB_OUTPUT
+                echo "errors=$(grep -c "error:" /tmp/shellcheck.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
+                echo "warnings=$(grep -c "warning:" /tmp/shellcheck.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
+                echo "info=$(grep -c "note:" /tmp/shellcheck.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
                 exit 1
               fi
             else
@@ -375,7 +410,7 @@ jobs:
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
               echo "errors=0" >> $GITHUB_OUTPUT
             else
-              ERROR_COUNT=$(grep -c "^\./ " /tmp/flake8_output.txt || echo "0")
+              ERROR_COUNT=$(grep -c "^\./" /tmp/flake8_output.txt 2>/dev/null || echo "0")
               echo "status=❌ Failed ($ERROR_COUNT violations)" >> $GITHUB_OUTPUT
               echo "errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
 
@@ -410,12 +445,14 @@ jobs:
           if [ -d "apps/credibility-markets" ]; then
             if command -v golangci-lint &> /dev/null; then
               cd apps/credibility-markets
-              golangci-lint run --fix
-              if [ $? -eq 0 ]; then
+              golangci-lint run --fix 2>&1 | tee /tmp/golangci.log
+              EXIT_CODE=${PIPESTATUS[0]}
+              if [ $EXIT_CODE -eq 0 ]; then
                 echo "status=✅ Passed" >> $GITHUB_OUTPUT
                 git diff --name-only > /tmp/golangci_changes.txt
               else
                 echo "status=❌ Failed" >> $GITHUB_OUTPUT
+                echo "errors=$(grep -c "^Error:" /tmp/golangci.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
                 exit 1
               fi
             else
@@ -473,16 +510,18 @@ jobs:
           if git rev-parse "origin/$BASE_REF" >/dev/null 2>&1; then
             BASE_SHA=$(git merge-base "origin/$BASE_REF" HEAD)
             echo "🔍 Linting commits from $BASE_SHA (origin/$BASE_REF) to HEAD"
-            pnpm exec commitlint --from "$BASE_SHA" --to HEAD --verbose
+            pnpm exec commitlint --from "$BASE_SHA" --to HEAD --verbose 2>&1 | tee /tmp/commitlint.log
           else
             echo "🔍 Linting last commit only (no base branch found)"
-            pnpm exec commitlint --from HEAD~1 --to HEAD --verbose
+            pnpm exec commitlint --from HEAD~1 --to HEAD --verbose 2>&1 | tee /tmp/commitlint.log
           fi
 
-          if [ $? -eq 0 ]; then
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -eq 0 ]; then
             echo "status=✅ Passed" >> $GITHUB_OUTPUT
           else
             echo "status=❌ Failed" >> $GITHUB_OUTPUT
+            echo "errors=$(grep -c "❌" /tmp/commitlint.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
             exit 1
           fi
 
@@ -496,8 +535,8 @@ jobs:
             HAS_ERRORS=0
 
             if [ -f "tsconfig.json" ]; then
-              pnpm exec tsc --noEmit --skipLibCheck
-              if [ $? -ne 0 ]; then
+              pnpm exec tsc --noEmit --skipLibCheck 2>&1 | tee /tmp/typescript.log
+              if [ ${PIPESTATUS[0]} -ne 0 ]; then
                 HAS_ERRORS=1
               fi
             fi
@@ -506,8 +545,8 @@ jobs:
               if [ -f "$tsconfig" ]; then
                 echo "Checking $tsconfig"
                 cd $(dirname $tsconfig)
-                pnpm exec tsc --noEmit --skipLibCheck
-                if [ $? -ne 0 ]; then
+                pnpm exec tsc --noEmit --skipLibCheck 2>&1 | tee -a /tmp/typescript.log
+                if [ ${PIPESTATUS[0]} -ne 0 ]; then
                   HAS_ERRORS=1
                 fi
                 cd - > /dev/null
@@ -518,6 +557,7 @@ jobs:
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
             else
               echo "status=❌ Failed" >> $GITHUB_OUTPUT
+              echo "errors=$(grep -c "error TS" /tmp/typescript.log 2>/dev/null || echo 0)" >> $GITHUB_OUTPUT
               exit 1
             fi
           else
@@ -580,7 +620,7 @@ jobs:
             git diff --cached --name-only > /tmp/changed_files.txt
           fi
 
-      - name: Generate summary report
+      - name: Generate enhanced summary report
         if: always()
         run: |
           FAILED=false
@@ -614,36 +654,88 @@ jobs:
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🧰 Tools Run" >> $GITHUB_STEP_SUMMARY
+          echo "### 🪧 Tools Run" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Tool | Status | Purpose |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|--------|---------|" >> $GITHUB_STEP_SUMMARY
-          echo "| **Prettier** | ${{ steps.prettier.outputs.status || '❌ Failed' }} | Format JS/TS/JSON/MD/YAML/CSS |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Black** | ${{ steps.black.outputs.status || '❌ Failed' }} | Format Python code |" >> $GITHUB_STEP_SUMMARY
-          echo "| **isort** | ${{ steps.isort.outputs.status || '❌ Failed' }} | Sort Python imports |" >> $GITHUB_STEP_SUMMARY
-          echo "| **SQLFluff** | ${{ steps.sqlfluff.outputs.status || '❌ Failed' }} | Format & lint SQL (PostgreSQL/DuckDB) |" >> $GITHUB_STEP_SUMMARY
-          echo "| **ESLint** | ${{ steps.eslint.outputs.status || '❌ Failed' }} | Lint & auto-fix JS/TS |" >> $GITHUB_STEP_SUMMARY
-          echo "| **stylelint** | ${{ steps.stylelint.outputs.status || '❌ Failed' }} | Lint & auto-fix CSS/SCSS |" >> $GITHUB_STEP_SUMMARY
-          echo "| **markdownlint** | ${{ steps.markdownlint.outputs.status || '❌ Failed' }} | Lint & auto-fix Markdown |" >> $GITHUB_STEP_SUMMARY
-          echo "| **yamllint** | ${{ steps.yamllint.outputs.status || '❌ Failed' }} | Check YAML syntax |" >> $GITHUB_STEP_SUMMARY
-          echo "| **shellcheck** | ${{ steps.shellcheck.outputs.status || '❌ Failed' }} | Lint Bash scripts |" >> $GITHUB_STEP_SUMMARY
-          echo "| **flake8** | ${{ steps.flake8.outputs.status || '❌ Failed' }} | Lint Python code |" >> $GITHUB_STEP_SUMMARY
-          echo "| **gofmt** | ${{ steps.gofmt.outputs.status || '❌ Failed' }} | Format Go code |" >> $GITHUB_STEP_SUMMARY
-          echo "| **golangci-lint** | ${{ steps.golangci.outputs.status || '❌ Failed' }} | Lint Go code |" >> $GITHUB_STEP_SUMMARY
-          echo "| **commitlint** | ${{ steps.commitlint.outputs.status || '❌ Failed' }} | Validate commit messages |" >> $GITHUB_STEP_SUMMARY
-          echo "| **TypeScript** | ${{ steps.typescript.outputs.status || '❌ Failed' }} | Check type errors |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Tool | Status | Errors | Warnings | Info | Sample Issues |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|--------|----------|------|---------------|" >> $GITHUB_STEP_SUMMARY
 
-          if [[ "${{ steps.flake8.conclusion }}" == "failure" ]] && [ -f "/tmp/flake8_output.txt" ]; then
-            echo "### 🐍 flake8 Violations" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Found **${{ steps.flake8.outputs.errors }}** Python code quality violations:" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            cat /tmp/flake8_output.txt >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
+          # Function to get first N lines from a log file
+          get_sample_issues() {
+            local log_file="$1"
+            local pattern="$2"
+            local max_lines="${3:-3}"
+
+            if [ -f "$log_file" ]; then
+              grep "$pattern" "$log_file" 2>/dev/null | head -n $max_lines | sed 's/^/`/;s/$/`/' | tr '\n' ' ' | sed 's/ $//' || echo "-"
+            else
+              echo "-"
+            fi
+          }
+
+          # Prettier
+          PRETTIER_ISSUES=$(get_sample_issues "/tmp/prettier.log" "Error")
+          echo "| **Prettier** | ${{ steps.prettier.outputs.status || '❌ Failed' }} | ${{ steps.prettier.outputs.errors || '0' }} | - | - | $PRETTIER_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # Black
+          BLACK_ISSUES=$(get_sample_issues "/tmp/black.log" "error")
+          echo "| **Black** | ${{ steps.black.outputs.status || '❌ Failed' }} | ${{ steps.black.outputs.errors || '0' }} | - | - | $BLACK_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # isort
+          ISORT_ISSUES=$(get_sample_issues "/tmp/isort.log" "ERROR")
+          echo "| **isort** | ${{ steps.isort.outputs.status || '❌ Failed' }} | ${{ steps.isort.outputs.errors || '0' }} | - | - | $ISORT_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # SQLFluff
+          SQLFLUFF_ISSUES=$(get_sample_issues "/tmp/sqlfluff.log" "^L:")
+          echo "| **SQLFluff** | ${{ steps.sqlfluff.outputs.status || '❌ Failed' }} | ${{ steps.sqlfluff.outputs.errors || '0' }} | ${{ steps.sqlfluff.outputs.warnings || '0' }} | - | $SQLFLUFF_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # ESLint
+          if [ -f "/tmp/eslint.json" ]; then
+            ESLINT_ISSUES=$(jq -r '[.[].messages[] | select(.severity == 2) | "\(.ruleId) (\(.line):\(.column))"] | .[0:3] | join(", ")' /tmp/eslint.json 2>/dev/null || echo "-")
+          else
+            ESLINT_ISSUES="-"
           fi
+          echo "| **ESLint** | ${{ steps.eslint.outputs.status || '❌ Failed' }} | ${{ steps.eslint.outputs.errors || '0' }} | ${{ steps.eslint.outputs.warnings || '0' }} | - | $ESLINT_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # stylelint
+          STYLELINT_ISSUES=$(get_sample_issues "/tmp/stylelint.log" "×")
+          echo "| **stylelint** | ${{ steps.stylelint.outputs.status || '❌ Failed' }} | ${{ steps.stylelint.outputs.errors || '0' }} | - | - | $STYLELINT_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # markdownlint
+          MDLINT_ISSUES=$(get_sample_issues "/tmp/markdownlint.log" "MD[0-9]")
+          echo "| **markdownlint** | ${{ steps.markdownlint.outputs.status || '❌ Failed' }} | ${{ steps.markdownlint.outputs.errors || '0' }} | - | - | $MDLINT_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # yamllint
+          YAMLLINT_ISSUES=$(get_sample_issues "/tmp/yamllint.log" "error")
+          echo "| **yamllint** | ${{ steps.yamllint.outputs.status || '❌ Failed' }} | ${{ steps.yamllint.outputs.errors || '0' }} | ${{ steps.yamllint.outputs.warnings || '0' }} | - | $YAMLLINT_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # shellcheck
+          SHELLCHECK_ISSUES=$(get_sample_issues "/tmp/shellcheck.log" "error:")
+          echo "| **shellcheck** | ${{ steps.shellcheck.outputs.status || '❌ Failed' }} | ${{ steps.shellcheck.outputs.errors || '0' }} | ${{ steps.shellcheck.outputs.warnings || '0' }} | ${{ steps.shellcheck.outputs.info || '0' }} | $SHELLCHECK_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # flake8
+          if [ -f "/tmp/flake8_output.txt" ] && [ "${{ steps.flake8.outputs.errors }}" != "0" ]; then
+            FLAKE8_ISSUES=$(head -n 3 /tmp/flake8_output.txt | sed 's/^/`/;s/$/`/' | tr '\n' ' ' | sed 's/ $//' || echo "-")
+          else
+            FLAKE8_ISSUES="-"
+          fi
+          echo "| **flake8** | ${{ steps.flake8.outputs.status || '❌ Failed' }} | ${{ steps.flake8.outputs.errors || '0' }} | - | - | $FLAKE8_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # gofmt
+          echo "| **gofmt** | ${{ steps.gofmt.outputs.status || '❌ Failed' }} | 0 | - | - | - |" >> $GITHUB_STEP_SUMMARY
+
+          # golangci-lint
+          GOLANGCI_ISSUES=$(get_sample_issues "/tmp/golangci.log" "^Error:")
+          echo "| **golangci-lint** | ${{ steps.golangci.outputs.status || '❌ Failed' }} | ${{ steps.golangci.outputs.errors || '0' }} | - | - | $GOLANGCI_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # commitlint
+          COMMITLINT_ISSUES=$(get_sample_issues "/tmp/commitlint.log" "❌")
+          echo "| **commitlint** | ${{ steps.commitlint.outputs.status || '❌ Failed' }} | ${{ steps.commitlint.outputs.errors || '0' }} | - | - | $COMMITLINT_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          # TypeScript
+          TYPESCRIPT_ISSUES=$(get_sample_issues "/tmp/typescript.log" "error TS")
+          echo "| **TypeScript** | ${{ steps.typescript.outputs.status || '❌ Failed' }} | ${{ steps.typescript.outputs.errors || '0' }} | - | - | $TYPESCRIPT_ISSUES |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ "$FAILED" == "true" ]; then
             echo "### 🛠️ Action Required" >> $GITHUB_STEP_SUMMARY
