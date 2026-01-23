@@ -79,25 +79,25 @@ validate_cloudflare() {
       OVERALL_RESULT=1
     fi
     
-    # Test 2: Verify token with direct API call
+    # Test 2: Verify token with direct API call to user endpoint
     if [ "$token_status" == "✅ Valid" ]; then
       echo "Testing Cloudflare API access..."
-      HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+      API_RESPONSE=$(curl -s \
         -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
         -H "Content-Type: application/json" \
-        https://api.cloudflare.com/client/v4/user/tokens/verify)
+        https://api.cloudflare.com/client/v4/user)
       
-      if [ "$HTTP_CODE" == "200" ]; then
+      # Check if the response indicates success
+      if echo "$API_RESPONSE" | jq -e '.success == true' > /dev/null 2>&1; then
         log_info "Cloudflare API token verified via direct API call"
         cf_status="✅ Valid"
-      elif [ "$HTTP_CODE" == "401" ]; then
-        log_error "Cloudflare API token is invalid (401 Unauthorized)"
-        token_status="❌ Invalid"
+      else
+        # Get error message if available
+        ERROR_MSG=$(echo "$API_RESPONSE" | jq -r '.errors[0].message // "Unknown error"' 2>/dev/null)
+        log_error "Cloudflare API call failed: $ERROR_MSG"
+        token_status="❌ API Call Failed"
         cf_status="❌ Invalid"
         OVERALL_RESULT=1
-      else
-        log_warn "Cloudflare API returned unexpected status: $HTTP_CODE"
-        cf_status="⚠️ Check Token"
       fi
     fi
   fi
@@ -125,7 +125,8 @@ validate_cloudflare() {
         log_info "Cloudflare account access verified"
         account_status="✅ Valid"
       else
-        log_error "Cannot access Cloudflare account (check account ID or token permissions)"
+        ERROR_MSG=$(echo "$ACCOUNT_RESPONSE" | jq -r '.errors[0].message // "Unknown error"' 2>/dev/null)
+        log_error "Cannot access Cloudflare account: $ERROR_MSG"
         account_status="❌ Cannot Access"
         cf_status="❌ Invalid"
         OVERALL_RESULT=1
@@ -363,7 +364,7 @@ cat >> "$SUMMARY_FILE" << 'EOF'
 <details>
 <summary><b>Validation Methods</b></summary>
 
-- **Cloudflare**: Verified via wrangler CLI and direct API calls to token verification and account endpoints
+- **Cloudflare**: Verified via wrangler CLI and direct API calls to user and account endpoints
 - **Google OAuth**: Verified via OAuth2 token endpoint with client_id and client_secret validation
 - **OpenRouter**: Verified via direct API call to models endpoint
 
@@ -375,6 +376,7 @@ cat >> "$SUMMARY_FILE" << 'EOF'
 If any credentials show as invalid:
 
 1. **Cloudflare**: Regenerate API token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens)
+   - Ensure token has permissions: Account Settings:Read, Workers Scripts:Edit
 2. **Google OAuth**: Update credentials at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials)
 3. **OpenRouter**: Regenerate API key at [openrouter.ai/keys](https://openrouter.ai/keys)
 4. **Secrets**: Update in repo settings at Settings → Secrets and variables → Actions
