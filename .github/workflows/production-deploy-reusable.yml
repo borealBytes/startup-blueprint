@@ -11,10 +11,6 @@ on:
         description: 'Name of the build artifact to deploy'
         required: true
         type: string
-      pr_number:
-        description: 'Pull request number that was merged'
-        required: false
-        type: number
     outputs:
       deployment_url:
         description: 'URL of the production deployment'
@@ -31,16 +27,44 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     
+    outputs:
+      pr_number: ${{ steps.get_pr.outputs.pr_number }}
+    
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10
+
+      - name: Extract PR number from merge commit
+        id: get_pr
+        run: |
+          # Try to extract PR number from merge commit message
+          # GitHub merge commits have format: "Merge pull request #123 from ..."
+          PR_NUMBER=$(git log -1 --pretty=%B | grep -oP 'Merge pull request #\K[0-9]+' || echo "")
+          
+          if [ -z "$PR_NUMBER" ]; then
+            # Try alternative format: "... (#123)"
+            PR_NUMBER=$(git log -1 --pretty=%B | grep -oP '\(#\K[0-9]+(?=\))' || echo "")
+          fi
+          
+          if [ -n "$PR_NUMBER" ]; then
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "✅ Found PR number: #$PR_NUMBER"
+          else
+            echo "pr_number=" >> $GITHUB_OUTPUT
+            echo "⚠️ Could not extract PR number from commit message"
+          fi
+
       - name: Check for successful preview deployment
-        if: inputs.pr_number != ''
         uses: actions/github-script@v7
         with:
           script: |
-            const prNumber = ${{ inputs.pr_number }};
+            const prNumber = '${{ steps.get_pr.outputs.pr_number }}';
             
             if (!prNumber) {
-              console.log('⚠️ No PR number provided - skipping preview verification');
+              console.log('⚠️ No PR number found - skipping preview verification');
+              console.log('⚠️ This may be a direct push to main or a squash merge.');
               return;
             }
             
@@ -146,16 +170,16 @@ jobs:
             });
 
       - name: Comment on merged PR
-        if: inputs.pr_number != ''
+        if: needs.verify-preview.outputs.pr_number != ''
         uses: actions/github-script@v7
         with:
           script: |
             const url = '${{ steps.extract_url.outputs.url }}';
             const workspace = '${{ inputs.workspace }}';
-            const prNumber = ${{ inputs.pr_number }};
+            const prNumber = '${{ needs.verify-preview.outputs.pr_number }}';
             
             if (!prNumber) {
-              console.log('No PR number provided - skipping comment');
+              console.log('No PR number available - skipping comment');
               return;
             }
             
@@ -181,7 +205,7 @@ jobs:
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: prNumber,
+              issue_number: parseInt(prNumber),
               body: comment
             });
 
@@ -195,3 +219,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Workspace:** ${{ inputs.workspace }}" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** production" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ needs.verify-preview.outputs.pr_number }}" ]; then
+            echo "**Source PR:** #${{ needs.verify-preview.outputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
+          fi
