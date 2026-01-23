@@ -24,6 +24,17 @@ jobs:
   # PHASE 2: Tests & Builds - Run in parallel when relevant files change
   # ============================================================================
 
+  validate-credentials:
+    name: Validate Credentials
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/validate-credentials-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
   test-docs-links:
     name: Test Docs Links
     needs: [core-ci]
@@ -101,7 +112,7 @@ jobs:
 
   crewai-review:
     name: CrewAI Code Review
-    needs: [core-ci, test-docs-links, test-crewai]
+    needs: [core-ci, validate-credentials, test-docs-links, test-crewai]
     if: |
       always() &&
       github.event_name == 'pull_request' &&
@@ -109,6 +120,7 @@ jobs:
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
       (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      (needs.validate-credentials.result == 'success' || needs.validate-credentials.result == 'failure' || needs.validate-credentials.result == 'skipped') &&
       (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
       (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped')
     uses: ./.github/workflows/crewai-review-reusable.yml
