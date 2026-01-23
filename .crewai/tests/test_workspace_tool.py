@@ -108,7 +108,7 @@ class TestWorkspaceTool:
         """Test writing file with empty content."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tool = WorkspaceTool(workspace_dir=tmpdir)
-            result = tool._run(operation="write", filename="empty.txt", content="")
+            _result = tool._run(operation="write", filename="empty.txt", content="")
 
             file_path = os.path.join(tmpdir, "empty.txt")
             assert os.path.exists(file_path)
