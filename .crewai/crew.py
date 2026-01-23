@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+
 from tools.cost_tracker import get_tracker
 from tools.github_tools import CommitDiffTool, CommitInfoTool, FileContentTool
 from tools.related_files_tool import RelatedFilesTool
@@ -87,8 +88,7 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
                 cost = cost_float
             except (ValueError, TypeError) as e:
                 logger.warning(
-                    f"⚠️  Invalid cost type: {type(cost)} = {cost}. "
-                    f"Error: {e}. Defaulting to 0.0"
+                    f"⚠️  Invalid cost type: {type(cost)} = {cost}. Error: {e}. Defaulting to 0.0"
                 )
                 cost = 0.0
 
@@ -103,13 +103,11 @@ def litellm_success_callback(kwargs, completion_response, start_time, end_time):
             # FIX: Safe cost formatting with guaranteed float
             try:
                 logger.info(
-                    f"✅ Captured API call: {model} "
-                    f"({tokens_in} in, {tokens_out} out, ${cost:.6f})"
+                    f"✅ Captured API call: {model} ({tokens_in} in, {tokens_out} out, ${cost:.6f})"
                 )
             except (ValueError, TypeError):
                 logger.info(
-                    f"✅ Captured API call: {model} "
-                    f"({tokens_in} in, {tokens_out} out, cost={cost})"
+                    f"✅ Captured API call: {model} ({tokens_in} in, {tokens_out} out, cost={cost})"
                 )
 
             tracker.log_api_call(

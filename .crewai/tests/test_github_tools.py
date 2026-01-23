@@ -1,9 +1,7 @@
 """Tests for GitHub Tools."""
 
 import os
-from unittest.mock import MagicMock, Mock, patch
 
-import pytest
 from tools.github_tools import CommitDiffTool, CommitInfoTool
 
 

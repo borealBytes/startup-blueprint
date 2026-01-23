@@ -5,6 +5,7 @@ import os
 
 from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+
 from tools.workspace_tool import WorkspaceTool
 
 logger = logging.getLogger(__name__)
@@ -32,12 +33,12 @@ class RouterCrew:
         # Register cost tracking callbacks (if available)
         try:
             import litellm
+
             from tools.cost_tracker import get_tracker
 
             # Import callbacks if they exist
             try:
-                from crew import (litellm_failure_callback,
-                                  litellm_success_callback)
+                from crew import litellm_failure_callback, litellm_success_callback
 
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]

@@ -1,7 +1,6 @@
 """Tests for CostTracker."""
 
-import pytest
-from tools.cost_tracker import CostTracker, get_tracker, reset_tracker
+from tools.cost_tracker import get_tracker, reset_tracker
 
 
 class TestCostTracker:

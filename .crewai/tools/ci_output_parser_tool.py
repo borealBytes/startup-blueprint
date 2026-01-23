@@ -1,6 +1,5 @@
 """CI output parser tool for analyzing core-ci results."""
 
-import json
 import logging
 import os
 from typing import Any

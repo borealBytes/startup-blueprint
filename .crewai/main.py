@@ -452,7 +452,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
 
     # Collect what we can from workspace
     summary_parts = []
-    summary_parts.append(f"## ⚠️ Review Summary")
+    summary_parts.append("## ⚠️ Review Summary")
     summary_parts.append("")
     summary_parts.append(
         f"Review completed for PR #{env_vars['pr_number']} - {len(workflows_executed)} workflows executed."
@@ -752,7 +752,7 @@ def generate_cost_breakdown():
 
         lines.append("")
         lines.append(
-            f"**Total Tokens**: {summary['total_tokens']:,} | **Avg Speed**: {summary['total_tokens']/summary['total_duration']:.1f} tok/s"
+            f"**Total Tokens**: {summary['total_tokens']:,} | **Avg Speed**: {summary['total_tokens'] / summary['total_duration']:.1f} tok/s"
         )
         lines.append("")
 
@@ -777,7 +777,7 @@ def post_results(env_vars, final_markdown):
                 f.write(final_markdown)
                 f.write("\n")
             logger.info("✅ Posted to GitHub Actions summary")
-            logger.info(f"📊 View results in Actions tab for this workflow run")
+            logger.info("📊 View results in Actions tab for this workflow run")
         except Exception as e:
             logger.error(f"❌ Failed to write to step summary: {e}")
     else:
@@ -810,7 +810,7 @@ def save_trace(workspace_dir):
     if summary_file.exists():
         try:
             shutil.copy(summary_file, trace_dir / "final_summary.md")
-            logger.info(f"✅ Saved final_summary.md to trace")
+            logger.info("✅ Saved final_summary.md to trace")
             files_copied += 1
         except Exception as e:
             logger.warning(f"⚠️ Could not copy final_summary.md: {e}")
@@ -822,7 +822,7 @@ def save_trace(workspace_dir):
     if diff_file.exists():
         try:
             shutil.copy(diff_file, trace_dir / "diff.txt")
-            logger.info(f"✅ Saved diff.txt to trace")
+            logger.info("✅ Saved diff.txt to trace")
             files_copied += 1
         except Exception as e:
             logger.warning(f"⚠️ Could not copy diff.txt: {e}")
@@ -836,7 +836,7 @@ def save_trace(workspace_dir):
         }
         with open(trace_dir / "trace_index.json", "w") as f:
             json.dump(trace_index, f, indent=2)
-        logger.info(f"✅ Created trace index")
+        logger.info("✅ Created trace index")
         files_copied += 1
     except Exception as e:
         logger.warning(f"⚠️ Could not create trace index: {e}")

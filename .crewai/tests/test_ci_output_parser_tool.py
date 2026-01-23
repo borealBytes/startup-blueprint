@@ -2,7 +2,6 @@
 
 import os
 
-import pytest
 from tools.ci_output_parser_tool import CIOutputParserTool
 
 

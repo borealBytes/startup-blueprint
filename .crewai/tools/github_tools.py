@@ -7,7 +7,6 @@ actions/checkout@v4, we can use git commands directly.
 All output goes to GitHub Actions summary (GITHUB_STEP_SUMMARY) - no PR comments.
 """
 
-import json
 import logging
 import os
 import subprocess
