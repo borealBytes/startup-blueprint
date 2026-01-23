@@ -101,6 +101,7 @@ validate_google() {
   local client_id_status=""
   local client_secret_status=""
   local redirect_uri_status=""
+  local credentials_valid=false
   
   echo ""
   echo "=== Validating Google OAuth Credentials ==="
@@ -118,9 +119,11 @@ validate_google() {
     if [[ "$GOOGLE_CLIENT_ID" =~ apps\.googleusercontent\.com$ ]]; then
       log_info "GOOGLE_CLIENT_ID format is valid"
       client_id_status="✅ Valid Format"
+      credentials_valid=true
     else
-      log_warn "GOOGLE_CLIENT_ID format may be invalid"
-      client_id_status="⚠️ Invalid Format"
+      log_error "GOOGLE_CLIENT_ID format is invalid (must end with .apps.googleusercontent.com)"
+      client_id_status="❌ Invalid Format"
+      google_status="❌ Invalid"
       OVERALL_RESULT=1
     fi
   fi
@@ -139,9 +142,11 @@ validate_google() {
       log_info "GOOGLE_CLIENT_SECRET format is valid"
       client_secret_status="✅ Valid Format"
     else
-      log_warn "GOOGLE_CLIENT_SECRET format may be invalid"
-      client_secret_status="⚠️ Invalid Format"
+      log_error "GOOGLE_CLIENT_SECRET format is invalid (must start with GOCSPX-)"
+      client_secret_status="❌ Invalid Format"
+      google_status="❌ Invalid"
       OVERALL_RESULT=1
+      credentials_valid=false
     fi
   fi
   
@@ -154,27 +159,58 @@ validate_google() {
   else
     log_info "GOOGLE_REDIRECT_URI is set: $GOOGLE_REDIRECT_URI"
     
-    # Validate format (should be https URL with /auth/callback)
-    if [[ "$GOOGLE_REDIRECT_URI" =~ ^https://.*\.SuperiorByteWorks\.com/auth/callback$ ]]; then
+    # Validate format - accept both localhost (dev) and production URLs
+    if [[ "$GOOGLE_REDIRECT_URI" =~ ^https?://localhost:[0-9]+/auth/callback$ ]] || 
+       [[ "$GOOGLE_REDIRECT_URI" =~ ^https://.*\.SuperiorByteWorks\.com/auth/callback$ ]]; then
       log_info "GOOGLE_REDIRECT_URI format is valid"
       redirect_uri_status="✅ Valid Format"
     else
-      log_warn "GOOGLE_REDIRECT_URI format may be invalid (expected: https://*.SuperiorByteWorks.com/auth/callback)"
-      redirect_uri_status="⚠️ Invalid Format"
+      log_warn "GOOGLE_REDIRECT_URI format may be invalid (expected: http://localhost:PORT/auth/callback or https://*.SuperiorByteWorks.com/auth/callback)"
+      redirect_uri_status="⚠️ Check Format"
     fi
   fi
   
-  # Test OAuth endpoint (simple HTTP check)
-  echo "Testing Google OAuth endpoint..."
-  if curl -s --head https://accounts.google.com/o/oauth2/v2/auth | grep -q "200 OK\|302 Found\|400"; then
-    log_info "Google OAuth endpoint is reachable"
-    if [ "$google_status" != "❌ Invalid" ]; then
-      google_status="✅ Valid"
+  # Verify credentials actually work by calling Google's OAuth2 API
+  if [ "$credentials_valid" = true ]; then
+    echo "Verifying Google OAuth credentials..."
+    
+    # Try to verify the client_id exists using Google's discovery endpoint
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+      "https://accounts.google.com/.well-known/openid-configuration")
+    
+    if [ "$HTTP_CODE" == "200" ]; then
+      log_info "Google OAuth endpoint is accessible"
+      
+      # Try a token request with invalid grant to verify client credentials
+      # This will fail (expected) but will tell us if the client_id/secret are valid
+      RESPONSE=$(curl -s -X POST "https://oauth2.googleapis.com/token" \
+        -d "client_id=$GOOGLE_CLIENT_ID" \
+        -d "client_secret=$GOOGLE_CLIENT_SECRET" \
+        -d "grant_type=authorization_code" \
+        -d "code=invalid_code_for_testing" \
+        -d "redirect_uri=$GOOGLE_REDIRECT_URI" 2>&1)
+      
+      # Check the error response
+      if echo "$RESPONSE" | grep -q "invalid_client"; then
+        log_error "Google OAuth credentials are invalid (client_id or client_secret wrong)"
+        google_status="❌ Invalid Credentials"
+        OVERALL_RESULT=1
+      elif echo "$RESPONSE" | grep -q "invalid_grant\|invalid_request"; then
+        # This is expected - the code is invalid, but credentials are correct
+        log_info "Google OAuth credentials are valid"
+        google_status="✅ Valid"
+      elif echo "$RESPONSE" | grep -q "redirect_uri_mismatch"; then
+        log_warn "Google OAuth credentials valid but redirect_uri may not be registered in Google Console"
+        google_status="⚠️ Check Redirect URI"
+      else
+        log_info "Google OAuth credentials format validated (full verification requires OAuth flow)"
+        google_status="✅ Format Valid"
+      fi
+    else
+      log_error "Google OAuth endpoint unreachable"
+      google_status="❌ Unreachable"
+      OVERALL_RESULT=1
     fi
-  else
-    log_error "Google OAuth endpoint unreachable"
-    google_status="❌ Unreachable"
-    OVERALL_RESULT=1
   fi
   
   # Add rows
