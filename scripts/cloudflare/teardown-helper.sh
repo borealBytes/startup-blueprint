@@ -1,5 +1,6 @@
 #!/bin/bash
 # Cleanup utilities for preview deployments
+# shellcheck source=scripts/cloudflare/deploy-helper.sh
 
 set -euo pipefail
 

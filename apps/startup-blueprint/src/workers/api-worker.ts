@@ -145,9 +145,8 @@ async function handleUploadRequest(
   const userId = await getUserIdFromRequest(request, env);
   if (!userId) return new Response('Unauthorized', { status: 401 });
 
-  const { filename, contentType } = (await request.json()) as {
+  const { filename } = (await request.json()) as {
     filename: string;
-    contentType: string;
   };
 
   // Generate presigned URL (simplified - actual implementation needs R2 presigned URLs)
