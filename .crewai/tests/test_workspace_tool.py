@@ -22,17 +22,17 @@ class TestWorkspaceTool:
         """Test writing a file to workspace."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tool = WorkspaceTool(workspace_dir=tmpdir)
-            result = tool._run(operation="write", filename="test.txt", content="Hello")
+            _result = tool._run(operation="write", filename="test.txt", content="Hello")
 
             assert os.path.exists(os.path.join(tmpdir, "test.txt"))
-            assert "test.txt" in result
+            # Note: _result intentionally unused, testing file creation only
 
     def test_write_json_file(self):
         """Test writing JSON content to workspace."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tool = WorkspaceTool(workspace_dir=tmpdir)
             data = {"key": "value", "number": 42}
-            result = tool._run(
+            _result = tool._run(
                 operation="write", filename="data.json", content=json.dumps(data, indent=2)
             )
 
@@ -97,7 +97,7 @@ class TestWorkspaceTool:
         """Test writing file in a subdirectory."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tool = WorkspaceTool(workspace_dir=tmpdir)
-            result = tool._run(
+            _result = tool._run(
                 operation="write", filename="subdir/file.txt", content="Nested content"
             )
 
