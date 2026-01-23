@@ -10,6 +10,11 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
+# Maximum file size to read in full (100KB)
+MAX_FILE_SIZE = 100 * 1024
+# When truncating, include this many bytes from start and end
+TRUNCATE_CONTEXT_SIZE = 30 * 1024
+
 
 class WorkspaceToolInput(BaseModel):
     """Input schema for WorkspaceTool."""
@@ -30,7 +35,8 @@ class WorkspaceTool(BaseTool):
         "Read and write files to shared workspace. "
         "Use this to cache data fetched by other agents and avoid duplicate API calls. "
         "Available operations: read(filename), write(filename, content), exists(filename). "
-        "For JSON data, you can pass a dictionary and it will be auto-stringified."
+        "For JSON data, you can pass a dictionary and it will be auto-stringified. "
+        "Note: Large files (>100KB) are automatically truncated with context from start and end."
     )
     args_schema: type[BaseModel] = WorkspaceToolInput
 
@@ -61,7 +67,7 @@ class WorkspaceTool(BaseTool):
                     Dicts/lists are auto-converted to JSON strings.
 
         Returns:
-            For 'read': File content as string
+            For 'read': File content as string (truncated if >100KB)
             For 'write': Success message
             For 'exists': Boolean
         """
@@ -88,17 +94,56 @@ class WorkspaceTool(BaseTool):
             raise ValueError(f"Unknown operation: {operation}")
 
     def read(self, filename: str) -> str:
-        """Read file from workspace."""
+        """Read file from workspace with intelligent size limiting.
+        
+        For files larger than MAX_FILE_SIZE (100KB), returns:
+        - Summary header with file size and truncation notice
+        - First TRUNCATE_CONTEXT_SIZE (30KB) of content
+        - Truncation marker
+        - Last TRUNCATE_CONTEXT_SIZE (30KB) of content
+        
+        This ensures LLM context limits aren't exceeded while still
+        providing useful context from both ends of the file.
+        """
         filepath = self.workspace_dir / filename
         if not filepath.exists():
             logger.warning(f"⚠️ Workspace file not found: {filepath}")
             return ""
 
         try:
+            file_size = filepath.stat().st_size
+            
+            # For small files, read normally
+            if file_size <= MAX_FILE_SIZE:
+                with open(filepath) as f:
+                    content = f.read()
+                logger.info(f"📖 Read {len(content)} bytes from {filepath}")
+                return content
+            
+            # For large files, provide truncated view with context from both ends
             with open(filepath) as f:
-                content = f.read()
-            logger.info(f"📖 Read {len(content)} bytes from {filepath}")
-            return content
+                start_content = f.read(TRUNCATE_CONTEXT_SIZE)
+                # Seek to near end
+                f.seek(max(0, file_size - TRUNCATE_CONTEXT_SIZE))
+                end_content = f.read(TRUNCATE_CONTEXT_SIZE)
+            
+            truncated_size = len(start_content) + len(end_content)
+            truncation_notice = f"""\n\n{'=' * 80}
+[FILE TRUNCATED - Too large for LLM context]
+Original size: {file_size:,} bytes ({file_size / 1024:.1f} KB)
+Showing: First {len(start_content):,} + Last {len(end_content):,} bytes
+Omitted: {file_size - truncated_size:,} bytes from middle
+{'=' * 80}\n\n"""
+            
+            result = start_content + truncation_notice + end_content
+            
+            logger.warning(
+                f"⚠️ Large file truncated: {filepath} "
+                f"({file_size:,} bytes -> {len(result):,} bytes)"
+            )
+            
+            return result
+            
         except Exception as e:
             logger.error(f"❌ Error reading {filepath}: {e}")
             return ""
