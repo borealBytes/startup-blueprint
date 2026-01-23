@@ -99,7 +99,7 @@ def get_workspace_diagnostics():
 
 def run_router(env_vars):
     """Run router crew to decide workflows.
-    
+
     Returns:
         dict: Router decision with workflows, suggestions, and metadata.
               Returns default workflows on failure.
@@ -131,7 +131,7 @@ def run_router(env_vars):
                 logger.info("💡 Router suggestions:")
                 for suggestion in decision["suggestions"]:
                     logger.info(f"  - {suggestion}")
-            
+
             # Debug: Log decision content
             logger.debug(f"Router decision content: {json.dumps(decision, indent=2)[:1000]}")
             return decision
@@ -171,7 +171,7 @@ def run_router(env_vars):
 
 def run_ci_analysis(env_vars):
     """Run CI log analysis crew.
-    
+
     Returns:
         bool: True if analysis succeeded and produced output, False otherwise.
     """
@@ -182,11 +182,11 @@ def run_ci_analysis(env_vars):
     try:
         ci_crew = CILogAnalysisCrew()
         result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
-        
+
         # Debug: Log raw result
         logger.debug(f"CI analysis result type: {type(result)}")
         logger.debug(f"CI analysis result: {str(result)[:2000]}")
-        
+
         logger.info("✅ CI analysis complete")
 
         # Validate output file was created
@@ -242,7 +242,7 @@ def run_ci_analysis(env_vars):
 
 def run_quick_review():
     """Run quick review crew.
-    
+
     Returns:
         bool: True if review succeeded and produced output, False otherwise.
     """
@@ -253,11 +253,11 @@ def run_quick_review():
     try:
         quick_crew = QuickReviewCrew()
         result = quick_crew.crew().kickoff()
-        
+
         # Debug: Log raw result
         logger.debug(f"Quick review result type: {type(result)}")
         logger.debug(f"Quick review result: {str(result)[:2000]}")
-        
+
         logger.info("✅ Quick review task complete")
 
         # CRITICAL: Validate output file was created
@@ -299,11 +299,13 @@ def run_quick_review():
             logger.info(f"   - Critical: {len(review_data.get('critical', []))}")
             logger.info(f"   - Warnings: {len(review_data.get('warnings', []))}")
             logger.info(f"   - Info: {len(review_data.get('info', []))}")
-            
+
             # Debug: Log first few findings
             if review_data.get("critical"):
-                logger.debug(f"First critical issue: {json.dumps(review_data['critical'][0], indent=2)}")
-            
+                logger.debug(
+                    f"First critical issue: {json.dumps(review_data['critical'][0], indent=2)}"
+                )
+
             return True
 
     except Exception as e:
@@ -328,7 +330,7 @@ def run_quick_review():
 
 def run_full_review(env_vars):
     """Run full technical review crew.
-    
+
     Returns:
         bool: True if review succeeded and produced output, False otherwise.
     """
@@ -345,13 +347,13 @@ def run_full_review(env_vars):
                 "repository": env_vars["repository"],
             }
         )
-        
+
         # Debug: Log raw result
         logger.debug(f"Full review result type: {type(result)}")
         logger.debug(f"Full review result: {str(result)[:2000]}")
-        
+
         logger.info("✅ Full review complete")
-        
+
         # Validate output exists
         workspace = WorkspaceTool()
         if workspace.exists("full_review.json"):
@@ -361,7 +363,7 @@ def run_full_review(env_vars):
         else:
             logger.warning("⚠️ Full review did not write full_review.json")
             return False
-            
+
     except Exception as e:
         workspace_state = get_workspace_diagnostics()
         logger.error(
@@ -384,7 +386,7 @@ def run_full_review(env_vars):
 
 def run_legal_review():
     """Run legal review crew (stub).
-    
+
     Returns:
         bool: Always returns True as this is a stub implementation.
     """
@@ -395,11 +397,11 @@ def run_legal_review():
     try:
         legal_crew = LegalReviewCrew()
         result = legal_crew.kickoff()  # Uses stub implementation
-        
+
         # Debug: Log raw result
         logger.debug(f"Legal review result type: {type(result)}")
         logger.debug(f"Legal review result: {str(result)[:2000]}")
-        
+
         logger.info("✅ Legal review complete (stub)")
         return True
     except Exception as e:
@@ -413,7 +415,7 @@ def run_final_summary(env_vars, workflows_executed):
     Args:
         env_vars: Environment variables dictionary
         workflows_executed: List of workflows that were executed
-        
+
     Returns:
         bool: True if summary was created successfully, False otherwise.
     """
@@ -436,13 +438,13 @@ def run_final_summary(env_vars, workflows_executed):
                 "workflows": ", ".join(workflows_executed),
             }
         )
-        
+
         # Debug: Log raw result
         logger.debug(f"Final summary result type: {type(result)}")
         logger.debug(f"Final summary result: {str(result)[:2000]}")
-        
+
         logger.info("✅ Final summary complete")
-        
+
         # Validate output exists
         workspace = WorkspaceTool()
         if workspace.exists("final_summary.md"):
@@ -452,7 +454,7 @@ def run_final_summary(env_vars, workflows_executed):
         else:
             logger.warning("⚠️ Final summary did not write final_summary.md")
             return False
-            
+
     except Exception as e:
         workspace_state = get_workspace_diagnostics()
         logger.error(
@@ -931,7 +933,7 @@ def print_cost_summary():
 
 def main():
     """Main orchestration function.
-    
+
     Returns:
         int: Exit code (0 for success, 1 for failure)
     """
