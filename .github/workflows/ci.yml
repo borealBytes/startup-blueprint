@@ -51,17 +51,16 @@ jobs:
       commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
     secrets: inherit
 
-  # Future workspace tests can be added here:
-  # test-website:
-  #   name: Test Website
-  #   needs: [core-ci]
-  #   if: |
-  #     always() &&
-  #     (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
-  #   uses: ./.github/workflows/website-test-build-reusable.yml
-  #   with:
-  #     commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
-  #   secrets: inherit
+  test-website:
+    name: Test & Build Website
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/website-test-build-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
 
   # ============================================================================
   # PHASE 3: Deployments - Environment-aware deployments
@@ -112,7 +111,7 @@ jobs:
 
   crewai-review:
     name: CrewAI Code Review
-    needs: [core-ci, validate-credentials, test-docs-links, test-crewai]
+    needs: [core-ci, validate-credentials, test-docs-links, test-crewai, test-website]
     if: |
       always() &&
       github.event_name == 'pull_request' &&
@@ -122,7 +121,8 @@ jobs:
       (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
       needs.validate-credentials.result == 'success' &&
       (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
-      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped')
+      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
+      (needs.test-website.result == 'success' || needs.test-website.result == 'failure' || needs.test-website.result == 'skipped')
     uses: ./.github/workflows/crewai-review-reusable.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}
