@@ -80,7 +80,6 @@ def get_workspace_diagnostics():
         dict: Workspace state including files present and their sizes
     """
     try:
-        workspace = WorkspaceTool()
         workspace_dir = Path(__file__).parent / "workspace"
 
         files_info = {}
@@ -106,7 +105,7 @@ def run_router(env_vars):
 
     try:
         router = RouterCrew()
-        result = router.crew().kickoff(
+        router.crew().kickoff(
             inputs={
                 "pr_number": env_vars["pr_number"],
                 "commit_sha": env_vars["commit_sha"],
@@ -134,18 +133,6 @@ def run_router(env_vars):
                 f"  Expected file: router_decision.json\n"
                 f"  Workspace state: {json.dumps(workspace_state, indent=2)}"
             )
-            logger.info("📋 Router task result output (for debugging):")
-            # Increased truncation limit from 500 to 2000 chars
-            result_str = str(result)
-            logger.info(result_str[:2000])
-            if len(result_str) > 2000:
-                logger.info(f"... (truncated, total length: {len(result_str)} chars)")
-
-            # Try to extract specific error fields if available
-            if hasattr(result, "raw"):
-                logger.info(f"Agent raw output: {str(result.raw)[:1000]}")
-            if hasattr(result, "pydantic"):
-                logger.info(f"Agent pydantic output: {str(result.pydantic)[:1000]}")
 
             logger.info("⚠️ Using default workflows due to missing router output")
             return {
@@ -178,7 +165,7 @@ def run_ci_analysis(env_vars):
 
     try:
         ci_crew = CILogAnalysisCrew()
-        result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
+        ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
         logger.info("✅ CI analysis complete")
 
         # Validate output file was created
@@ -192,11 +179,6 @@ def run_ci_analysis(env_vars):
                 f"  Expected file: ci_summary.json\n"
                 f"  Workspace state: {json.dumps(workspace_state, indent=2)}"
             )
-            logger.info("📋 CI analysis result output (for debugging):")
-            result_str = str(result)
-            logger.info(result_str[:2000])
-            if len(result_str) > 2000:
-                logger.info(f"... (truncated, total length: {len(result_str)} chars)")
 
             workspace.write_json(
                 "ci_summary.json",
@@ -211,7 +193,6 @@ def run_ci_analysis(env_vars):
         else:
             logger.info("✅ Verified ci_summary.json exists in workspace")
 
-        return result
     except Exception as e:
         workspace_state = get_workspace_diagnostics()
         logger.error(
@@ -240,7 +221,7 @@ def run_quick_review():
 
     try:
         quick_crew = QuickReviewCrew()
-        result = quick_crew.crew().kickoff()
+        quick_crew.crew().kickoff()
         logger.info("✅ Quick review task complete")
 
         # CRITICAL: Validate output file was created
@@ -254,11 +235,6 @@ def run_quick_review():
                 f"  Expected file: quick_review.json\n"
                 f"  Workspace state: {json.dumps(workspace_state, indent=2)}"
             )
-            logger.info("📋 Quick review result output (for debugging):")
-            result_str = str(result)
-            logger.info(result_str[:2000])  # Increased from 1000 to 2000
-            if len(result_str) > 2000:
-                logger.info(f"... (truncated, total length: {len(result_str)} chars)")
 
             logger.warning("⚠️ Creating fallback quick_review.json with empty arrays")
 
@@ -288,7 +264,6 @@ def run_quick_review():
             logger.info(f"   - Warnings: {len(review_data.get('warnings', []))}")
             logger.info(f"   - Info: {len(review_data.get('info', []))}")
 
-        return result
     except Exception as e:
         workspace_state = get_workspace_diagnostics()
         logger.error(
@@ -316,7 +291,7 @@ def run_full_review(env_vars):
 
     try:
         full_crew = FullReviewCrew()
-        result = full_crew.crew().kickoff(
+        full_crew.crew().kickoff(
             inputs={
                 "pr_number": env_vars["pr_number"],
                 "commit_sha": env_vars["commit_sha"],
@@ -324,7 +299,6 @@ def run_full_review(env_vars):
             }
         )
         logger.info("✅ Full review complete")
-        return result
     except Exception as e:
         workspace_state = get_workspace_diagnostics()
         logger.error(
@@ -352,9 +326,8 @@ def run_legal_review():
 
     try:
         legal_crew = LegalReviewCrew()
-        result = legal_crew.kickoff()  # Uses stub implementation
+        legal_crew.kickoff()  # Uses stub implementation
         logger.info("✅ Legal review complete (stub)")
-        return result
     except Exception as e:
         logger.error(f"❌ Legal review failed: {e}", exc_info=True)
 
@@ -375,7 +348,7 @@ def run_final_summary(env_vars, workflows_executed):
         workflow_count = len(workflows_executed)
 
         summary_crew = FinalSummaryCrew()
-        result = summary_crew.crew().kickoff(
+        summary_crew.crew().kickoff(
             inputs={
                 "pr_number": env_vars["pr_number"],
                 "commit_sha": env_vars["commit_sha"],
@@ -386,7 +359,6 @@ def run_final_summary(env_vars, workflows_executed):
             }
         )
         logger.info("✅ Final summary complete")
-        return result
     except Exception as e:
         workspace_state = get_workspace_diagnostics()
         logger.error(
@@ -395,7 +367,6 @@ def run_final_summary(env_vars, workflows_executed):
             f"  Workspace state: {json.dumps(workspace_state, indent=2)}",
             exc_info=True,
         )
-        return None
 
 
 def format_finding_item(finding, severity_emoji):
@@ -455,7 +426,8 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
     summary_parts.append("## ⚠️ Review Summary")
     summary_parts.append("")
     summary_parts.append(
-        f"Review completed for PR #{env_vars['pr_number']} - {len(workflows_executed)} workflows executed."
+        f"Review completed for PR #{env_vars['pr_number']} - "
+        f"{len(workflows_executed)} workflows executed."
     )
     summary_parts.append("")
     summary_parts.append(f"**Commit**: `{env_vars['commit_sha'][:7]}`")
@@ -581,9 +553,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
                 summary_parts.append("")
                 summary_parts.append("<details open>")
                 summary_parts.append(
-                    "<summary><b>🔴 Critical Issues ({count})</b></summary>".replace(
-                        "{count}", str(critical_count)
-                    )
+                    f"<summary><b>🔴 Critical Issues ({critical_count})</b></summary>"
                 )
                 summary_parts.append("")
                 for issue in critical_issues:
@@ -595,11 +565,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             if warnings:
                 summary_parts.append("")
                 summary_parts.append("<details>")
-                summary_parts.append(
-                    "<summary><b>🟡 Warnings ({count})</b></summary>".replace(
-                        "{count}", str(warning_count)
-                    )
-                )
+                summary_parts.append(f"<summary><b>🟡 Warnings ({warning_count})</b></summary>")
                 summary_parts.append("")
                 for warning in warnings:
                     summary_parts.append(format_finding_item(warning, "🟡"))
@@ -610,11 +576,7 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
             if suggestions:
                 summary_parts.append("")
                 summary_parts.append("<details>")
-                summary_parts.append(
-                    "<summary><b>🔵 Suggestions ({count})</b></summary>".replace(
-                        "{count}", str(info_count)
-                    )
-                )
+                summary_parts.append(f"<summary><b>🔵 Suggestions ({info_count})</b></summary>")
                 summary_parts.append("")
                 for suggestion in suggestions:
                     summary_parts.append(format_finding_item(suggestion, "🔵"))
@@ -694,7 +656,8 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
     summary_parts.append("---")
     summary_parts.append("")
     summary_parts.append(
-        f"*🤖 Generated by CrewAI Router System | ⏱️ {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}*"
+        f"*🤖 Generated by CrewAI Router System | "
+        f"⏱️ {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}*"
     )
 
     fallback_md = "\n".join(summary_parts)
@@ -742,17 +705,23 @@ def generate_cost_breakdown():
                 speed_str = "N/A"
 
             lines.append(
-                f"| #{i} | {model_short} | {input_tokens} | {output_tokens} | {cost} | {speed_str} |"
+                f"| #{i} | {model_short} | {input_tokens} | "
+                f"{output_tokens} | {cost} | {speed_str} |"
             )
 
         # Add totals row
         lines.append(
-            f"| **TOTAL** | **{summary['total_calls']} calls** | **{summary['total_tokens_in']:,}** | **{summary['total_tokens_out']:,}** | **${summary['total_cost']:.6f}** | **{summary['total_duration']:.1f}s** |"
+            f"| **TOTAL** | **{summary['total_calls']} calls** | "
+            f"**{summary['total_tokens_in']:,}** | "
+            f"**{summary['total_tokens_out']:,}** | "
+            f"**${summary['total_cost']:.6f}** | "
+            f"**{summary['total_duration']:.1f}s** |"
         )
 
         lines.append("")
         lines.append(
-            f"**Total Tokens**: {summary['total_tokens']:,} | **Avg Speed**: {summary['total_tokens'] / summary['total_duration']:.1f} tok/s"
+            f"**Total Tokens**: {summary['total_tokens']:,} | "
+            f"**Avg Speed**: {summary['total_tokens'] / summary['total_duration']:.1f} tok/s"
         )
         lines.append("")
 
@@ -907,7 +876,7 @@ def main():
             logger.info("⏩ Skipping legal review (no crewai:legal label)")
 
         # STEP 6: Final summary (always run) - pass workflow count
-        final_result = run_final_summary(env_vars, workflows_executed)
+        run_final_summary(env_vars, workflows_executed)
 
         # Read final markdown from workspace with validation
         workspace = WorkspaceTool()
@@ -928,7 +897,8 @@ def main():
             # (increased from 800 to account for collapsible sections)
             if len(final_markdown) < 1000:
                 logger.warning(
-                    f"⚠️ Final summary is too short ({len(final_markdown)} chars) - likely incomplete"
+                    f"⚠️ Final summary is too short ({len(final_markdown)} chars) - "
+                    "likely incomplete"
                 )
                 logger.info("🔄 Replacing with comprehensive fallback summary")
                 final_markdown = create_fallback_summary(

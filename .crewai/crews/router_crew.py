@@ -34,8 +34,6 @@ class RouterCrew:
         try:
             import litellm
 
-            from tools.cost_tracker import get_tracker
-
             # Import callbacks if they exist
             try:
                 from crew import litellm_failure_callback, litellm_success_callback

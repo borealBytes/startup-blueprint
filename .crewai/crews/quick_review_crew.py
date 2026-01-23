@@ -50,7 +50,8 @@ class QuickReviewCrew:
     def quick_code_review(self) -> Task:
         """Quick code review task."""
         # Agent writes output directly using WorkspaceTool
-        # No output_file needed - agent calls WorkspaceTool(operation="write", filename="quick_review.json")
+        # No output_file needed - agent calls WorkspaceTool with:
+        #   operation="write", filename="quick_review.json"
         return Task(
             config=self.tasks_config["quick_code_review"],
             agent=self.quick_reviewer(),
