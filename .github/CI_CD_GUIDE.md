@@ -474,7 +474,7 @@ If you encounter issues:
 
 1. **Check CI logs** — Click failed job in GitHub Actions
 2. **Review this guide** — Common issues documented above
-3. **Check workflow** — [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+3. **Check workflow** — [`workflows/ci.yml`](workflows/ci.yml)
 4. **Open an issue** — Include:
    - Workflow run link
    - Error message
