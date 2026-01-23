@@ -23,7 +23,7 @@ jobs:
   test-build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     outputs:
       artifact_name: website-build
       should_deploy: ${{ steps.check.outputs.should_run }}
@@ -45,7 +45,7 @@ jobs:
         run: |
           set -e
           echo "🔍 Checking if website files changed..."
-          
+
           # Determine base and head for diff
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             BASE="${{ github.event.pull_request.base.sha }}"
@@ -54,10 +54,10 @@ jobs:
             BASE="${{ github.event.before }}"
             HEAD="${{ github.sha }}"
           fi
-          
+
           # Check for website/ directory changes
           CHANGED_FILES=$(git diff --name-only $BASE $HEAD | grep '^website/' || true)
-          
+
           if [ -z "$CHANGED_FILES" ]; then
             echo "⏭️  No website files changed - skipping tests and build"
             echo "should_run=false" >> $GITHUB_OUTPUT
@@ -117,17 +117,17 @@ jobs:
         run: |
           echo "## 🏗️ Website Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -d "website/dist" ]; then
             echo "✅ **Build successful!**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Build Artifacts" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            
+
             # Calculate build size
             BUILD_SIZE=$(du -sh website/dist | cut -f1)
             FILE_COUNT=$(find website/dist -type f | wc -l)
-            
+
             echo "- **Size**: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
             echo "- **Files**: $FILE_COUNT" >> $GITHUB_STEP_SUMMARY
             echo "- **Artifact**: website-build" >> $GITHUB_STEP_SUMMARY
