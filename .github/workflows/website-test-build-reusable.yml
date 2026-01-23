@@ -30,7 +30,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: website
+        working-directory: apps/startup-blueprint
 
     steps:
       - name: Checkout
@@ -80,9 +80,9 @@ jobs:
           git rev-parse "$BASE" >/dev/null 2>&1 && echo "  ✓ Base commit exists" || echo "  ✗ Base commit missing"
           git rev-parse "$HEAD" >/dev/null 2>&1 && echo "  ✓ Head commit exists" || echo "  ✗ Head commit missing"
 
-          # Check for website/ directory changes across the entire diff
+          # Check for apps/startup-blueprint/ directory changes across the entire diff
           echo "🔍 Running diff..."
-          CHANGED_FILES=$(git diff --name-only "$BASE".."$HEAD" | grep '^website/' || true)
+          CHANGED_FILES=$(git diff --name-only "$BASE".."$HEAD" | grep '^apps/startup-blueprint/' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "⏭️  No website files changed - skipping tests and build"
@@ -102,7 +102,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'website/package-lock.json'
+          cache-dependency-path: 'apps/startup-blueprint/package-lock.json'
 
       - name: Install dependencies
         if: steps.check.outputs.should_run == 'true'
@@ -133,7 +133,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: website-build
-          path: website/dist
+          path: apps/startup-blueprint/dist
           retention-days: 7
           if-no-files-found: error
 
@@ -144,15 +144,15 @@ jobs:
           echo "## 🏗️ Website Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ -d "website/dist" ]; then
+          if [ -d "apps/startup-blueprint/dist" ]; then
             echo "✅ **Build successful!**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Build Artifacts" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
 
             # Calculate build size
-            BUILD_SIZE=$(du -sh website/dist | cut -f1)
-            FILE_COUNT=$(find website/dist -type f | wc -l)
+            BUILD_SIZE=$(du -sh apps/startup-blueprint/dist | cut -f1)
+            FILE_COUNT=$(find apps/startup-blueprint/dist -type f | wc -l)
 
             echo "- **Size**: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
             echo "- **Files**: $FILE_COUNT" >> $GITHUB_STEP_SUMMARY
