@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   # ============================================================================
-  # PHASE 1: Credential Validation - Fast fail if credentials invalid
+  # PHASE 1: Credential Validation & Core CI - Run in parallel
   # ============================================================================
 
   validate-credentials:
@@ -21,19 +21,13 @@ jobs:
     uses: ./.github/workflows/validate-credentials-reusable.yml
     secrets: inherit
 
-  # ============================================================================
-  # PHASE 2: Core CI - Run after credential validation
-  # ============================================================================
-
   core-ci:
     name: Core CI
-    needs: [validate-credentials]
-    if: needs.validate-credentials.result == 'success'
     uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
   # ============================================================================
-  # PHASE 3: Tests & Builds - Run in parallel after core-ci completes
+  # PHASE 2: Tests & Builds - Run in parallel after core-ci completes
   # ============================================================================
 
   test-docs-links:
@@ -70,7 +64,7 @@ jobs:
     secrets: inherit
 
   # ============================================================================
-  # PHASE 4: Deployments - Environment-aware deployments
+  # PHASE 3: Deployments - Environment-aware deployments
   # ============================================================================
 
   deploy-preview:
@@ -104,7 +98,7 @@ jobs:
     secrets: inherit
 
   # ============================================================================
-  # PHASE 5: AI Agents - Code review and analysis
+  # PHASE 4: AI Agents - Code review and analysis
   # ============================================================================
 
   crewai-review:
