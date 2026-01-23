@@ -17,12 +17,12 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   - Relevant to your business
   - Room to expand (not too narrow)
   - Professional (no slang or inside jokes)
-  
+
   **Examples**: `AlertShield`, `PeakCapital`, `StreamSync`
 
 - [ ] **Check availability** (use [this tool](https://instantdomainsearch.com)):
   - [ ] `BUSINESSNAME.com` (domain)
-  - [ ] `BUSINESSNAME` LLC (state registrar, e.g., [Michigan LARA](https://onecorp.lara.state.mi.us))
+  - [ ] `BUSINESSNAME` LLC (state registrar, e.g., [Michigan MiBRP](https://www.michigan.gov/lara/bureau-list/cscl/corps/mibrp))
   - [ ] `@BUSINESSNAME` on Twitter/X
   - [ ] `BUSINESSNAME` on GitHub
   - [ ] Email: `founder@BUSINESSNAME.com` (will work after domain + Gmail setup)
@@ -38,9 +38,9 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 ### Checklist
 
 - [ ] **Go to your state's business registration site**
-  - Michigan: [LARA](https://onecorp.lara.state.mi.us)
-  - California: [Secretary of State](https://bpd.sos.ca.gov/forms/llc/llm.pdf)
-  - New York: [Department of State](https://www.dos.ny.gov/business-services/online-business-services)
+  - Michigan: [Michigan Business Registration Portal (MiBRP)](https://www.michigan.gov/lara/bureau-list/cscl/corps/mibrp)
+  - California: [BizFile Online](https://bizfileonline.sos.ca.gov/search/business)
+  - New York: [NY Department of State](https://dos.ny.gov)
   - (Find yours: Google `[STATE] LLC registration`)
 
 - [ ] **File your Articles of Organization** with:
@@ -84,7 +84,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   - Test: Send an email to `founder@BUSINESSNAME.com` from personal email, confirm it arrives in your inbox
 
 - [ ] **Create a free Gmail for your business** (if not already done)
-  - Go to [Gmail](https://accounts.google.com/signup/v2/weblogin)
+  - Go to [Google Workspace](https://workspace.google.com) (or create free Gmail)
   - Create: `BUSINESSNAME.founder@gmail.com` or similar
   - Enable 2FA with authenticator app (not SMS)
   - Download recovery codes and save them somewhere secure
@@ -114,6 +114,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
   - Click "Add file" → "Create new file"
   - Name: `.gitignore`
   - Paste:
+
     ```
     .env
     .env.local
@@ -124,6 +125,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
     *.swp
     .secrets/
     ```
+
   - Commit
 
 ---
@@ -142,6 +144,7 @@ This checklist covers the absolute essentials. Full details are in the numbered 
 **Estimated time**: 1-2 hours (including waiting for confirmations)
 
 **Next step**: Move to the full guides for deeper setup:
+
 1. [Legal Foundation](./01-legal-foundation.md) — More legal details
 2. [Domain & DNS](./02-domain-dns.md) — Advanced domain setup
 3. [Email Infrastructure](./03-email-infrastructure.md) — Multi-user email

@@ -1,257 +1,346 @@
 # Startup Blueprint 🚀
 
-**A free, comprehensive guide to starting and operating a business from day one.**
+**A complete startup operating system: business setup guides + production-grade Git/CI foundation in one monorepo.**
 
-This repository contains everything you need to establish your business legally, technically, and operationally. No fluff—just actionable, repeatable processes you can implement immediately.
+From "I'm starting a company" to "my website is deployed and CI is green"—this repo is your business source of truth from day one.
 
-> **Who this is for:** Solo entrepreneurs, co-founders, and small business operators who want a professional, scalable foundation from the start.
+> **Who this is for:** Solo founders, co-founders, and small teams who want professional infrastructure without rebuilding as you scale. Perfect for working with AI agents (Perplexity MCP, Cursor, Claude) that need structured context.
 
 ---
 
-## 🎯 What You'll Get
+## 🎯 What Makes This Different
+
+Most startup guides are vague advice. Most repo templates ignore the business side. This combines both:
 
 ```mermaid
-graph LR
-    A["1️⃣ LEGAL"] --> B["2️⃣ DOMAIN"] --> C["3️⃣ EMAIL"] --> D["4️⃣ GIT"] --> E["5️⃣ DEPLOY"]
-    A -- LLC Registration --- A1["State filing"]
-    B -- Custom domain --- B1["Cloudflare"]
-    C -- Professional email --- C1["Gmail + forwarding"]
-    D -- Version control --- D1["Git + Perplexity"]
-    E -- Auto CI/CD --- E1["Cloudflare Pages"]
-    
-    style A fill:#e1f5ff
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-    style D fill:#e8f5e9
-    style E fill:#fce4ec
+flowchart LR
+    accTitle: Startup Blueprint Components
+    accDescr: How business guides and Git/CI template combine into a complete company repository ready for AI agents and production deployment
+
+    business_guides["📋 Business Guides"] --> company_repo["🏢 Your Company Repo"]
+    git_ci_template["⚙️ Git/CI Template"] --> company_repo
+    company_repo --> decisions["📝 Every Decision in Git"]
+    company_repo --> ai_ready["🤖 AI Agent Ready"]
+    company_repo --> deploy["🚀 Deploy to Production"]
+```
+
+### Three Core Ideas
+
+1. **Everything in Git** — Business decisions, docs, code, configs. One source of truth, fully auditable.
+2. **Agent-Friendly Workflow** — Structured for AI assistants via MCP (Perplexity), CLI (Cursor/Claude), or any Git-capable tool.
+3. **Production-Ready CI** — Auto-format, lint, link-check on every commit. Merge confidence from day one.
+
+---
+
+## 🛠️ What's Included Today
+
+### 📚 Startup Setup Guides
+
+| Guide                                                                   | Duration  | What You'll Set Up                      |
+| ----------------------------------------------------------------------- | --------- | --------------------------------------- |
+| **[1. Legal Foundation](./docs/guides/01-legal-foundation.md)**         | 2-3 hours | LLC registration, EIN, business license |
+| **[2. Domain & DNS](./docs/guides/02-domain-dns.md)**                   | 30 min    | Custom domain via Cloudflare            |
+| **[3. Email Infrastructure](./docs/guides/03-email-infrastructure.md)** | 1 hour    | Professional email routing (free)       |
+| **[4. Git & Repository](./docs/guides/04-git-repository.md)**           | 45 min    | GitHub repo, AI workflow setup          |
+| **[5. Financial Tools](./docs/guides/05-financial-tools.md)**           | 1 hour    | Accounting, payments, tax planning      |
+| **[6. Deployment & CI/CD](./docs/guides/06-deployment-cicd.md)**        | 1.5 hours | Cloudflare Pages deployment             |
+| **[7. Operations Manual](./docs/guides/07-operations-manual.md)**       | 2 hours   | Repeatable processes & checklists       |
+
+**Total setup time: ~8-10 hours**
+
+### ⚙️ CI/CD Automation
+
+**GitHub Actions workflow** that runs on every PR:
+
+- ✅ **Auto-format** — Prettier, Black, SQLFluff, gofmt
+- ✅ **Lint everything** — ESLint, flake8, markdownlint, stylelint, yamllint
+- ✅ **Validate commits** — Conventional Commits format
+- ✅ **Check links** — All Markdown links validated (race-condition safe)
+- ✅ **Bot auto-fixes** — Commits fixes automatically, you just merge
+
+**Languages supported:** JavaScript/TypeScript, Python, SQL, Go, CSS/SCSS, Markdown, YAML, Bash
+
+**CI/CD Guide:** [`.github/CI_CD_GUIDE.md`](./.github/CI_CD_GUIDE.md)
+
+### 🧰 Repo Quality Tooling
+
+Pre-configured for professional code quality:
+
+```
+Root configs:
+├── .prettierrc.json       # Code formatting
+├── .eslintrc.json         # JS/TS linting
+├── .markdownlint.json     # Docs linting
+├── .stylelintrc.json      # CSS linting
+├── .sqlfluff              # SQL formatting
+├── commitlint.config.js   # Commit validation
+└── .lycheeignore          # Link check exclusions
 ```
 
 ---
 
-## 📚 Guide Structure
+## 🔄 How to Use This Repo
 
-| Guide | Duration | What You'll Set Up |
-|-------|----------|-------------------|
-| **[1. Legal Foundation](./docs/01-legal-foundation.md)** | 2-3 hours | LLC registration, business license, naming |
-| **[2. Domain & DNS](./docs/02-domain-dns.md)** | 30 min | Custom domain via Cloudflare, professional branding |
-| **[3. Email Infrastructure](./docs/03-email-infrastructure.md)** | 1 hour | Professional email routing, multi-user setup |
-| **[4. Git & Repository](./docs/04-git-repository.md)** | 45 min | GitHub repo, Perplexity Spaces, AI workflow |
-| **[5. Financial Tools](./docs/05-financial-tools.md)** | 1 hour | Accounting, tax planning, payment processing |
-| **[6. Deployment & CI/CD](./docs/06-deployment-cicd.md)** | 1.5 hours | Automated deployment, website hosting |
-| **[7. Operations Manual](./docs/07-operations-manual.md)** | 2 hours | Repeatable processes, checklists, handoff docs |
+### For Your Own Business (Private Fork)
 
-**Total setup time: ~8-10 hours**
+```mermaid
+flowchart TD
+    accTitle: Private Fork Workflow
+    accDescr: Process for forking this repo privately and customizing it for your own business while maintaining your own main branch
 
----
+    fork_repo[Fork startup-blueprint] --> make_private[Make it private]
+    make_private --> follow_guides[Follow setup guides]
+    follow_guides --> need_customize{Need to customize?}
+    need_customize -->|Yes| create_branch[Create branch]
+    create_branch --> update_docs[Update docs to match your reality]
+    update_docs --> merge_main[Merge to YOUR main]
+    need_customize -->|No| continue_building[Continue building]
+    merge_main --> continue_building
+```
 
-## 🗂️ Quick Navigation
+**Steps:**
 
-### For the Impatient
-Start here if you want the **fastest path to a working business**:
+1. **Fork this repo** → Make it **private** (your business source of truth)
+2. **Follow the guides** in `docs/guides/` to set up your business
+3. **When you customize:**
+   - Create a branch: `git checkout -b docs/update-for-florida-llc`
+   - Update the guides to match what you actually did
+   - Merge to `main` in your private fork
+4. **Build your business** — Add code, docs, decisions to the monorepo
 
-1. [Quick Start Checklist](./docs/QUICKSTART.md) — 30-minute overview
-2. Follow guides 1-3 for the essentials
-3. Come back to 4-7 as you scale
-
-### For the Thorough
-Work through all guides in order. Each builds on the previous.
-
-### By Role
-
-- **Founder/CEO**: Start with [Legal Foundation](./docs/01-legal-foundation.md) and [Domain & DNS](./docs/02-domain-dns.md)
-- **CTO/Technical Lead**: Focus on [Git & Repository](./docs/04-git-repository.md) and [Deployment & CI/CD](./docs/06-deployment-cicd.md)
-- **Solo Founder**: Do all of it (you're wearing all the hats)
-- **Operations Person**: Prioritize [Email Infrastructure](./docs/03-email-infrastructure.md) and [Operations Manual](./docs/07-operations-manual.md)
-
----
-
-## 🎯 Core Principles
-
-This guide is built on five principles:
-
-### 1. **Professionalism First**
-Your business infrastructure should look like a 100-person company from day one. Custom domain email, proper legal structure, professional communication channels.
-
-### 2. **Scalability**
-Everything is designed to grow without rework. Add team members without rebuilding infrastructure. Start solo, scale to 5+ people with the same processes.
-
-### 3. **Automation**
-Repetitive tasks are automated. Deployment is automatic. Email forwarding is automatic. Communication is structured to minimize back-and-forth.
-
-### 4. **Security & Compliance**
-2FA on everything. Recovery codes backed up. Secrets management in place. GDPR-ready from the start.
+### Contributing Improvements (Public PR)
 
 ### 5. **Low Cost, High ROI**
+
 Most tools are free or extremely low cost (free Gmail, GitHub, Perplexity Spaces; domain registrar cost-only pricing from Cloudflare). Your primary recurring expense is your domain (about ~$10.50/year at Cloudflare's cost-based pricing).
 
-> **Strategy:** Buy 10 years of domain registration up front (~$140). Forgetting to renew once and paying recovery premiums (or losing the domain) is more expensive than prepaying.
+**Steps:**
 
 The ROI comes from saved time, avoided mistakes, and a professional foundation that doesn't need to be rebuilt later.
 
 ---
 
-## 💡 Key Decisions Made for You
+## 🚀 Quick Start
 
-To reduce decision fatigue, this guide makes specific recommendations:
+### Option 1: Jump to Action (Fastest)
 
-| Decision | Recommendation | Why |
-|----------|---|---|
-| **Legal Structure** | LLC | Limited liability + simplicity + pass-through taxation |
-| **Domain Registrar** | Cloudflare | Integrated email routing + DNS + cost-only pricing |
-| **Email Service** | Gmail + Cloudflare routing | Reliable, free, and supports plus-addressing |
-| **Code Repository** | GitHub | Industry standard + native CI/CD + free private repos |
-| **AI Workflow** | Perplexity Spaces | Version-controlled instructions + transparent agent behavior |
-| **Hosting** | Cloudflare Pages + Workers | Fast + cheap + auto-scaling + DDoS protection |
-| **Accounting** | Wave (free) or Stripe | Simple + automated + integrates with payments |
-
-If you prefer different tools, adapt the guides—they're repeatable processes, not tool prescriptions.
-
----
-
-## 🔗 Dependencies & Sequencing
-
-```mermaid
-graph TD
-    A["Business Name"] --> B["Check Availability"]
-    B --> C["LLC Registration"]
-    C --> D["Domain Registration"]
-    D --> E["Email Forwarding"]
-    E --> F["Gmail Setup"]
-    F --> G["GitHub Repo"]
-    G --> H["Perplexity Space"]
-    H --> I["Website Deploy"]
-    
-    C --> J["Tax ID (EIN)"]
-    J --> K["Bank Account"]
-    K --> L["Accounting Setup"]
-    
-    I --> M["Public Website Live"]
-    L --> M
-    
-    style A fill:#ffe0b2
-    style M fill:#c8e6c9
+```
+1. Read: docs/guides/QUICKSTART.md (30 min)
+2. Do: Guides 1-3 (legal, domain, email)
+3. Come back to rest as you scale
 ```
 
-**Critical path**: Legal → Domain → Email → Git → Deploy (this is your "go-live" sequence)
+### Option 2: Structured Setup (Recommended)
 
----
-
-## 📊 Success Criteria
-
-After completing this blueprint, you'll have:
-
-- ✅ Registered LLC with active EIN
-- ✅ Custom domain (`BUSINESS-NAME.com`)
-- ✅ Professional email (`founder@BUSINESS-NAME.com`)
-- ✅ GitHub repository with CI/CD pipeline
-- ✅ Website deployed and live
-- ✅ Gmail filters and labels for triage
-- ✅ Documented processes for onboarding
-- ✅ Backup and recovery procedures in place
-- ✅ 2FA enabled on all critical accounts
-- ✅ Tax EIN and basic accounting ready
-
----
-
-## 🚀 Getting Started
-
-### Option 1: Jump to the Action (Fastest)
 ```
-1. Read the Quickstart: ./docs/QUICKSTART.md
-2. Follow the checklist
-3. Come back to detailed guides as needed
-```
-
-### Option 2: Structured Learning (Recommended)
-```
-1. Start with Guide #1: Legal Foundation
+1. Start: Guide #1 (Legal Foundation)
 2. Work through each guide in order
-3. Use checklists to validate your work
-4. Reference the operations manual for ongoing tasks
+3. Use checklists to validate completion
+4. Reference CI_CD_GUIDE.md for automation
 ```
 
-### Option 3: Deep Dive (Comprehensive)
+### Option 3: Full Immersion
+
 ```
 1. Read this entire README
-2. Skim all guides to understand the complete picture
-3. Then work through each guide methodically
+2. Skim all guides (understand big picture)
+3. Work through methodically
+4. Customize as you go
 ```
 
 ---
 
-## 📖 For Each Guide
+## 🎯 Success Criteria
+
+```mermaid
+flowchart TD
+    accTitle: Business Setup Success Path
+    accDescr: Sequential milestones from starting setup through achieving a professional business foundation
+
+    start([Start]) --> llc_registered["✅ LLC Registered"]
+    llc_registered --> domain_email["✅ Domain + Email"]
+    domain_email --> github_ci["✅ GitHub Repo + CI"]
+    github_ci --> website_deployed["✅ Website Deployed"]
+    website_deployed --> ops_documented["✅ Operations Documented"]
+    ops_documented --> foundation_complete([Professional Business Foundation])
+```
+
+After completing this blueprint:
+
+- ✅ Registered LLC with active EIN
+- ✅ Custom domain (`yourcompany.com`)
+- ✅ Professional email (`founder@yourcompany.com`)
+- ✅ GitHub repo with working CI/CD
+- ✅ Website deployed and live
+- ✅ 2FA on all critical accounts
+- ✅ Documented processes for scale
+- ✅ AI agent can read your repo structure
+
+---
+
+## 🔮 Coming Soon
+
+**High-level planned features:**
+
+- 📦 **Monorepo scaffolding** — `apps/`, `packages/`, `scripts/` structure with examples
+- 📋 **Product templates** — PRD/TDD structure for capturing product intent
+- 🚀 **Deployment templates** — Cloudflare Workers/Pages starter setups
+- 🧪 **Test automation** — Once example apps exist, add test runners to CI
+- 📊 **Analytics setup** — Privacy-friendly analytics integration guide
+
+---
+
+## 💡 Core Principles
+
+### 1. **Professionalism First** 💼
+
+Look like a 100-person company from day one. Custom domain, proper legal structure, professional tools.
+
+### 2. **Scalability** 📈
+
+Add team members without rebuilding. Start solo, scale to 5+ with same processes.
+
+### 3. **Automation** 🤖
+
+Repetitive tasks are automated. Deployment is automatic. Quality checks are automatic.
+
+### 4. **Security & Compliance** 🔒
+
+2FA everywhere. Secrets in environment variables. GDPR-ready from start.
+
+### 5. **Low Cost, High ROI** 💰
+
+Most tools are free. Primary cost: domain (~$10/year). Time saved is worth thousands.
+
+---
+
+## 🛠️ Tech Stack Decisions
+
+To reduce decision fatigue, we made opinionated choices:
+
+| What            | Choice           | Why                                 |
+| --------------- | ---------------- | ----------------------------------- |
+| **Legal**       | LLC              | Liability protection + simple taxes |
+| **Domain**      | Cloudflare       | Free email routing + DNS + DDoS     |
+| **Email**       | Gmail + routing  | Free, reliable, AI-friendly labels  |
+| **Repo**        | GitHub           | Industry standard + free CI/CD      |
+| **CI/CD**       | GitHub Actions   | Native, free, powerful              |
+| **Deploy**      | Cloudflare Pages | Free, fast, global CDN              |
+| **AI Workflow** | Perplexity + MCP | Git-native, transparent agent       |
+
+**Prefer different tools?** Fork and adapt. The processes are tool-agnostic.
+
+---
+
+## 🤖 AI Agent Workflow
+
+```mermaid
+flowchart LR
+    accTitle: AI Agent Workflow
+    accDescr: End-to-end workflow showing how AI agents work with this repo from request through auto-deployment
+
+    user_request([You: Make request]) --> ai_agent[AI Agent]
+    ai_agent --> read_context[Read repo context]
+    read_context --> create_branch[Create branch]
+    create_branch --> make_changes[Make changes]
+    make_changes --> push_pr[Push + open PR]
+    push_pr --> ci_runs{{CI runs}}
+    ci_runs --> you_review[You review]
+    you_review --> merge_main[Merge to main]
+    merge_main --> auto_deploy([Auto-deploy])
+```
+
+**Why this works:**
+
+- Agent reads your entire repo structure
+- Understands your business context from docs
+- Creates PRs you review before merge
+- CI validates quality automatically
+- You stay in control, agent stays productive
+
+---
+
+## 📚 Documentation Structure
 
 Every guide includes:
 
-- **Executive Summary** — 2-minute overview
-- **Why This Matters** — Context and benefits
-- **Step-by-Step Instructions** — Detailed walkthrough with screenshots where possible
-- **Checklists** — Validation that you completed it correctly
-- **Dependencies** — What needs to happen before/after
-- **Troubleshooting** — Common issues and solutions
-- **Templates** — Copy-paste-ready policies, contracts, and configs
-
----
-
-## 🤝 Contributing
-
-This is a living guide. If you've improved something or found a better way:
-
-1. Fork this repo
-2. Create a feature branch: `git checkout -b improve/better-way`
-3. Make your changes (update the relevant guide)
-4. Submit a PR with description of improvements
-5. Reference any tools, processes, or lessons learned
-
----
-
-## 📋 License
-
-This work is provided as-is for educational and reference purposes. While we aim for accuracy, always verify with current resources and consult professionals (lawyers, accountants) for your specific situation.
-
-**MIT License** — Use freely, modify as needed, no attribution required.
+- 📝 **Executive Summary** — 2-minute overview
+- 🎯 **Why This Matters** — Context and ROI
+- 📋 **Step-by-Step** — Detailed walkthrough
+- ✅ **Checklists** — Validation you did it right
+- 🔗 **Dependencies** — What comes before/after
+- 🛠️ **Troubleshooting** — Common issues solved
+- 📄 **Templates** — Copy-paste ready configs
 
 ---
 
 ## 🙋 FAQ
 
-**Q: How long does this take?**
-A: 8-10 hours total, spread over a week or two. You can do steps 1-3 in a day if you're focused.
+**Q: How long does this take?**  
+A: 8-10 hours total. You can do guides 1-3 in a focused day.
 
-**Q: Do I need to follow this exactly?**
-A: No. Use it as a template. The key is having *some* structure from day one rather than nothing.
+**Q: Do I need to follow this exactly?**  
+A: No. Use as a template. Adapt to your needs.
 
-**Q: Can I do this solo?**
-A: Yes. The entire blueprint assumes a solo founder or very small team.
+**Q: Can I use this solo?**  
+A: Yes. Entire blueprint assumes solo founder or tiny team.
 
-**Q: What if I'm in a different country?**
-A: The US LLC + Cloudflare + GitHub model works globally. Adjust the "Legal Foundation" guide for your jurisdiction.
+**Q: What if I'm outside the US?**  
+A: Adapt the legal guide. Everything else works globally.
 
-**Q: What if I want different tools?**
-A: Go for it. The processes are tool-agnostic; adapt them to what you use.
+**Q: What if I want different tools?**  
+A: Go for it. Processes are tool-agnostic.
 
-**Q: Is this just for tech companies?**
-A: No. Apply the legal, email, and operational parts to any business. Skip the deployment guide if you don't have a website.
+**Q: Will this work with my preferred AI assistant?**  
+A: Yes. Works with Perplexity (MCP), Cursor, Claude (via CLI), or any Git-capable tool.
+
+---
+
+## 🤝 Contributing
+
+This is a living project. Improvements welcome:
+
+1. Fork repo
+2. Create branch: `git checkout -b improve/better-workflow`
+3. Make changes
+4. Submit PR with clear description
+5. Help other founders
+
+**What we're looking for:**
+
+- Better automation patterns
+- Additional language support
+- Improved guides
+- Bug fixes
+- More templates
+
+---
+
+## 📋 License
+
+**MIT License** — Use freely, modify as needed, no attribution required.
+
+Provided as-is for educational purposes. Always verify with professionals (lawyers, accountants) for your situation.
 
 ---
 
 ## 📞 Support
 
-- **Have a question?** Open a GitHub discussion
-- **Found an issue?** File a GitHub issue with details
-- **Have an improvement?** Submit a PR
+- 💬 **Questions?** Open a GitHub Discussion (coming soon)
+- 🐛 **Found a bug?** File a [GitHub Issue](https://github.com/borealBytes/startup-blueprint/issues)
+- 🎉 **Have an improvement?** Submit a [Pull Request](https://github.com/borealBytes/startup-blueprint/pulls)
 
 ---
 
 ## 🎓 What's Next?
 
-Once you finish the blueprint:
+Once you complete the blueprint:
 
-1. **Growth**: Use your operations manual to document new processes as you scale
-2. **Team**: Add team members; use your Git-based workflow for transparency
-3. **Automation**: Expand your CI/CD to run tests, builds, and deployments
-4. **Integration**: Connect accounting, CRM, and customer communication tools
+1. **📈 Scale** — Document new processes as you grow
+2. **👥 Team** — Add members using your Git workflow
+3. **🔧 Automate** — Expand CI/CD with tests and builds
+4. **🔌 Integrate** — Connect tools (CRM, analytics, payments)
 
 ---
 
-**Ready to start?** → [Go to Quickstart](./docs/QUICKSTART.md) or [Jump to Guide #1](./docs/01-legal-foundation.md)
+**Ready to start?** → [Go to Quickstart](./docs/guides/QUICKSTART.md) or [Jump to Guide #1](./docs/guides/01-legal-foundation.md)

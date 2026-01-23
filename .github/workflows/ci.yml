@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  # Core CI - foundation for all subsequent jobs
+  core-ci-format-lint:
+    name: "Core CI » Format & Lint"
+    uses: ./.github/workflows/format-lint-reusable.yml
+    secrets: inherit
+
+  core-ci-detect-tests:
+    name: "Core CI » Detect Tests"
+    needs: [core-ci-format-lint]
+    uses: ./.github/workflows/test-orchestration-reusable.yml
+    secrets: inherit
+
+  # Tests - run conditionally based on detection
+  test-docs-links:
+    name: "Tests » Documentation Links"
+    needs: [core-ci-format-lint, core-ci-detect-tests]
+    uses: ./.github/workflows/link-check-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci-format-lint.outputs.final-commit-sha }}
+    secrets: inherit
+
+  test-crewai:
+    name: "Tests » CrewAI"
+    needs: [core-ci-format-lint, core-ci-detect-tests]
+    if: |
+      always() &&
+      (needs.core-ci-format-lint.result == 'success' || needs.core-ci-format-lint.result == 'failure') &&
+      contains(needs.core-ci-detect-tests.outputs.test-matrix, 'test-crewai-reusable.yml')
+    uses: ./.github/workflows/test-crewai-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci-format-lint.outputs.final-commit-sha }}
+    secrets: inherit
+
+  # Future test jobs:
+  # test-node:
+  #   name: "Tests » Node.js Apps"
+  #   needs: [core-ci-format-lint, core-ci-detect-tests]
+  #   if: |
+  #     always() &&
+  #     (needs.core-ci-format-lint.result == 'success' || needs.core-ci-format-lint.result == 'failure') &&
+  #     contains(needs.core-ci-detect-tests.outputs.test-matrix, 'test-node-reusable.yml')
+  #   uses: ./.github/workflows/test-node-reusable.yml
+  #   with:
+  #     commit_sha: ${{ needs.core-ci-format-lint.outputs.final-commit-sha }}
+  #   secrets: inherit
+
+  # Review - runs after all tests complete
+  review-crewai:
+    name: "Review » CrewAI"
+    needs: [core-ci-format-lint, core-ci-detect-tests, test-docs-links, test-crewai]
+    # Run if core CI completed (success or failure) and tests finished
+    # Skip for bot PRs and drafts
+    if: |
+      always() &&
+      (needs.core-ci-format-lint.result == 'success' || needs.core-ci-format-lint.result == 'failure') &&
+      (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
+      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'renovate[bot]' &&
+      !github.event.pull_request.draft
+    uses: ./.github/workflows/crewai-review-reusable.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      commit_sha: ${{ github.event.pull_request.head.sha }}
+      core_ci_result: ${{ needs.core-ci-format-lint.result }}
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

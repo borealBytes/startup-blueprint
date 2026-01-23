@@ -1,0 +1,72 @@
+# Lychee link checker configuration
+# https://github.com/lycheeverse/lychee
+
+# Cache results for 1 day to speed up repeated checks
+cache = true
+max_cache_age = "1d"
+
+# Timeout and retry settings
+timeout = 15
+max_redirects = 5
+max_retries = 3
+retry_wait_time = 2
+
+# Accept these HTTP status codes as valid
+accept = [200, 204, 206, 429]
+
+# Verbose output for debugging
+verbose = "info"
+
+# Don't follow email links (they can't be verified automatically)
+exclude_mail = true
+
+# Exclude URLs that are behind Cloudflare bot protection or require human verification
+# These are legitimate sites but fail automated link checking
+exclude = [
+  # California Secretary of State - Business Portal (behind Cloudflare bot protection)
+  "https://bpd.sos.ca.gov/.*",
+  "https://bpd.sos.ca.gov/",
+  
+  # Michigan LARA - Business search portals (behind bot protection)
+  "https://onecorp.lara.state.mi.us/.*",
+  "https://onecorp.lara.state.mi.us/",
+  "https://cofs.lara.state.mi.us/.*",
+  "https://cofs.lara.state.mi.us/SearchApi/.*",
+  
+  # New York State Department of State - Old URL structure (moved)
+  # Keeping here in case it's referenced in older docs
+  "https://www.dos.ny.gov/business-services/online-business-services",
+  "https://www.dos.ny.gov/business-services/",
+  
+  # GitHub Discussions - Not enabled on this repo (yet)
+  "https://github.com/borealBytes/startup-blueprint/discussions",
+  
+  # Google account signup - Redirects based on location/cookies
+  "https://accounts.google.com/signup/.*",
+  
+  # NerdWallet - URL structure changed
+  "https://www.nerdwallet.com/article/small-business/start-an-llc",
+  
+  # SBA - URL structure changed
+  "https://www.sba.gov/business-guide/launch/choose-business-structure"
+]
+
+# Include only markdown files
+include = ["**/*.md"]
+
+# Exclude paths we don't want to check
+exclude_path = [
+  "node_modules",
+  ".git",
+  "build",
+  "dist",
+  "target",
+  ".next",
+  ".turbo",
+  "coverage"
+]
+
+# Custom headers to avoid bot detection on some sites
+[headers]
+"User-Agent" = "Mozilla/5.0 (compatible; Lychee/1.0; +https://github.com/lycheeverse/lychee)"
+"Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
