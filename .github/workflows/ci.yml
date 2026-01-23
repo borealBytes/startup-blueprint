@@ -84,12 +84,14 @@ jobs:
 
   deploy-production:
     name: Deploy to Production
-    needs: [test-website, validate-credentials]
+    needs: [test-website, validate-credentials, deploy-preview]
     if: |
+      always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       needs.test-website.result == 'success' &&
-      needs.validate-credentials.result == 'success'
+      needs.validate-credentials.result == 'success' &&
+      (needs.deploy-preview.result == 'success' || needs.deploy-preview.result == 'skipped')
     uses: ./.github/workflows/production-deploy-reusable.yml
     with:
       workspace: website
@@ -102,7 +104,15 @@ jobs:
 
   crewai-review:
     name: CrewAI Code Review
-    needs: [core-ci, validate-credentials, test-docs-links, test-crewai, test-website]
+    needs: [
+      core-ci,
+      validate-credentials,
+      test-docs-links,
+      test-crewai,
+      test-website,
+      deploy-preview,
+      deploy-production
+    ]
     if: |
       always() &&
       github.event_name == 'pull_request' &&
@@ -113,7 +123,9 @@ jobs:
       needs.validate-credentials.result == 'success' &&
       (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
       (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
-      (needs.test-website.result == 'success' || needs.test-website.result == 'failure' || needs.test-website.result == 'skipped')
+      (needs.test-website.result == 'success' || needs.test-website.result == 'failure' || needs.test-website.result == 'skipped') &&
+      (needs.deploy-preview.result == 'success' || needs.deploy-preview.result == 'failure' || needs.deploy-preview.result == 'skipped') &&
+      (needs.deploy-production.result == 'success' || needs.deploy-production.result == 'failure' || needs.deploy-production.result == 'skipped')
     uses: ./.github/workflows/crewai-review-reusable.yml
     with:
       pr_number: ${{ github.event.pull_request.number }}
