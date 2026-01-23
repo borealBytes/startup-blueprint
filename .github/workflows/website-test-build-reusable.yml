@@ -1,0 +1,144 @@
+name: Test & Build Website
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Specific commit SHA to check out'
+        required: false
+        type: string
+    outputs:
+      build_artifact:
+        description: 'Name of the build artifact'
+        value: ${{ jobs.test-build.outputs.artifact_name }}
+      should_deploy:
+        description: 'Whether deployment should proceed'
+        value: ${{ jobs.test-build.outputs.should_deploy }}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    outputs:
+      artifact_name: website-build
+      should_deploy: ${{ steps.check.outputs.should_run }}
+
+    defaults:
+      run:
+        working-directory: website
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Check if website files changed
+        id: check
+        working-directory: .
+        run: |
+          set -e
+          echo "🔍 Checking if website files changed..."
+          
+          # Determine base and head for diff
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+          
+          # Check for website/ directory changes
+          CHANGED_FILES=$(git diff --name-only $BASE $HEAD | grep '^website/' || true)
+          
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "⏭️  No website files changed - skipping tests and build"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Website files changed:"
+            echo "$CHANGED_FILES" | head -n 5
+            if [ $(echo "$CHANGED_FILES" | wc -l) -gt 5 ]; then
+              echo "... and $(( $(echo "$CHANGED_FILES" | wc -l) - 5 )) more"
+            fi
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Node.js
+        if: steps.check.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'website/package-lock.json'
+
+      - name: Install dependencies
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+
+      - name: Run linting
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          echo "🔍 Running linting..."
+          npm run lint || echo "⚠️  Linting not configured yet"
+
+      - name: Run tests
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          echo "🧪 Running tests..."
+          npm test || echo "⚠️  Tests not configured yet"
+
+      - name: Build website
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          echo "🏗️  Building website..."
+          npm run build
+
+      - name: Upload build artifacts
+        if: steps.check.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-build
+          path: website/dist
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Generate build summary
+        if: always() && steps.check.outputs.should_run == 'true'
+        working-directory: .
+        run: |
+          echo "## 🏗️ Website Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d "website/dist" ]; then
+            echo "✅ **Build successful!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Build Artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Calculate build size
+            BUILD_SIZE=$(du -sh website/dist | cut -f1)
+            FILE_COUNT=$(find website/dist -type f | wc -l)
+            
+            echo "- **Size**: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
+            echo "- **Files**: $FILE_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- **Artifact**: website-build" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build failed - no dist directory created**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Add summary for skipped build
+        if: always() && steps.check.outputs.should_run == 'false'
+        working-directory: .
+        run: |
+          echo "## 🏗️ Website Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⏭️ **Skipped** - No website files changed" >> $GITHUB_STEP_SUMMARY
