@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS activity (
   action TEXT NOT NULL,
   details TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 -- Contact form submissions
@@ -26,6 +26,6 @@ CREATE TABLE IF NOT EXISTS contacts (
 );
 
 -- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_activity_user_id ON activity(user_id);
-CREATE INDEX IF NOT EXISTS idx_activity_created_at ON activity(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_contacts_submitted ON contacts(submitted_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_user_id ON activity (user_id);
+CREATE INDEX IF NOT EXISTS idx_activity_created_at ON activity (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contacts_submitted ON contacts (submitted_at DESC);
