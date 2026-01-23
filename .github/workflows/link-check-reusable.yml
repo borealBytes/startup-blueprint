@@ -76,12 +76,54 @@ jobs:
 
             try {
               const report = fs.readFileSync('./lychee-report.md', 'utf8');
+              
               if (report.includes('0 Broken')) {
                 body += '✅ **All links are working!**\n\n';
               } else {
                 body += '⚠️ **Some links may be broken:**\n\n';
               }
-              body += report;
+              
+              // Process report to make "Redirects per input" sections collapsible
+              const lines = report.split('\n');
+              let processed = [];
+              let inRedirectSection = false;
+              let redirectBuffer = [];
+              
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // Check if this is the start of a "Redirects per input" section
+                if (line.startsWith('## Redirects per input') || line.includes('Redirects per input')) {
+                  inRedirectSection = true;
+                  // Start collapsible section (closed by default)
+                  processed.push('<details>');
+                  processed.push('<summary><strong>Redirects per input</strong> (click to expand)</summary>');
+                  processed.push('');
+                  continue;
+                }
+                
+                // Check if we're exiting the redirect section (next ## header or end of file)
+                if (inRedirectSection && line.startsWith('## ') && !line.includes('Redirects')) {
+                  // Close the collapsible section
+                  processed.push('');
+                  processed.push('</details>');
+                  processed.push('');
+                  inRedirectSection = false;
+                  processed.push(line);
+                  continue;
+                }
+                
+                processed.push(line);
+              }
+              
+              // Close redirect section if we reached end of file
+              if (inRedirectSection) {
+                processed.push('');
+                processed.push('</details>');
+                processed.push('');
+              }
+              
+              body += processed.join('\n');
             } catch (error) {
               body += '✅ **All links are working!**\n';
             }
