@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   # ============================================================================
-  # PHASE 1: Core CI - Quality Gates
+  # PHASE 1: Core CI & Credential Validation - Run in parallel
   # ============================================================================
 
   core-ci:
@@ -20,20 +20,14 @@ jobs:
     uses: ./.github/workflows/format-lint-reusable.yml
     secrets: inherit
 
-  # ============================================================================
-  # PHASE 2: Tests & Builds - Run in parallel when relevant files change
-  # ============================================================================
-
   validate-credentials:
     name: Validate Credentials
-    needs: [core-ci]
-    if: |
-      always() &&
-      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
     uses: ./.github/workflows/validate-credentials-reusable.yml
-    with:
-      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
     secrets: inherit
+
+  # ============================================================================
+  # PHASE 2: Tests & Builds - Run in parallel after core-ci completes
+  # ============================================================================
 
   test-docs-links:
     name: Test Docs Links
@@ -74,11 +68,16 @@ jobs:
   # ============================================================================
 
   # Future: Preview and production deployments
+  # 
+  # NOTE: Deployments depend on credential validation completing successfully
+  # since they require validated secrets to deploy.
+  # 
   # deploy-preview:
   #   name: Deploy to Preview
-  #   needs: [test-website]
+  #   needs: [test-website, validate-credentials]
   #   if: |
   #     needs.test-website.result == 'success' &&
+  #     needs.validate-credentials.result == 'success' &&
   #     github.event_name == 'pull_request' &&
   #     contains(github.event.pull_request.labels.*.name, 'deploy:preview')
   #   uses: ./.github/workflows/preview-deploy-reusable.yml
@@ -92,9 +91,10 @@ jobs:
 
   # deploy-production:
   #   name: Deploy to Production
-  #   needs: [test-website]
+  #   needs: [test-website, validate-credentials]
   #   if: |
   #     needs.test-website.result == 'success' &&
+  #     needs.validate-credentials.result == 'success' &&
   #     github.ref == 'refs/heads/main' &&
   #     github.event_name == 'push'
   #   uses: ./.github/workflows/production-deploy-reusable.yml
@@ -120,7 +120,7 @@ jobs:
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
       (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
-      (needs.validate-credentials.result == 'success' || needs.validate-credentials.result == 'failure' || needs.validate-credentials.result == 'skipped') &&
+      needs.validate-credentials.result == 'success' &&
       (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
       (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped')
     uses: ./.github/workflows/crewai-review-reusable.yml
