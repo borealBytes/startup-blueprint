@@ -326,7 +326,7 @@ Provided as-is for educational purposes. Always verify with professionals (lawye
 
 ## 📞 Support
 
-- 💬 **Questions?** Open a [GitHub Discussion](https://github.com/borealBytes/startup-blueprint/discussions)
+- 💬 **Questions?** Open a GitHub Discussion (coming soon)
 - 🐛 **Found a bug?** File a [GitHub Issue](https://github.com/borealBytes/startup-blueprint/issues)
 - 🎉 **Have an improvement?** Submit a [Pull Request](https://github.com/borealBytes/startup-blueprint/pulls)
 
@@ -343,4 +343,4 @@ Once you complete the blueprint:
 
 ---
 
-**Ready to start?** → [Go to Quickstart](./docs/QUICKSTART.md) or [Jump to Guide #1](./docs/01-legal-foundation.md)
+**Ready to start?** → [Go to Quickstart](./docs/guides/QUICKSTART.md) or [Jump to Guide #1](./docs/guides/01-legal-foundation.md)

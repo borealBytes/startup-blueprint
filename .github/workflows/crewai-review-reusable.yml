@@ -1,0 +1,85 @@
+name: CrewAI Review (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        required: true
+        type: number
+        description: 'Pull request number'
+      commit_sha:
+        required: true
+        type: string
+        description: 'Commit SHA to review'
+    secrets:
+      OPENROUTER_API_KEY:
+        required: true
+        description: 'OpenRouter API key for CrewAI LLM access'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  crewai-review:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install CrewAI dependencies
+        working-directory: .crewai
+        run: |
+          uv pip install --system .
+
+      - name: Run CrewAI code review
+        working-directory: .crewai
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CREWAI_TRACING_ENABLED: 'true'
+        run: |
+          python main.py 2>&1 | tee crewai_review.log
+        continue-on-error: true
+
+      # Upload logs as artifact (only if review ran)
+      - name: Upload CrewAI logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crewai-review-logs
+          path: .crewai/crewai_review.log
+          retention-days: 7
+
+      - name: Check review success
+        if: always()
+        run: |
+          if [ -f .crewai/crewai_review.log ]; then
+            if grep -q "ERROR" .crewai/crewai_review.log; then
+              echo "::warning::CrewAI review completed with errors. Check logs for details."
+            else
+              echo "✅ CrewAI review completed successfully"
+            fi
+          else
+            echo "::error::CrewAI review log not found"
+            exit 1
+          fi
