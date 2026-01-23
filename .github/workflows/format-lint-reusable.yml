@@ -88,7 +88,7 @@ jobs:
              -not -path "./venv/*" | grep -q .; then
             echo "exists=true" >> $GITHUB_OUTPUT
             echo "🐍 Installing Python linting tools..."
-            pip install --quiet black isort flake8
+            pip install --quiet black isort ruff
           else
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "⏭️ No Python files found, skipping Python tool installation"
@@ -387,41 +387,50 @@ jobs:
             echo "⏭️ shellcheck not found, skipping shell script validation"
           fi
 
-      - name: Run flake8 (lint Python files)
-        id: flake8
+      - name: Run ruff (lint & auto-fix Python files)
+        id: ruff
         continue-on-error: true
         run: |
           if [ "${{ steps.check_python.outputs.exists }}" == "true" ]; then
-            echo "🐍 Running flake8 linter..."
+            echo "🐍 Running ruff linter with auto-fix..."
 
-            find . -type f -name "*.py" \
-              -not -path "./node_modules/*" \
-              -not -path "./.git/*" \
-              -not -path "./.venv/*" \
-              -not -path "./venv/*" \
-              -not -path "./build/*" \
-              -not -path "./dist/*" \
-              | xargs flake8 --max-line-length=88 --extend-ignore=E203,W503 \
-              2>&1 | tee /tmp/flake8_output.txt
+            # Run ruff check with --fix to auto-fix issues
+            ruff check . --fix --output-format=json > /tmp/ruff.json 2>&1 || true
+            
+            # Also run ruff format to ensure consistent formatting
+            ruff format . 2>&1 | tee /tmp/ruff_format.log
 
-            EXIT_CODE=${PIPESTATUS[0]}
+            # Check if there are any remaining violations after fixes
+            ruff check . --output-format=json > /tmp/ruff_final.json 2>&1
+            EXIT_CODE=$?
 
             if [ $EXIT_CODE -eq 0 ]; then
               echo "status=✅ Passed" >> $GITHUB_OUTPUT
+              git diff --name-only > /tmp/ruff_changes.txt
               echo "errors=0" >> $GITHUB_OUTPUT
+              echo "warnings=0" >> $GITHUB_OUTPUT
             else
-              ERROR_COUNT=$(grep -c "^\./" /tmp/flake8_output.txt 2>/dev/null || echo "0")
-              echo "status=❌ Failed ($ERROR_COUNT violations)" >> $GITHUB_OUTPUT
-              echo "errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
-
-              echo "::error::flake8 found $ERROR_COUNT violations"
+              # Count remaining violations
+              if [ -f /tmp/ruff_final.json ]; then
+                ERROR_COUNT=$(jq 'length' /tmp/ruff_final.json 2>/dev/null || echo 0)
+                echo "status=❌ Failed ($ERROR_COUNT violations)" >> $GITHUB_OUTPUT
+                echo "errors=$ERROR_COUNT" >> $GITHUB_OUTPUT
+              else
+                echo "status=❌ Failed" >> $GITHUB_OUTPUT
+                echo "errors=1" >> $GITHUB_OUTPUT
+              fi
+              git diff --name-only > /tmp/ruff_changes.txt
+              
+              # Show some violations in the output
+              echo "::error::Ruff found $ERROR_COUNT violations that couldn't be auto-fixed"
+              ruff check . --output-format=concise | head -n 10
               exit 1
             fi
           else
             echo "status=⏭️ Skipped (no Python files)" >> $GITHUB_OUTPUT
             echo "errors=0" >> $GITHUB_OUTPUT
-            echo "⏭️ No Python files found, skipping flake8"
-            touch /tmp/flake8_output.txt
+            echo "⏭️ No Python files found, skipping ruff"
+            touch /tmp/ruff_changes.txt
           fi
 
       - name: Run gofmt (format Go files)
@@ -633,7 +642,7 @@ jobs:
              [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.yamllint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.shellcheck.conclusion }}" == "failure" ]] || \
-             [[ "${{ steps.flake8.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.ruff.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.gofmt.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.golangci.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.commitlint.conclusion }}" == "failure" ]] || \
@@ -716,13 +725,13 @@ jobs:
           SHELLCHECK_ISSUES=$(get_sample_issues "/tmp/shellcheck.log" "error:")
           echo "| **shellcheck** | ${{ steps.shellcheck.outputs.status || '❌ Failed' }} | ${{ steps.shellcheck.outputs.errors || '0' }} | ${{ steps.shellcheck.outputs.warnings || '0' }} | ${{ steps.shellcheck.outputs.info || '0' }} | $SHELLCHECK_ISSUES |" >> $GITHUB_STEP_SUMMARY
 
-          # flake8
-          if [ -f "/tmp/flake8_output.txt" ] && [ "${{ steps.flake8.outputs.errors }}" != "0" ]; then
-            FLAKE8_ISSUES=$(head -n 3 /tmp/flake8_output.txt | sed 's/^/`/;s/$/`/' | tr '\n' ' ' | sed 's/ $//' || echo "-")
+          # ruff (replacing flake8)
+          if [ -f "/tmp/ruff_final.json" ] && [ "${{ steps.ruff.outputs.errors }}" != "0" ]; then
+            RUFF_ISSUES=$(jq -r '.[0:3] | .[] | "\(.code) at \(.filename):\(.location.row)"' /tmp/ruff_final.json 2>/dev/null | sed 's/^/`/;s/$/`/' | tr '\n' ' ' | sed 's/ $//' || echo "-")
           else
-            FLAKE8_ISSUES="-"
+            RUFF_ISSUES="-"
           fi
-          echo "| **flake8** | ${{ steps.flake8.outputs.status || '❌ Failed' }} | ${{ steps.flake8.outputs.errors || '0' }} | - | - | $FLAKE8_ISSUES |" >> $GITHUB_STEP_SUMMARY
+          echo "| **ruff** | ${{ steps.ruff.outputs.status || '❌ Failed' }} | ${{ steps.ruff.outputs.errors || '0' }} | - | - | $RUFF_ISSUES |" >> $GITHUB_STEP_SUMMARY
 
           # gofmt
           echo "| **gofmt** | ${{ steps.gofmt.outputs.status || '❌ Failed' }} | 0 | - | - | - |" >> $GITHUB_STEP_SUMMARY
@@ -776,7 +785,7 @@ jobs:
              [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.yamllint.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.shellcheck.conclusion }}" == "failure" ]] || \
-             [[ "${{ steps.flake8.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.ruff.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.gofmt.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.golangci.conclusion }}" == "failure" ]] || \
              [[ "${{ steps.commitlint.conclusion }}" == "failure" ]] || \
@@ -797,7 +806,7 @@ jobs:
           📝 Changed Files (${{ steps.check_changes.outputs.file_count }})
           COMMIT_MSG_EOF
 
-          for tool_name in "Prettier" "Black" "isort" "SQLFluff" "ESLint" "stylelint" "markdownlint" "gofmt" "golangci-lint"; do
+          for tool_name in "Prettier" "Black" "isort" "SQLFluff" "ESLint" "stylelint" "markdownlint" "ruff" "gofmt" "golangci-lint"; do
             case "$tool_name" in
               "Prettier") tool_file="/tmp/prettier_changes.txt" ;;
               "Black") tool_file="/tmp/black_changes.txt" ;;
@@ -806,6 +815,7 @@ jobs:
               "ESLint") tool_file="/tmp/eslint_changes.txt" ;;
               "stylelint") tool_file="/tmp/stylelint_changes.txt" ;;
               "markdownlint") tool_file="/tmp/markdownlint_changes.txt" ;;
+              "ruff") tool_file="/tmp/ruff_changes.txt" ;;
               "gofmt") tool_file="/tmp/gofmt_changes.txt" ;;
               "golangci-lint") tool_file="/tmp/golangci_changes.txt" ;;
             esac
