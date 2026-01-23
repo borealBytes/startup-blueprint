@@ -67,38 +67,17 @@ validate_cloudflare() {
   else
     log_info "CLOUDFLARE_API_TOKEN is set"
     
-    # Test 1: Verify token with wrangler
+    # Verify token with wrangler (works with both User and Account tokens)
     echo "Testing Cloudflare credentials with wrangler..."
     if wrangler whoami > /dev/null 2>&1; then
       log_info "Cloudflare API token verified via wrangler"
       token_status="✅ Valid"
+      cf_status="✅ Valid"
     else
       log_error "Cloudflare API token is invalid or expired (wrangler test failed)"
       token_status="❌ Invalid"
       cf_status="❌ Invalid"
       OVERALL_RESULT=1
-    fi
-    
-    # Test 2: Verify token with direct API call to user endpoint
-    if [ "$token_status" == "✅ Valid" ]; then
-      echo "Testing Cloudflare API access..."
-      API_RESPONSE=$(curl -s \
-        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-        -H "Content-Type: application/json" \
-        https://api.cloudflare.com/client/v4/user)
-      
-      # Check if the response indicates success
-      if echo "$API_RESPONSE" | jq -e '.success == true' > /dev/null 2>&1; then
-        log_info "Cloudflare API token verified via direct API call"
-        cf_status="✅ Valid"
-      else
-        # Get error message if available
-        ERROR_MSG=$(echo "$API_RESPONSE" | jq -r '.errors[0].message // "Unknown error"' 2>/dev/null)
-        log_error "Cloudflare API call failed: $ERROR_MSG"
-        token_status="❌ API Call Failed"
-        cf_status="❌ Invalid"
-        OVERALL_RESULT=1
-      fi
     fi
   fi
   
@@ -113,7 +92,7 @@ validate_cloudflare() {
   else
     log_info "CLOUDFLARE_ACCOUNT_ID is set: ${CLOUDFLARE_ACCOUNT_ID:0:8}..."
     
-    # Test account access with API
+    # Test account access with API (should work with Account tokens)
     if [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && [ "$token_status" == "✅ Valid" ]; then
       echo "Testing Cloudflare account access..."
       ACCOUNT_RESPONSE=$(curl -s \
@@ -127,6 +106,7 @@ validate_cloudflare() {
       else
         ERROR_MSG=$(echo "$ACCOUNT_RESPONSE" | jq -r '.errors[0].message // "Unknown error"' 2>/dev/null)
         log_error "Cannot access Cloudflare account: $ERROR_MSG"
+        log_error "Check that your API token has 'Account Settings:Read' permission"
         account_status="❌ Cannot Access"
         cf_status="❌ Invalid"
         OVERALL_RESULT=1
@@ -364,7 +344,7 @@ cat >> "$SUMMARY_FILE" << 'EOF'
 <details>
 <summary><b>Validation Methods</b></summary>
 
-- **Cloudflare**: Verified via wrangler CLI and direct API calls to user and account endpoints
+- **Cloudflare**: Verified via wrangler CLI (supports Account and User tokens) and account access API
 - **Google OAuth**: Verified via OAuth2 token endpoint with client_id and client_secret validation
 - **OpenRouter**: Verified via direct API call to models endpoint
 
@@ -376,7 +356,9 @@ cat >> "$SUMMARY_FILE" << 'EOF'
 If any credentials show as invalid:
 
 1. **Cloudflare**: Regenerate API token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens)
-   - Ensure token has permissions: Account Settings:Read, Workers Scripts:Edit
+   - **Use Account API Token** (not User API Token)
+   - Required permissions: Account Settings:Read, Workers Scripts:Edit, D1:Edit, Pages:Edit, R2:Edit, KV:Edit
+   - Required zone permissions: Workers Routes:Edit
 2. **Google OAuth**: Update credentials at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials)
 3. **OpenRouter**: Regenerate API key at [openrouter.ai/keys](https://openrouter.ai/keys)
 4. **Secrets**: Update in repo settings at Settings → Secrets and variables → Actions
