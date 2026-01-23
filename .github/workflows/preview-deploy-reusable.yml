@@ -1,0 +1,153 @@
+name: Deploy to Preview
+
+on:
+  workflow_call:
+    inputs:
+      workspace:
+        description: 'Workspace to deploy (e.g., website)'
+        required: true
+        type: string
+      build_artifact:
+        description: 'Name of the build artifact to deploy'
+        required: true
+        type: string
+      pr_number:
+        description: 'Pull request number'
+        required: true
+        type: number
+    outputs:
+      deployment_url:
+        description: 'URL of the preview deployment'
+        value: ${{ jobs.deploy.outputs.url }}
+
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    
+    environment:
+      name: preview-pr-${{ inputs.pr_number }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_artifact }}
+          path: ./dist
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./dist --project-name=${{ inputs.workspace }} --branch=preview-pr-${{ inputs.pr_number }}
+
+      - name: Extract deployment URL
+        id: extract_url
+        run: |
+          # Cloudflare Pages preview URL pattern
+          PREVIEW_URL="https://preview-pr-${{ inputs.pr_number }}.${{ inputs.workspace }}.pages.dev"
+          echo "url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+          echo "✅ Preview deployed to: $PREVIEW_URL"
+
+      - name: Create deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'preview-pr-${{ inputs.pr_number }}',
+              auto_merge: false,
+              required_contexts: [],
+              description: 'Preview deployment for PR #${{ inputs.pr_number }}'
+            });
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'success',
+              environment_url: '${{ steps.extract_url.outputs.url }}',
+              description: 'Preview deployment successful'
+            });
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.extract_url.outputs.url }}';
+            const workspace = '${{ inputs.workspace }}';
+            
+            const comment = `## 🚀 Preview Deployment
+            
+            Your preview deployment is ready!
+            
+            | Item | Value |
+            |------|-------|
+            | **Workspace** | \`${workspace}\` |
+            | **Environment** | Preview |
+            | **URL** | ${url} |
+            | **Commit** | ${context.sha.substring(0, 7)} |
+            
+            ### Actions
+            - [View Deployment](${url})
+            - [View Logs](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            
+            ---
+            
+            *This preview will be updated with each new commit while the \`Deploy: Website Preview\` label is active.*`;
+            
+            // Find existing preview comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ inputs.pr_number }}
+            });
+            
+            const botComment = comments.data.find(c => 
+              c.user.type === 'Bot' && 
+              c.body.includes('Preview Deployment')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: ${{ inputs.pr_number }},
+                body: comment
+              });
+            }
+
+      - name: Generate deployment summary
+        run: |
+          echo "## 🚀 Preview Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Deployment successful!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Preview URL:** ${{ steps.extract_url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workspace:** ${{ inputs.workspace }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** preview-pr-${{ inputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
