@@ -684,13 +684,17 @@ jobs:
           ISORT_ISSUES=$(get_sample_issues "/tmp/isort.log" "ERROR")
           echo "| **isort** | ${{ steps.isort.outputs.status || '❌ Failed' }} | ${{ steps.isort.outputs.errors || '0' }} | - | - | $ISORT_ISSUES |" >> $GITHUB_STEP_SUMMARY
 
-          # SQLFluff
-          SQLFLUFF_ISSUES=$(get_sample_issues "/tmp/sqlfluff.log" "^L:")
+          # SQLFluff - Only show issues if it failed
+          if [ "${{ steps.sqlfluff.conclusion }}" == "failure" ]; then
+            SQLFLUFF_ISSUES=$(get_sample_issues "/tmp/sqlfluff.log" "^L:")
+          else
+            SQLFLUFF_ISSUES="-"
+          fi
           echo "| **SQLFluff** | ${{ steps.sqlfluff.outputs.status || '❌ Failed' }} | ${{ steps.sqlfluff.outputs.errors || '0' }} | ${{ steps.sqlfluff.outputs.warnings || '0' }} | - | $SQLFLUFF_ISSUES |" >> $GITHUB_STEP_SUMMARY
 
-          # ESLint
+          # ESLint - Include both errors and warnings
           if [ -f "/tmp/eslint.json" ]; then
-            ESLINT_ISSUES=$(jq -r '[.[].messages[] | select(.severity == 2) | "\(.ruleId) (\(.line):\(.column))"] | .[0:3] | join(", ")' /tmp/eslint.json 2>/dev/null || echo "-")
+            ESLINT_ISSUES=$(jq -r '[.[].messages[] | select(.severity == 1 or .severity == 2) | "\(.ruleId) (\(.line):\(.column))"] | .[0:3] | join(", ")' /tmp/eslint.json 2>/dev/null || echo "-")
           else
             ESLINT_ISSUES="-"
           fi
