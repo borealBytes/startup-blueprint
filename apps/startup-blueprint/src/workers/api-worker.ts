@@ -58,6 +58,7 @@ export default {
 
       return new Response('Not Found', { status: 404 });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('API error:', error);
       return new Response('Internal Server Error', { status: 500 });
     }
@@ -174,6 +175,7 @@ async function handleGetFiles(request: Request, env: Env): Promise<Response> {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error listing files:', error);
     return new Response(JSON.stringify([]), {
       headers: { 'Content-Type': 'application/json' },
