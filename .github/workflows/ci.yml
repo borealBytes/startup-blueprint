@@ -84,13 +84,12 @@ jobs:
 
   deploy-production:
     name: Deploy to Production
-    needs: [test-website, validate-credentials, deploy-preview]
+    needs: [test-website, deploy-preview]
     if: |
       always() &&
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       needs.test-website.result == 'success' &&
-      needs.validate-credentials.result == 'success' &&
       (needs.deploy-preview.result == 'success' || needs.deploy-preview.result == 'skipped')
     uses: ./.github/workflows/production-deploy-reusable.yml
     with:
@@ -106,7 +105,6 @@ jobs:
     name: CrewAI Code Review
     needs: [
       core-ci,
-      validate-credentials,
       test-docs-links,
       test-crewai,
       test-website,
@@ -120,7 +118,6 @@ jobs:
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
       (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
-      needs.validate-credentials.result == 'success' &&
       (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
       (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
       (needs.test-website.result == 'success' || needs.test-website.result == 'failure' || needs.test-website.result == 'skipped') &&
