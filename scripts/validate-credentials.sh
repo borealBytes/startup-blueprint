@@ -62,20 +62,43 @@ validate_cloudflare() {
   if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
     log_error "CLOUDFLARE_API_TOKEN not set"
     token_status="❌ Not Set"
+    cf_status="❌ Invalid"
     OVERALL_RESULT=1
   else
     log_info "CLOUDFLARE_API_TOKEN is set"
     
-    # Test token validity with wrangler
+    # Test 1: Verify token with wrangler
+    echo "Testing Cloudflare credentials with wrangler..."
     if wrangler whoami > /dev/null 2>&1; then
-      log_info "Cloudflare API token is valid"
+      log_info "Cloudflare API token verified via wrangler"
       token_status="✅ Valid"
-      cf_status="✅ Valid"
     else
-      log_error "Cloudflare API token is invalid or expired"
+      log_error "Cloudflare API token is invalid or expired (wrangler test failed)"
       token_status="❌ Invalid"
       cf_status="❌ Invalid"
       OVERALL_RESULT=1
+    fi
+    
+    # Test 2: Verify token with direct API call
+    if [ "$token_status" == "✅ Valid" ]; then
+      echo "Testing Cloudflare API access..."
+      HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        https://api.cloudflare.com/client/v4/user/tokens/verify)
+      
+      if [ "$HTTP_CODE" == "200" ]; then
+        log_info "Cloudflare API token verified via direct API call"
+        cf_status="✅ Valid"
+      elif [ "$HTTP_CODE" == "401" ]; then
+        log_error "Cloudflare API token is invalid (401 Unauthorized)"
+        token_status="❌ Invalid"
+        cf_status="❌ Invalid"
+        OVERALL_RESULT=1
+      else
+        log_warn "Cloudflare API returned unexpected status: $HTTP_CODE"
+        cf_status="⚠️ Check Token"
+      fi
     fi
   fi
   
@@ -83,10 +106,33 @@ validate_cloudflare() {
   if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
     log_error "CLOUDFLARE_ACCOUNT_ID not set"
     account_status="❌ Not Set"
+    if [ "$cf_status" != "❌ Invalid" ]; then
+      cf_status="❌ Invalid"
+    fi
     OVERALL_RESULT=1
   else
     log_info "CLOUDFLARE_ACCOUNT_ID is set: ${CLOUDFLARE_ACCOUNT_ID:0:8}..."
-    account_status="✅ Set"
+    
+    # Test account access with API
+    if [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && [ "$token_status" == "✅ Valid" ]; then
+      echo "Testing Cloudflare account access..."
+      ACCOUNT_RESPONSE=$(curl -s \
+        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID")
+      
+      if echo "$ACCOUNT_RESPONSE" | jq -e '.success == true' > /dev/null 2>&1; then
+        log_info "Cloudflare account access verified"
+        account_status="✅ Valid"
+      else
+        log_error "Cannot access Cloudflare account (check account ID or token permissions)"
+        account_status="❌ Cannot Access"
+        cf_status="❌ Invalid"
+        OVERALL_RESULT=1
+      fi
+    else
+      account_status="✅ Set"
+    fi
   fi
   
   # Add rows with rowspan logic (service column merged)
@@ -172,17 +218,21 @@ validate_google() {
   
   # Verify credentials actually work by calling Google's OAuth2 API
   if [ "$credentials_valid" = true ]; then
-    echo "Verifying Google OAuth credentials..."
+    echo "Testing Google OAuth API connectivity..."
     
-    # Try to verify the client_id exists using Google's discovery endpoint
+    # First verify Google's OAuth endpoint is accessible
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
       "https://accounts.google.com/.well-known/openid-configuration")
     
-    if [ "$HTTP_CODE" == "200" ]; then
+    if [ "$HTTP_CODE" != "200" ]; then
+      log_error "Google OAuth endpoint unreachable (HTTP $HTTP_CODE)"
+      google_status="❌ Unreachable"
+      OVERALL_RESULT=1
+    else
       log_info "Google OAuth endpoint is accessible"
       
-      # Try a token request with invalid grant to verify client credentials
-      # This will fail (expected) but will tell us if the client_id/secret are valid
+      # Now verify credentials by making a token request
+      echo "Verifying Google OAuth credentials with API..."
       RESPONSE=$(curl -s -X POST "https://oauth2.googleapis.com/token" \
         -d "client_id=$GOOGLE_CLIENT_ID" \
         -d "client_secret=$GOOGLE_CLIENT_SECRET" \
@@ -190,26 +240,23 @@ validate_google() {
         -d "code=invalid_code_for_testing" \
         -d "redirect_uri=$GOOGLE_REDIRECT_URI" 2>&1)
       
-      # Check the error response
+      # Check the error response to determine credential validity
       if echo "$RESPONSE" | grep -q "invalid_client"; then
         log_error "Google OAuth credentials are invalid (client_id or client_secret wrong)"
         google_status="❌ Invalid Credentials"
         OVERALL_RESULT=1
       elif echo "$RESPONSE" | grep -q "invalid_grant\|invalid_request"; then
-        # This is expected - the code is invalid, but credentials are correct
-        log_info "Google OAuth credentials are valid"
+        # This is expected - the code is invalid, but credentials are accepted by Google
+        log_info "Google OAuth credentials verified via API (client_id and client_secret are valid)"
         google_status="✅ Valid"
       elif echo "$RESPONSE" | grep -q "redirect_uri_mismatch"; then
         log_warn "Google OAuth credentials valid but redirect_uri may not be registered in Google Console"
         google_status="⚠️ Check Redirect URI"
       else
+        # Unknown response, but credentials format is valid
         log_info "Google OAuth credentials format validated (full verification requires OAuth flow)"
         google_status="✅ Format Valid"
       fi
-    else
-      log_error "Google OAuth endpoint unreachable"
-      google_status="❌ Unreachable"
-      OVERALL_RESULT=1
     fi
   fi
   
@@ -240,14 +287,14 @@ validate_openrouter() {
       log_info "OPENROUTER_API_KEY format is valid"
       
       # Test API key with actual API call to models endpoint
-      echo "Testing OpenRouter API..."
+      echo "Testing OpenRouter API connectivity..."
       HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
         -H "Authorization: Bearer $OPENROUTER_API_KEY" \
         -H "Content-Type: application/json" \
         https://openrouter.ai/api/v1/models)
       
       if [ "$HTTP_CODE" == "200" ]; then
-        log_info "OpenRouter API key is valid and active"
+        log_info "OpenRouter API key verified via API (valid and active)"
         openrouter_status="✅ Valid"
       elif [ "$HTTP_CODE" == "401" ]; then
         log_error "OpenRouter API key is invalid or expired (401 Unauthorized)"
@@ -305,10 +352,16 @@ cat >> "$SUMMARY_FILE" << 'EOF'
 
 ### Legend
 
-- ✅ **Valid**: Credential is properly configured and validated
+- ✅ **Valid**: Credential is properly configured and verified via API
 - ⚠️ **Warning**: Credential is set but format may be invalid or rate limited
 - ❌ **Invalid**: Credential is missing, expired, or invalid
 - **Bold rows**: Overall service status
+
+### Validation Methods
+
+- **Cloudflare**: Verified via wrangler CLI and direct API calls to token verification and account endpoints
+- **Google OAuth**: Verified via OAuth2 token endpoint with client_id and client_secret validation
+- **OpenRouter**: Verified via direct API call to models endpoint
 
 ### Actions Required
 
