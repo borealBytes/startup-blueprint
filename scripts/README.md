@@ -12,18 +12,19 @@ Validates all environment variables and secrets required for the startup-bluepri
 
 #### What It Checks
 
-| Service | Credentials | Type | Validation |
-|---------|-------------|------|------------|
-| **Cloudflare** | API Token | Secret | Tests with `wrangler whoami` |
-| | Account ID | Secret | Checks if set |
-| **Google OAuth** | Client ID | Secret | Format validation (.apps.googleusercontent.com) |
-| | Client Secret | Secret | Format validation (GOCSPX-) |
-| | Redirect URI | Variable | Format validation (https://*.SuperiorByteWorks.com/auth/callback) |
-| **GitHub** | Token | Auto-provided | Checks availability in Actions context |
+| Service          | Credentials   | Type          | Validation                                                         |
+| ---------------- | ------------- | ------------- | ------------------------------------------------------------------ |
+| **Cloudflare**   | API Token     | Secret        | Tests with `wrangler whoami`                                       |
+|                  | Account ID    | Secret        | Checks if set                                                      |
+| **Google OAuth** | Client ID     | Secret        | Format validation (.apps.googleusercontent.com)                    |
+|                  | Client Secret | Secret        | Format validation (GOCSPX-)                                        |
+|                  | Redirect URI  | Variable      | Format validation (https://\*.SuperiorByteWorks.com/auth/callback) |
+| **GitHub**       | Token         | Auto-provided | Checks availability in Actions context                             |
 
 #### Usage
 
 **In GitHub Actions (Automatic)**:
+
 ```yaml
 # Runs in CI on every PR
 validate-credentials:
@@ -33,6 +34,7 @@ validate-credentials:
 ```
 
 **Local Testing**:
+
 ```bash
 # Export credentials first
 export CLOUDFLARE_API_TOKEN="your-token"
@@ -50,15 +52,15 @@ bash scripts/validate-credentials.sh
 The script generates a formatted markdown table in GitHub Actions summary:
 
 ```markdown
-| Service | Credential | Type | Value | Status |
-|---------|------------|------|-------|--------|
-| **Cloudflare** | API Token | Secret | •••••••• | ✅ Valid |
-| | Account ID | Secret | abc12345••• | ✅ Set |
-| | | | | **✅ Valid** |
-| **Google OAuth** | Client ID | Secret | 123456789••• | ✅ Valid Format |
-| | Client Secret | Secret | •••••••• | ✅ Valid Format |
-| | Redirect URI | Variable | https://... | ✅ Valid Format |
-| | | | | **✅ Valid** |
+| Service          | Credential    | Type     | Value        | Status          |
+| ---------------- | ------------- | -------- | ------------ | --------------- |
+| **Cloudflare**   | API Token     | Secret   | ••••••••     | ✅ Valid        |
+|                  | Account ID    | Secret   | abc12345•••  | ✅ Set          |
+|                  |               |          |              | **✅ Valid**    |
+| **Google OAuth** | Client ID     | Secret   | 123456789••• | ✅ Valid Format |
+|                  | Client Secret | Secret   | ••••••••     | ✅ Valid Format |
+|                  | Redirect URI  | Variable | https://...  | ✅ Valid Format |
+|                  |               |          |              | **✅ Valid**    |
 ```
 
 #### Status Codes
@@ -76,6 +78,7 @@ The script generates a formatted markdown table in GitHub Actions summary:
 #### Troubleshooting
 
 **Cloudflare Token Invalid**:
+
 1. Generate new token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens)
 2. Ensure permissions include:
    - Cloudflare Pages (Edit)
@@ -86,11 +89,13 @@ The script generates a formatted markdown table in GitHub Actions summary:
 3. Update in GitHub: Settings → Secrets → `CLOUDFLARE_API_TOKEN`
 
 **Google OAuth Invalid**:
+
 1. Verify credentials at [console.cloud.google.com](https://console.cloud.google.com/apis/credentials)
 2. Check redirect URI matches exactly (including trailing paths)
 3. Update in GitHub Secrets
 
 **Script Fails in CI**:
+
 1. Check Actions logs for specific error
 2. Verify all secrets are set in repo settings
 3. Ensure secrets aren't expired
@@ -100,6 +105,7 @@ The script generates a formatted markdown table in GitHub Actions summary:
 To add validation for new services:
 
 1. **Add validation function** in `validate-credentials.sh`:
+
    ```bash
    validate_myservice() {
      if [ -z "${MY_API_KEY:-}" ]; then
@@ -108,7 +114,7 @@ To add validation for new services:
        OVERALL_RESULT=1
        return
      fi
-     
+
      # Test the credential
      if curl -s -H "Authorization: Bearer $MY_API_KEY" https://api.myservice.com/test | grep -q "success"; then
        add_row "**MyService**" "API Key" "Secret" "•••" "✅ Valid"
@@ -120,6 +126,7 @@ To add validation for new services:
    ```
 
 2. **Call function** in main execution:
+
    ```bash
    validate_cloudflare
    validate_google
@@ -128,6 +135,7 @@ To add validation for new services:
    ```
 
 3. **Add to workflow** in `.github/workflows/validate-credentials-reusable.yml`:
+
    ```yaml
    env:
      MY_API_KEY: ${{ secrets.MY_API_KEY }}
