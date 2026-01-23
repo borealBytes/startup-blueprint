@@ -28,7 +28,7 @@ jobs:
         run: |
           set -e
           echo "🔍 Checking if documentation files changed..."
-          
+
           # Determine base and head for diff
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             BASE="${{ github.event.pull_request.base.sha }}"
@@ -37,10 +37,10 @@ jobs:
             BASE="${{ github.event.before }}"
             HEAD="${{ github.sha }}"
           fi
-          
+
           # Check for .md files or docs/ directory changes
           CHANGED_FILES=$(git diff --name-only $BASE $HEAD | grep -E '\.md$|^docs/' || true)
-          
+
           if [ -z "$CHANGED_FILES" ]; then
             echo "⏭️  No documentation files changed - skipping link check"
             echo "should_run=false" >> $GITHUB_OUTPUT
@@ -70,11 +70,11 @@ jobs:
         run: |
           echo "## 🔗 Documentation Link Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f ./lychee-report.md ]; then
             # Read the report
             REPORT=$(cat ./lychee-report.md)
-            
+
             # Check if all links are working
             if echo "$REPORT" | grep -q "0 Broken"; then
               echo "✅ **All links are working!**" >> $GITHUB_STEP_SUMMARY
@@ -83,7 +83,7 @@ jobs:
               echo "⚠️ **Some links may be broken:**" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
             fi
-            
+
             # Process the report to make redirect sections collapsible
             IN_REDIRECT_SECTION=false
             while IFS= read -r line; do
@@ -95,7 +95,7 @@ jobs:
                 echo "" >> $GITHUB_STEP_SUMMARY
                 continue
               fi
-              
+
               # Check if we're exiting the redirect section (next ## header)
               if [ "$IN_REDIRECT_SECTION" = true ] && echo "$line" | grep -q "^## " && ! echo "$line" | grep -q "Redirects"; then
                 echo "" >> $GITHUB_STEP_SUMMARY
@@ -103,10 +103,10 @@ jobs:
                 echo "" >> $GITHUB_STEP_SUMMARY
                 IN_REDIRECT_SECTION=false
               fi
-              
+
               echo "$line" >> $GITHUB_STEP_SUMMARY
             done < ./lychee-report.md
-            
+
             # Close redirect section if we reached end of file
             if [ "$IN_REDIRECT_SECTION" = true ]; then
               echo "" >> $GITHUB_STEP_SUMMARY
