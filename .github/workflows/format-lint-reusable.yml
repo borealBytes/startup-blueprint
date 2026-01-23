@@ -658,16 +658,24 @@ jobs:
         if: always()
         run: |
           FAILED=false
-          CHECKS=('prettier' 'black' 'isort' 'sqlfluff' 'eslint' 'stylelint' \
-                  'markdownlint' 'yamllint' 'shellcheck' 'ruff' 'gofmt' \
-                  'golangci' 'commitlint' 'typescript')
 
-          for check in "${CHECKS[@]}"; do
-            if [[ "${{ steps.$check.conclusion }}" == "failure" ]]; then
-              FAILED=true
-              break
-            fi
-          done
+          # Explicitly check each step conclusion
+          if [[ "${{ steps.prettier.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.black.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.isort.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.sqlfluff.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.eslint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.stylelint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.yamllint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.shellcheck.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.ruff.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.gofmt.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.golangci.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.commitlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.typescript.conclusion }}" == "failure" ]]; then
+            FAILED=true
+          fi
 
           if [ "$FAILED" == "true" ]; then
             echo "## ❌ Format & Lint Summary: Failures Detected" >> $GITHUB_STEP_SUMMARY
@@ -853,16 +861,24 @@ jobs:
       - name: Fail job if any check failed
         if: always()
         run: |
-          CHECKS=('prettier' 'black' 'isort' 'sqlfluff' 'eslint' 'stylelint' \
-                  'markdownlint' 'yamllint' 'shellcheck' 'ruff' 'gofmt' \
-                  'golangci' 'commitlint' 'typescript')
-
-          for check in "${CHECKS[@]}"; do
-            if [[ "${{ steps.$check.conclusion }}" == "failure" ]]; then
-              echo "❌ One or more format/lint checks failed"
-              exit 1
-            fi
-          done
+          # Explicitly check each step conclusion
+          if [[ "${{ steps.prettier.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.black.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.isort.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.sqlfluff.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.eslint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.stylelint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.markdownlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.yamllint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.shellcheck.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.ruff.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.gofmt.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.golangci.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.commitlint.conclusion }}" == "failure" ]] || \
+             [[ "${{ steps.typescript.conclusion }}" == "failure" ]]; then
+            echo "❌ One or more format/lint checks failed"
+            exit 1
+          fi
 
       - name: Build commit message with per-tool breakdown
         if: steps.check_changes.outputs.changes == 'true'
