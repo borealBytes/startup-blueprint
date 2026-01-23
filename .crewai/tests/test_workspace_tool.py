@@ -16,6 +16,7 @@ class TestWorkspaceTool:
         """Test that workspace directory is created on init."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tool = WorkspaceTool(workspace_dir=tmpdir)
+            assert tool is not None
             assert os.path.exists(tmpdir)
 
     def test_write_file(self):
