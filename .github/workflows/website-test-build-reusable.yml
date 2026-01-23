@@ -54,6 +54,10 @@ jobs:
             echo "📊 PR Mode: Comparing entire PR diff"
             echo "   Base: $BASE (target branch)"
             echo "   Head: $HEAD (PR branch)"
+            
+            # Ensure we have the base commit
+            echo "📥 Fetching base commit if needed..."
+            git fetch origin "$BASE" --depth=1 || true
           else
             # Direct push to main (no PR context) - check single commit only
             BASE="${{ github.event.before }}"
@@ -71,7 +75,13 @@ jobs:
             exit 0
           fi
 
+          # Debug: Show what we have
+          echo "🔍 Debug: Checking if commits exist..."
+          git rev-parse "$BASE" >/dev/null 2>&1 && echo "  ✓ Base commit exists" || echo "  ✗ Base commit missing"
+          git rev-parse "$HEAD" >/dev/null 2>&1 && echo "  ✓ Head commit exists" || echo "  ✗ Head commit missing"
+
           # Check for website/ directory changes across the entire diff
+          echo "🔍 Running diff..."
           CHANGED_FILES=$(git diff --name-only "$BASE".."$HEAD" | grep '^website/' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
