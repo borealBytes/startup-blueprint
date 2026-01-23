@@ -61,6 +61,7 @@ jobs:
           format: markdown
           output: ./lychee-report.md
           fail: false
+          jobSummary: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
