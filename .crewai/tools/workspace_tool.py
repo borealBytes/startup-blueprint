@@ -72,7 +72,7 @@ class WorkspaceTool(BaseTool):
         # Auto-stringify JSON if dict/list is passed
         if isinstance(content, (dict, list)):
             try:
-                content = json.dumps(content, indent=2)
+                content = json.dumps(content, indent=2)  # noqa: F841
                 logger.info(f"🔄 Auto-stringified JSON for {filename} ({len(content)} bytes)")
             except Exception as e:
                 logger.error(f"❌ Failed to stringify JSON: {e}")
