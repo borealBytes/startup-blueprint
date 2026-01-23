@@ -54,7 +54,7 @@ jobs:
             echo "📊 PR Mode: Comparing entire PR diff"
             echo "   Base: $BASE (target branch)"
             echo "   Head: $HEAD (PR branch)"
-            
+
             # Ensure we have the base commit
             echo "📥 Fetching base commit if needed..."
             git fetch origin "$BASE" --depth=1 || true
