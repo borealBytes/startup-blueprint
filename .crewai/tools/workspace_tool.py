@@ -95,13 +95,13 @@ class WorkspaceTool(BaseTool):
 
     def read(self, filename: str) -> str:
         """Read file from workspace with intelligent size limiting.
-        
+
         For files larger than MAX_FILE_SIZE (100KB), returns:
         - Summary header with file size and truncation notice
         - First TRUNCATE_CONTEXT_SIZE (30KB) of content
         - Truncation marker
         - Last TRUNCATE_CONTEXT_SIZE (30KB) of content
-        
+
         This ensures LLM context limits aren't exceeded while still
         providing useful context from both ends of the file.
         """
@@ -112,38 +112,37 @@ class WorkspaceTool(BaseTool):
 
         try:
             file_size = filepath.stat().st_size
-            
+
             # For small files, read normally
             if file_size <= MAX_FILE_SIZE:
                 with open(filepath) as f:
                     content = f.read()
                 logger.info(f"📖 Read {len(content)} bytes from {filepath}")
                 return content
-            
+
             # For large files, provide truncated view with context from both ends
             with open(filepath) as f:
                 start_content = f.read(TRUNCATE_CONTEXT_SIZE)
                 # Seek to near end
                 f.seek(max(0, file_size - TRUNCATE_CONTEXT_SIZE))
                 end_content = f.read(TRUNCATE_CONTEXT_SIZE)
-            
+
             truncated_size = len(start_content) + len(end_content)
-            truncation_notice = f"""\n\n{'=' * 80}
+            truncation_notice = f"""\n\n{"=" * 80}
 [FILE TRUNCATED - Too large for LLM context]
 Original size: {file_size:,} bytes ({file_size / 1024:.1f} KB)
 Showing: First {len(start_content):,} + Last {len(end_content):,} bytes
 Omitted: {file_size - truncated_size:,} bytes from middle
-{'=' * 80}\n\n"""
-            
+{"=" * 80}\n\n"""
+
             result = start_content + truncation_notice + end_content
-            
+
             logger.warning(
-                f"⚠️ Large file truncated: {filepath} "
-                f"({file_size:,} bytes -> {len(result):,} bytes)"
+                f"⚠️ Large file truncated: {filepath} ({file_size:,} bytes -> {len(result):,} bytes)"
             )
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"❌ Error reading {filepath}: {e}")
             return ""
