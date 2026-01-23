@@ -1,0 +1,20 @@
+name = "startup-blueprint"
+main = "src/workers/api-worker.ts"
+compatibility_date = "2026-01-23"
+
+[env.preview]
+# Route dynamically set by setup script
+# Example: feat-startup-blueprint-monorepo-structure.startup-blueprint.SuperiorByteWorks.com
+
+[[env.preview.kv_namespaces]]
+binding = "SESSION_STORE"
+# ID set during setup
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "startup_blueprint_db"
+# ID set during setup
+
+[[env.preview.r2_buckets]]
+binding = "STORAGE"
+bucket_name = "startup-blueprint-assets"

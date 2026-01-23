@@ -1,0 +1,48 @@
+[project]
+name = "startup-blueprint-crewai"
+version = "0.1.0"
+description = "CrewAI multi-agent code review system for startup-blueprint"
+requires-python = ">=3.10,<=3.13"
+readme = "README.md"
+license = {text = "MIT"}
+
+dependencies = [
+    "crewai>=0.86.0",
+    "crewai-tools>=0.12.0",
+    "PyGithub>=2.1.1",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.1",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.6.0",
+    "black>=24.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = [".crewai/tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --cov=.crewai --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312", "py313"]

@@ -1,0 +1,25 @@
+{
+  "name": "startup-blueprint",
+  "version": "1.0.0",
+  "description": "Template website demonstrating Cloudflare Pages + Workers + D1 + R2",
+  "scripts": {
+    "dev": "wrangler pages dev src/pages --port 8788",
+    "build": "npm run build:pages && npm run build:workers",
+    "build:pages": "echo 'Pages build complete (static files)'",
+    "build:workers": "wrangler deploy --dry-run",
+    "deploy:preview": "bash scripts/setup-all.sh",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20240117.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.22.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "@playwright/test": "^1.40.0",
+    "eslint": "^8.56.0"
+  }
+}
