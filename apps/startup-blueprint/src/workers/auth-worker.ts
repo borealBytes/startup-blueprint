@@ -44,6 +44,7 @@ export default {
 
       return new Response('Not Found', { status: 404 });
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Auth error:', error);
       return new Response('Internal Server Error', { status: 500 });
     }
