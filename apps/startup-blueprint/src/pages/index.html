@@ -1,98 +1,129 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Startup Blueprint - Your Business Template</title>
-  <meta name="description" content="Free comprehensive guide to starting a business with Cloudflare infrastructure">
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
-  <div class="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8 md:p-12">
-    <!-- Logo/Icon -->
-    <div class="text-center mb-8">
-      <div class="inline-block p-4 bg-indigo-100 rounded-full mb-4">
-        <svg class="w-16 h-16 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-        </svg>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Startup Blueprint - Your Business Template</title>
+    <meta
+      name="description"
+      content="Free comprehensive guide to starting a business with Cloudflare infrastructure"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4"
+  >
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8 md:p-12">
+      <!-- Logo/Icon -->
+      <div class="text-center mb-8">
+        <div class="inline-block p-4 bg-indigo-100 rounded-full mb-4">
+          <svg
+            class="w-16 h-16 text-indigo-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+          Startup Blueprint
+        </h1>
+        <p class="text-xl text-gray-600">
+          Your template for rapid Cloudflare deployment
+        </p>
       </div>
-      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Startup Blueprint</h1>
-      <p class="text-xl text-gray-600">Your template for rapid Cloudflare deployment</p>
-    </div>
 
-    <!-- Description -->
-    <div class="mb-8 text-center">
-      <p class="text-gray-700 text-lg leading-relaxed">
-        A comprehensive, free guide to starting and operating a business from day one. 
-        Includes legal setup, technical infrastructure, and deployment automation.
-      </p>
-    </div>
+      <!-- Description -->
+      <div class="mb-8 text-center">
+        <p class="text-gray-700 text-lg leading-relaxed">
+          A comprehensive, free guide to starting and operating a business from
+          day one. Includes legal setup, technical infrastructure, and
+          deployment automation.
+        </p>
+      </div>
 
-    <!-- Email Capture Form -->
-    <form id="email-form" class="mb-8">
-      <div class="flex flex-col sm:flex-row gap-3">
-        <input 
-          type="email" 
-          id="email-input"
-          placeholder="Enter your email" 
-          required
-          class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition"
-        />
-        <button 
-          type="submit"
-          class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition transform hover:scale-105"
+      <!-- Email Capture Form -->
+      <form id="email-form" class="mb-8">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            type="email"
+            id="email-input"
+            placeholder="Enter your email"
+            required
+            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition"
+          />
+          <button
+            type="submit"
+            class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition transform hover:scale-105"
+          >
+            Get Started
+          </button>
+        </div>
+        <p id="form-message" class="mt-2 text-sm text-center hidden"></p>
+      </form>
+
+      <!-- CTA Button -->
+      <div class="text-center">
+        <a
+          href="/login"
+          class="inline-block px-8 py-3 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition"
         >
-          Get Started
-        </button>
+          Learn More →
+        </a>
       </div>
-      <p id="form-message" class="mt-2 text-sm text-center hidden"></p>
-    </form>
 
-    <!-- CTA Button -->
-    <div class="text-center">
-      <a 
-        href="/login" 
-        class="inline-block px-8 py-3 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition"
+      <!-- Footer -->
+      <div
+        class="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm"
       >
-        Learn More →
-      </a>
+        <p>Powered by Cloudflare • Open Source</p>
+        <p class="mt-2">
+          Contact:
+          <a
+            href="mailto:hello@superiorbyteworks.com"
+            class="text-indigo-600 hover:underline"
+            >hello@superiorbyteworks.com</a
+          >
+        </p>
+      </div>
     </div>
 
-    <!-- Footer -->
-    <div class="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
-      <p>Powered by Cloudflare • Open Source</p>
-      <p class="mt-2">Contact: <a href="mailto:hello@superiorbyteworks.com" class="text-indigo-600 hover:underline">hello@superiorbyteworks.com</a></p>
-    </div>
-  </div>
+    <script>
+      document
+        .getElementById('email-form')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const email = document.getElementById('email-input').value;
+          const message = document.getElementById('form-message');
 
-  <script>
-    document.getElementById('email-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email-input').value;
-      const message = document.getElementById('form-message');
-      
-      try {
-        const response = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
+          try {
+            const response = await fetch('/api/contact', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email }),
+            });
+
+            if (response.ok) {
+              message.textContent = "✓ Thank you! We'll be in touch.";
+              message.className = 'mt-2 text-sm text-center text-green-600';
+              document.getElementById('email-input').value = '';
+            } else {
+              throw new Error('Failed to submit');
+            }
+          } catch (error) {
+            message.textContent = '✗ Something went wrong. Please try again.';
+            message.className = 'mt-2 text-sm text-center text-red-600';
+          }
+
+          message.classList.remove('hidden');
+          setTimeout(() => message.classList.add('hidden'), 5000);
         });
-        
-        if (response.ok) {
-          message.textContent = '✓ Thank you! We\'ll be in touch.';
-          message.className = 'mt-2 text-sm text-center text-green-600';
-          document.getElementById('email-input').value = '';
-        } else {
-          throw new Error('Failed to submit');
-        }
-      } catch (error) {
-        message.textContent = '✗ Something went wrong. Please try again.';
-        message.className = 'mt-2 text-sm text-center text-red-600';
-      }
-      
-      message.classList.remove('hidden');
-      setTimeout(() => message.classList.add('hidden'), 5000);
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

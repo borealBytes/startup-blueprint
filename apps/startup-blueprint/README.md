@@ -68,6 +68,7 @@ bash scripts/setup-all.sh main
 ```
 
 This will:
+
 1. Create D1 database with schema
 2. Create R2 storage bucket
 3. Create KV namespace for sessions
@@ -127,6 +128,7 @@ bash ../../scripts/cloudflare/teardown-helper.sh startup-blueprint main
 ```
 
 This will:
+
 - Delete Pages deployment
 - Delete D1 database
 - Delete R2 bucket

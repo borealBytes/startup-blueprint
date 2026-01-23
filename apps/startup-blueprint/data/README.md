@@ -10,11 +10,13 @@ This directory contains database schemas and demo data for the Startup Blueprint
 ## Usage
 
 Schema is automatically applied during setup:
+
 ```bash
 bash scripts/setup-all.sh
 ```
 
 To manually apply schema:
+
 ```bash
 wrangler d1 execute startup_blueprint_db --file=data/schema.sql
 ```
@@ -22,10 +24,13 @@ wrangler d1 execute startup_blueprint_db --file=data/schema.sql
 ## Database Structure
 
 ### users
+
 Stores authenticated user information from Google OAuth.
 
 ### activity
+
 Tracks user actions and events for the dashboard.
 
 ### contacts
+
 Stores email submissions from the coming soon page.

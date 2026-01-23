@@ -21,7 +21,7 @@ interface GoogleUserInfo {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    
+
     // CORS headers
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*.SuperiorByteWorks.com',
@@ -37,7 +37,7 @@ export default {
       if (url.pathname === '/auth/google') {
         return handleGoogleAuthRedirect(env);
       }
-      
+
       if (url.pathname === '/auth/callback') {
         return await handleGoogleCallback(request, env);
       }
@@ -53,7 +53,7 @@ export default {
 function handleGoogleAuthRedirect(env: Env): Response {
   const state = crypto.randomUUID();
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  
+
   authUrl.searchParams.set('client_id', env.GOOGLE_CLIENT_ID);
   authUrl.searchParams.set('redirect_uri', env.GOOGLE_REDIRECT_URI);
   authUrl.searchParams.set('response_type', 'code');
@@ -63,7 +63,10 @@ function handleGoogleAuthRedirect(env: Env): Response {
   return Response.redirect(authUrl.toString(), 302);
 }
 
-async function handleGoogleCallback(request: Request, env: Env): Promise<Response> {
+async function handleGoogleCallback(
+  request: Request,
+  env: Env
+): Promise<Response> {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -85,24 +88,31 @@ async function handleGoogleCallback(request: Request, env: Env): Promise<Respons
     }),
   });
 
-  const tokens = await tokenResponse.json() as { access_token: string };
+  const tokens = (await tokenResponse.json()) as { access_token: string };
 
   // Get user info
-  const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: { Authorization: `Bearer ${tokens.access_token}` },
-  });
+  const userInfoResponse = await fetch(
+    'https://www.googleapis.com/oauth2/v2/userinfo',
+    {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+    }
+  );
 
   const userInfo: GoogleUserInfo = await userInfoResponse.json();
 
   // Store/update user in D1
-  await env.DB.prepare(`
+  await env.DB.prepare(
+    `
     INSERT INTO users (id, email, name, picture_url, updated_at)
     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       picture_url = excluded.picture_url,
       updated_at = CURRENT_TIMESTAMP
-  `).bind(userInfo.id, userInfo.email, userInfo.name, userInfo.picture).run();
+  `
+  )
+    .bind(userInfo.id, userInfo.email, userInfo.name, userInfo.picture)
+    .run();
 
   // Create session token
   const sessionToken = crypto.randomUUID();
