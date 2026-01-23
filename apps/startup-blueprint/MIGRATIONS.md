@@ -10,6 +10,7 @@ This guide explains the database schema, migration procedures, and best practice
 **Local Development:** SQLite (compatible with D1)
 
 Cloudflare D1 is a SQLite-based serverless database that runs on Cloudflare's global network. It provides:
+
 - Automatic replication across Cloudflare's edge locations
 - Serverless execution (no servers to manage)
 - SQLite compatibility (use standard SQLite syntax)
@@ -38,6 +39,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC);
 ```
 
 **Columns:**
+
 - `id` - Auto-incrementing primary key
 - `title` - Task title (required, max 255 chars recommended)
 - `description` - Task description (optional, TEXT type for longer content)
@@ -47,10 +49,12 @@ CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC);
 - `updated_at` - Timestamp when task was last modified
 
 **Constraints:**
+
 - `status` must be one of: pending, in_progress, completed
 - `priority` must be one of: low, medium, high
 
 **Indexes:**
+
 - `idx_tasks_status` - Optimizes queries filtering by status
 - `idx_tasks_created_at` - Optimizes queries ordering by creation date
 
@@ -68,10 +72,12 @@ touch migrations/$(date +%Y%m%d_%H%M%S)_migration_name.sql
 ```
 
 **Migration file naming convention:**
+
 - `YYYYMMDD_HHMMSS_description.sql`
 - Example: `20260123_180000_add_tasks_table.sql`
 
 **Example migration file:**
+
 ```sql
 -- Migration: Add tasks table
 -- Date: 2026-01-23
@@ -127,6 +133,7 @@ pnpm run deploy
 ### ✅ DO
 
 1. **Make migrations idempotent** - Use `IF NOT EXISTS`, `IF EXISTS` clauses
+
    ```sql
    CREATE TABLE IF NOT EXISTS users (...);
    ALTER TABLE tasks ADD COLUMN IF NOT EXISTS priority TEXT;
@@ -134,11 +141,13 @@ pnpm run deploy
 
 2. **Test migrations locally first** - Always test on local database before production
 3. **Create indexes for frequently queried columns**
+
    ```sql
    CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
    ```
 
 4. **Use CHECK constraints for enums** - Enforce valid values at database level
+
    ```sql
    status TEXT CHECK(status IN ('pending', 'in_progress', 'completed'))
    ```
@@ -172,6 +181,7 @@ ALTER TABLE tasks ADD COLUMN due_date DATETIME CHECK(due_date > created_at);
 **⚠️ SQLite Limitation:** SQLite doesn't support `DROP COLUMN` directly.
 
 **Workaround:**
+
 ```sql
 -- 1. Create new table without the column
 CREATE TABLE tasks_new (
@@ -249,21 +259,24 @@ wrangler d1 export startup-blueprint-db --remote --output=backup-before-migratio
 ### If Migration Fails
 
 1. **Identify the issue**
+
    ```bash
    # Check D1 logs
    wrangler tail
    ```
 
 2. **Export current state (if possible)**
+
    ```bash
    wrangler d1 export startup-blueprint-db --remote --output=failed-migration-backup.sql
    ```
 
 3. **Restore from backup**
+
    ```bash
    # Drop affected tables
    wrangler d1 execute startup-blueprint-db --remote --command="DROP TABLE IF EXISTS tasks"
-   
+
    # Restore from backup
    wrangler d1 execute startup-blueprint-db --remote --file=backup-before-migration.sql
    ```
@@ -275,11 +288,13 @@ wrangler d1 export startup-blueprint-db --remote --output=backup-before-migratio
 Always create a rollback migration file alongside your forward migration:
 
 **Forward: `20260123_180000_add_priority_column.sql`**
+
 ```sql
 ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT 'medium';
 ```
 
 **Rollback: `20260123_180000_rollback_add_priority_column.sql`**
+
 ```sql
 -- Since SQLite doesn't support DROP COLUMN, we recreate the table
 CREATE TABLE tasks_new (
@@ -301,14 +316,14 @@ Since D1 uses SQLite, be aware of these differences from PostgreSQL:
 
 ### Feature Comparison
 
-| Feature | SQLite/D1 | PostgreSQL |
-|---------|-----------|------------|
-| `DROP COLUMN` | ❌ Not supported | ✅ Supported |
-| `AUTOINCREMENT` | ✅ Supported | ❌ Use SERIAL |
-| `CHECK` constraints | ✅ Supported | ✅ Supported |
-| JSON functions | ⚠️ Limited | ✅ Full support |
-| Full-text search | ⚠️ Basic | ✅ Advanced |
-| `SERIAL` type | ❌ Not supported | ✅ Supported |
+| Feature             | SQLite/D1        | PostgreSQL      |
+| ------------------- | ---------------- | --------------- |
+| `DROP COLUMN`       | ❌ Not supported | ✅ Supported    |
+| `AUTOINCREMENT`     | ✅ Supported     | ❌ Use SERIAL   |
+| `CHECK` constraints | ✅ Supported     | ✅ Supported    |
+| JSON functions      | ⚠️ Limited       | ✅ Full support |
+| Full-text search    | ⚠️ Basic         | ✅ Advanced     |
+| `SERIAL` type       | ❌ Not supported | ✅ Supported    |
 
 ### SQLFluff Configuration
 
@@ -320,6 +335,7 @@ sqlfluff fix --dialect sqlite --force .
 ```
 
 **Why SQLite dialect:**
+
 - D1 is SQLite-based
 - Ensures SQL files are compatible with production database
 - Catches SQLite-specific syntax issues during CI
@@ -378,6 +394,7 @@ Before deploying a migration:
 ## Support
 
 For migration issues:
+
 - Review Cloudflare D1 logs: `wrangler tail`
 - Check SQLite compatibility: [SQLite Features](https://www.sqlite.org/features.html)
 - Open an issue: [startup-blueprint/issues](https://github.com/borealBytes/startup-blueprint/issues)

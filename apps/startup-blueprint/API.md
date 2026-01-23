@@ -24,6 +24,7 @@ Currently, the API does not require authentication. Future versions will impleme
 Returns application health status.
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -33,6 +34,7 @@ Returns application health status.
 ```
 
 **Status Codes:**
+
 - `200 OK` - Service is healthy
 
 ---
@@ -44,6 +46,7 @@ Returns application health status.
 Creates a new task in the database.
 
 **Request Body:**
+
 ```json
 {
   "title": "Complete API documentation",
@@ -54,12 +57,14 @@ Creates a new task in the database.
 ```
 
 **Parameters:**
+
 - `title` (string, required) - Task title (max 255 characters)
 - `description` (string, optional) - Detailed task description
 - `status` (string, optional) - One of: pending, in_progress, completed. Default: pending
 - `priority` (string, optional) - One of: low, medium, high. Default: medium
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -73,6 +78,7 @@ Creates a new task in the database.
 ```
 
 **Status Codes:**
+
 - `201 Created` - Task created successfully
 - `400 Bad Request` - Invalid request parameters
 - `500 Internal Server Error` - Database error
@@ -86,12 +92,14 @@ Creates a new task in the database.
 Retrieves all tasks from the database.
 
 **Query Parameters:**
+
 - `status` (string, optional) - Filter by status: pending, in_progress, completed
 - `priority` (string, optional) - Filter by priority: low, medium, high
 - `limit` (number, optional) - Maximum number of tasks to return (default: 100, max: 1000)
 - `offset` (number, optional) - Number of tasks to skip for pagination (default: 0)
 
 **Response:**
+
 ```json
 {
   "tasks": [
@@ -121,6 +129,7 @@ Retrieves all tasks from the database.
 ```
 
 **Status Codes:**
+
 - `200 OK` - Tasks retrieved successfully
 - `400 Bad Request` - Invalid query parameters
 - `500 Internal Server Error` - Database error
@@ -134,9 +143,11 @@ Retrieves all tasks from the database.
 Retrieves a specific task by ID.
 
 **Path Parameters:**
+
 - `id` (number, required) - Task ID
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -150,6 +161,7 @@ Retrieves a specific task by ID.
 ```
 
 **Status Codes:**
+
 - `200 OK` - Task found
 - `404 Not Found` - Task with specified ID does not exist
 - `500 Internal Server Error` - Database error
@@ -163,9 +175,11 @@ Retrieves a specific task by ID.
 Updates an existing task.
 
 **Path Parameters:**
+
 - `id` (number, required) - Task ID
 
 **Request Body:**
+
 ```json
 {
   "title": "Complete API documentation - UPDATED",
@@ -177,12 +191,14 @@ Updates an existing task.
 
 **Parameters:**
 All fields are optional. Only provided fields will be updated.
+
 - `title` (string, optional) - Task title (max 255 characters)
 - `description` (string, optional) - Detailed task description
 - `status` (string, optional) - One of: pending, in_progress, completed
 - `priority` (string, optional) - One of: low, medium, high
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -196,6 +212,7 @@ All fields are optional. Only provided fields will be updated.
 ```
 
 **Status Codes:**
+
 - `200 OK` - Task updated successfully
 - `400 Bad Request` - Invalid request parameters
 - `404 Not Found` - Task with specified ID does not exist
@@ -210,9 +227,11 @@ All fields are optional. Only provided fields will be updated.
 Deletes a task from the database.
 
 **Path Parameters:**
+
 - `id` (number, required) - Task ID
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -222,6 +241,7 @@ Deletes a task from the database.
 ```
 
 **Status Codes:**
+
 - `200 OK` - Task deleted successfully
 - `404 Not Found` - Task with specified ID does not exist
 - `500 Internal Server Error` - Database error
@@ -245,10 +265,12 @@ All endpoints may return error responses in the following format:
 **Current:** No rate limiting implemented.
 
 **Future:** Rate limiting will be implemented with the following limits:
+
 - 1000 requests per hour per IP address
 - 100 requests per minute per IP address
 
 When rate limited, you'll receive:
+
 ```json
 {
   "error": "Rate limit exceeded",
@@ -259,6 +281,7 @@ When rate limited, you'll receive:
 ## Webhooks (Future)
 
 Future versions will support webhooks for task events:
+
 - `task.created` - Triggered when a new task is created
 - `task.updated` - Triggered when a task is updated
 - `task.completed` - Triggered when a task status changes to completed
@@ -273,6 +296,7 @@ See [MIGRATIONS.md](./MIGRATIONS.md) for complete database schema and migration 
 ### cURL Examples
 
 **Create a task:**
+
 ```bash
 curl -X POST https://startup-blueprint.pages.dev/api/tasks \
   -H "Content-Type: application/json" \
@@ -285,11 +309,13 @@ curl -X POST https://startup-blueprint.pages.dev/api/tasks \
 ```
 
 **Get all tasks:**
+
 ```bash
 curl https://startup-blueprint.pages.dev/api/tasks
 ```
 
 **Update a task:**
+
 ```bash
 curl -X PUT https://startup-blueprint.pages.dev/api/tasks/1 \
   -H "Content-Type: application/json" \
@@ -299,6 +325,7 @@ curl -X PUT https://startup-blueprint.pages.dev/api/tasks/1 \
 ```
 
 **Delete a task:**
+
 ```bash
 curl -X DELETE https://startup-blueprint.pages.dev/api/tasks/1
 ```
@@ -306,6 +333,7 @@ curl -X DELETE https://startup-blueprint.pages.dev/api/tasks/1
 ### JavaScript/Fetch Examples
 
 **Create a task:**
+
 ```javascript
 const response = await fetch('https://startup-blueprint.pages.dev/api/tasks', {
   method: 'POST',
@@ -316,8 +344,8 @@ const response = await fetch('https://startup-blueprint.pages.dev/api/tasks', {
     title: 'Test Task',
     description: 'This is a test task',
     status: 'pending',
-    priority: 'medium'
-  })
+    priority: 'medium',
+  }),
 });
 
 const task = await response.json();
@@ -325,6 +353,7 @@ console.log('Created task:', task);
 ```
 
 **Get all tasks:**
+
 ```javascript
 const response = await fetch('https://startup-blueprint.pages.dev/api/tasks');
 const data = await response.json();
@@ -334,12 +363,14 @@ console.log('Tasks:', data.tasks);
 ## Support
 
 For questions or issues, please:
+
 - Open an issue on GitHub: [startup-blueprint/issues](https://github.com/borealBytes/startup-blueprint/issues)
-- Contact: support@startup-blueprint.com
+- Contact: <support@startup-blueprint.com>
 
 ## Changelog
 
 ### v1.0.0 (2026-01-23)
+
 - Initial API release
 - CRUD operations for tasks
 - SQLite/D1 database integration
