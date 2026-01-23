@@ -347,23 +347,30 @@ validate_google
 validate_openrouter
 validate_optional
 
-# Add footer to summary
+# Add footer to summary with collapsible sections
 cat >> "$SUMMARY_FILE" << 'EOF'
 
-### Legend
+<details>
+<summary><b>Legend</b></summary>
 
 - ✅ **Valid**: Credential is properly configured and verified via API
 - ⚠️ **Warning**: Credential is set but format may be invalid or rate limited
 - ❌ **Invalid**: Credential is missing, expired, or invalid
 - **Bold rows**: Overall service status
 
-### Validation Methods
+</details>
+
+<details>
+<summary><b>Validation Methods</b></summary>
 
 - **Cloudflare**: Verified via wrangler CLI and direct API calls to token verification and account endpoints
 - **Google OAuth**: Verified via OAuth2 token endpoint with client_id and client_secret validation
 - **OpenRouter**: Verified via direct API call to models endpoint
 
-### Actions Required
+</details>
+
+<details>
+<summary><b>Actions Required</b></summary>
 
 If any credentials show as invalid:
 
@@ -372,13 +379,15 @@ If any credentials show as invalid:
 3. **OpenRouter**: Regenerate API key at [openrouter.ai/keys](https://openrouter.ai/keys)
 4. **Secrets**: Update in repo settings at Settings → Secrets and variables → Actions
 
-### Testing Credentials
+#### Testing Credentials Locally
 
 To test credentials locally:
 
 ```bash
 bash scripts/validate-credentials.sh
 ```
+
+</details>
 EOF
 
 # Print summary
