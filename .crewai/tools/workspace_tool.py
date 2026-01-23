@@ -65,24 +65,22 @@ class WorkspaceTool(BaseTool):
             For 'write': Success message
             For 'exists': Boolean
         """
-        # Handle None content
-        if content is None:
-            content = ""
-
-        # Auto-stringify JSON if dict/list is passed
-        if isinstance(content, (dict, list)):
-            try:
-                content = json.dumps(content, indent=2)
-                logger.info(f"🔄 Auto-stringified JSON for {filename} ({len(content)} bytes)")
-            except Exception as e:
-                logger.error(f"❌ Failed to stringify JSON: {e}")
-                return f"Error: Could not stringify JSON - {e}"
-
-        filepath = self.workspace_dir / filename
-
         if operation == "read":
             return self.read(filename)
         elif operation == "write":
+            # Handle None content
+            if content is None:
+                content = ""
+
+            # Auto-stringify JSON if dict/list is passed
+            if isinstance(content, (dict, list)):
+                try:
+                    content = json.dumps(content, indent=2)
+                    logger.info(f"🔄 Auto-stringified JSON for {filename} ({len(content)} bytes)")
+                except Exception as e:
+                    logger.error(f"❌ Failed to stringify JSON: {e}")
+                    return f"Error: Could not stringify JSON - {e}"
+
             return self.write(filename, content)
         elif operation == "exists":
             return self.exists(filename)
