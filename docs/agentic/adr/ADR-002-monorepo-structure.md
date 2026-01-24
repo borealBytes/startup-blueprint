@@ -704,7 +704,7 @@ npm install @business_name/auth@1.0.0
 
 - **Monorepo Documentation**: `MONOREPO_STRUCTURE.md` — User guide
 - **Spec**: `docs/SPEC_MONOREPO.md` — Technical specification
-- **PR #5**: [Monorepo Restructure](https://github.com/BUSINESS_NAME/BUSINESS_NAME/pull/5)
+- **PR #5**: Monorepo restructure (internal reference)
 - **Turborepo**: <https://turbo.build/repo/docs>
 - **pnpm Workspaces**: <https://pnpm.io/workspaces>
 - **Cloudflare Workers**: <https://developers.cloudflare.com/workers/>
