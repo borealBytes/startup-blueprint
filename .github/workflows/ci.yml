@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+  deployments: write
+  issues: write
+
+jobs:
+  # ============================================================================
+  # PHASE 1: Environment Validation & Core CI - Run in parallel
+  # ============================================================================
+
+  validate-environment:
+    name: Validate Environment
+    uses: ./.github/workflows/validate-environment-reusable.yml
+    secrets: inherit
+
+  core-ci:
+    name: Core CI
+    uses: ./.github/workflows/format-lint-reusable.yml
+    secrets: inherit
+
+  # ============================================================================
+  # PHASE 2: Tests & Builds - Run in parallel after core-ci completes
+  # ============================================================================
+
+  test-docs-links:
+    name: Test Docs Links
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/link-check-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
+  test-crewai:
+    name: Test CrewAI
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/test-crewai-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
+  test-website:
+    name: Test & Build Website
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/website-test-build-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
+  # ============================================================================
+  # PHASE 3: Deployments - Environment-aware deployments
+  # ============================================================================
+
+  deploy-preview:
+    name: Deploy to Preview
+    needs: [test-website, validate-environment]
+    if: |
+      github.event_name == 'pull_request' &&
+      needs.test-website.result == 'success' &&
+      needs.validate-environment.result == 'success' &&
+      contains(github.event.pull_request.labels.*.name, 'Deploy: Website Preview')
+    uses: ./.github/workflows/preview-deploy-reusable.yml
+    with:
+      workspace: website
+      build_artifact: website-build
+      pr_number: ${{ github.event.pull_request.number }}
+    secrets: inherit
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [test-website, deploy-preview]
+    if: |
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.test-website.result == 'success' &&
+      (needs.deploy-preview.result == 'success' || needs.deploy-preview.result == 'skipped')
+    uses: ./.github/workflows/production-deploy-reusable.yml
+    with:
+      workspace: website
+      build_artifact: website-build
+    secrets: inherit
+
+  # ============================================================================
+  # PHASE 4: AI Agents - Code review and analysis
+  # ============================================================================
+
+  crewai-review:
+    name: CrewAI Code Review
+    needs: [
+      core-ci,
+      test-docs-links,
+      test-crewai,
+      test-website,
+      deploy-preview,
+      deploy-production
+    ]
+    if: |
+      always() &&
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'renovate[bot]' &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
+      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
+      (needs.test-website.result == 'success' || needs.test-website.result == 'failure' || needs.test-website.result == 'skipped') &&
+      (needs.deploy-preview.result == 'success' || needs.deploy-preview.result == 'failure' || needs.deploy-preview.result == 'skipped') &&
+      (needs.deploy-production.result == 'success' || needs.deploy-production.result == 'failure' || needs.deploy-production.result == 'skipped')
+    uses: ./.github/workflows/crewai-review-reusable.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      commit_sha: ${{ github.event.pull_request.head.sha }}
+      core_ci_result: ${{ needs.core-ci.result }}
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
