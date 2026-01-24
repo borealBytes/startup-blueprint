@@ -41,21 +41,21 @@ flowchart TD
     payment_options -->|ACH/Bank Transfer| helcim_ach[Helcim ACH]
     payment_options -->|Invoice| helcim_invoice[Helcim Invoice]
     payment_options -->|Direct ACH| cash_invoice[Cash Invoice]
-    
+
     helcim_processor --> helcim_account[Helcim Account]
     helcim_ach --> helcim_account
     helcim_invoice --> helcim_account
     cash_invoice --> fidelity_direct[Fidelity ACH - No Fee]
-    
+
     helcim_account --> fidelity_bank[Fidelity Business Stock Account]
     fidelity_direct --> fidelity_bank
-    
+
     fidelity_bank --> investment_options{Investment Options}
     investment_options --> cash_mgmt[Cash Management / FDIC]
     investment_options --> stocks_etfs[Stocks & ETFs]
     investment_options --> crypto[Crypto Assets]
     investment_options --> metals[Precious Metals]
-    
+
     fidelity_bank --> accounting_system[Accounting System]
     accounting_system --> tax_filing[Tax Filing]
 ```
@@ -273,7 +273,7 @@ Total Due: $2,000.00
 
 Payment Options:
 1. Pay online: [Helcim Payment Link]
-2. ACH/Bank Transfer: 
+2. ACH/Bank Transfer:
    - Bank: Fidelity
    - Routing: [Your routing number]
    - Account: [Your account number]
