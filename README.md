@@ -29,6 +29,7 @@ Everyone wants you to pay a monthly fee—hosting providers, email services, pro
 - **Repository:** $0 (GitHub private repos free)
 - **CI/CD:** $0 (GitHub Actions free tier)
 - **DNS:** $0 (Cloudflare DNS free)
+- **Banking:** $0/month (Fidelity business stock account)
 - **Payment Processing:** Pay-per-transaction only (Helcim interchange-plus)
 
 **Compare this to typical SaaS costs: $247/month = $2,964/year** 💸
@@ -45,7 +46,7 @@ Everyone wants you to pay a monthly fee—hosting providers, email services, pro
 - ❌ $20/mo AI tools (we use free tiers + pay-per-use)
 - ❌ $15/mo analytics (we use Cloudflare Analytics)
 - ❌ $10/mo domain email (we use Gmail forwarding)
-- ❌ $25/mo accounting (we use Helcim included features)
+- ❌ $25/mo accounting/invoicing (we use Helcim included features)
 
 **Total Eliminated: $247/month = $2,964/year**
 
@@ -104,61 +105,103 @@ your-company/
 - **Production Deploys:** Merge to main = automatic deploy
 - **Zero Downtime:** Cloudflare handles failover
 
-### 6. Payment Processing & Invoicing
+### 6. Business Banking That Invests
 
-**We recommend [Helcim](https://www.helcim.com/)** - significantly cheaper than Stripe:
+**We recommend [Fidelity Business Stock Account](https://www.fidelity.com/small-business/overview)**
 
-#### Why Helcim?
+#### Why Fidelity?
 
-**Pricing Model:**
+**Banking + Investment Platform:**
 
-- **Interchange-Plus Pricing:** You pay the true wholesale cost + a small transparent margin
-- **Online Transactions:** Interchange + 0.50% + 25¢ (vs Stripe's 2.9% + 30¢)
-- **In-Person:** Interchange + 0.40% + 8¢ (vs Stripe's 2.7% + 5¢)
-- **ACH/Bank Transfers:** 0.5% + 25¢ (vs Stripe's 0.8% capped at $5)
+- **$0/month fees:** No account maintenance charges
+- **FDIC-insured cash management:** Operating capital earns interest
+- **Investment options:** Stocks, ETFs, crypto, precious metals
+- **All-in-one:** Banking and investing in one platform
+- **Institutional tools:** Real-time trading, research, portfolio analysis
+- **Tax integration:** Simplified year-end accounting
 
-**No Monthly Fees:**
+**Investment Options:**
 
-- ✅ $0 monthly fee
-- ✅ $0 setup fee
-- ✅ $0 PCI compliance fee
-- ✅ $0 cancellation fee
+1. **Cash Management:** FDIC-insured sweep accounts with competitive rates
+2. **Stocks & ETFs:** Invest profits (index funds, sector ETFs, individual stocks)
+3. **Crypto:** Bitcoin, Ethereum, and more (regulated custody)
+4. **Precious Metals:** Gold, silver, platinum, palladium (inflation hedge)
+
+**Your business funds can earn returns while staying liquid for operations.**
+
+### 7. Payment Processing & Invoicing
+
+**We recommend [Helcim](https://www.helcim.com/)** - transparent interchange-plus pricing with **$0/month fees**
+
+#### Current Helcim Pricing (2026)
+
+**In-Person Payments** 📱
+
+- **Average:** 2.55% + 8¢ per transaction
+- **PIN Debit:** As low as 2.16% + 8¢
+- Card-present, chip, contactless
+
+**Online/Keyed Payments** 💻
+
+- **Average:** 2.97% + 25¢ per transaction
+- Card-not-present, e-commerce, phone orders
+
+**ACH/Bank Transfers** 🏦
+
+- **Rate:** 0.5% + 25¢ per transaction
+- **Capped at $6** (for transactions <$25,000)
+- **Direct to Fidelity:** No fee when using cash invoices
+
+**Surcharging Option** ✨
+
+- **You pay:** 0% for credit cards
+- **Customer pays:** The processing fee
+- Standard debit rates still apply
 
 **What's Included (No Extra Charge):**
 
-- ✅ Invoicing (unlimited)
-- ✅ Recurring billing
-- ✅ Virtual terminal
-- ✅ Customer management
-- ✅ Reporting & analytics
-- ✅ Multiple payment methods (credit, debit, ACH)
+- ✅ **$0/month account fee**
+- ✅ **$0 setup fee**
+- ✅ **Unlimited invoicing**
+- ✅ **Recurring billing**
+- ✅ **Virtual terminal**
+- ✅ **Customer management**
+- ✅ **Reporting & analytics**
+- ✅ **Multiple payment methods** (credit, debit, ACH)
+- ✅ **PCI compliance tools**
 
-#### Cost Comparison: Helcim vs Stripe
+#### Payment Options
 
-**Example: $10,000/month in online payments**
+**Option 1: Standard Helcim Processing**
 
-| Provider    | Pricing                                    | Monthly Cost | Annual Cost   |
-| ----------- | ------------------------------------------ | ------------ | ------------- |
-| **Stripe**  | 2.9% + 30¢                                 | ~$320        | ~$3,840       |
-| **Helcim**  | Interchange + 0.5% + 25¢ (avg 2.49% total) | ~$220        | ~$2,640       |
-| **Savings** | -                                          | **$100/mo**  | **$1,200/yr** |
+- Customer pays via credit card or ACH through Helcim
+- You pay standard Helcim rates
+- Funds settle to your Fidelity account
+- Best for: General customers, recurring billing
 
-_Average assumes typical interchange rate of ~1.99% for Visa/Mastercard_
+**Option 2: Direct ACH to Fidelity (0% Fees)**
 
-**Key Advantages:**
+- Generate invoice with your Fidelity ACH details
+- Customer pays directly via bank transfer
+- **You pay $0 processing fees**
+- Best for: Large transactions, B2B clients
 
-1. **~40% lower fees** than Stripe for most transactions
-2. **Transparent pricing** (see exact interchange cost)
-3. **Scales down as you grow** (automatic volume discounts)
-4. **No monthly fees** (perfect for new businesses with low volume)
-5. **All features included** (invoicing, ACH, reporting)
+**Option 3: Surcharging (0% Credit Card Processing)**
 
-**When Helcim Saves the Most:**
+- Enable surcharging in Helcim
+- Customer pays the processing fee
+- **You pay 0% for credit cards**
+- Best for: Retail, in-person, service businesses
 
-- Lower-cost items (interchange-plus beats flat-rate)
-- High volume ($50K+/month = even lower rates)
-- Mix of payment types (credit, ACH, invoices)
-- B2B businesses (ACH is much cheaper)
+#### Cost Comparison: Monthly Processing $10,000
+
+| Method                              | Your Cost  | Annual   | Notes                         |
+| ----------------------------------- | ---------- | -------- | ----------------------------- |
+| **Traditional (Stripe 2.9% + 30¢)** | ~$320/mo   | $3,840   | Standard processor            |
+| **Helcim (All Transactions)**       | ~$270/mo   | $3,240   | Save $600/year                |
+| **Helcim + 50% Direct ACH**         | ~$135/mo   | $1,620   | Save $2,220/year              |
+| **Helcim Surcharging**              | ~$50/mo    | $600     | Save $3,240/year              |
+| **100% Direct ACH to Fidelity**     | **$0/mo**  | **$0**   | **Save $3,840/year**          |
 
 ---
 
@@ -186,7 +229,7 @@ We're not dogmatic. Pay for value when it makes sense:
 
 **Pay-Per-Transaction (Good):**
 
-- **Helcim fees:** Interchange + 0.5% + 25¢ (only when you make sales)
+- **Helcim fees:** 2.55%-2.97% + fees (only when you make sales)
 - **OpenAI API:** If you need GPT-4 (but try free models first)
 
 **Monthly Subscriptions (Only If Necessary):**
@@ -202,6 +245,7 @@ We're not dogmatic. Pay for value when it makes sense:
 - ❌ Project management (use GitHub Projects free)
 - ❌ Documentation hosting (use your monorepo)
 - ❌ Basic payment processing (Helcim has $0 monthly fee)
+- ❌ Business banking (Fidelity has $0 monthly fee)
 
 ---
 
@@ -256,6 +300,7 @@ open docs/phase-1-legal.md
 - 🤖 AI setup instructions (Perplexity, OpenRouter, CrewAI)
 - 🚀 Deployment scripts (Cloudflare Pages, CI/CD)
 - 💳 Payment setup guides (Helcim integration, invoicing)
+- 🏦 Banking guides (Fidelity business stock account)
 - 🔒 Security checklists (2FA, backups, recovery)
 
 ---
@@ -273,17 +318,21 @@ open docs/phase-1-legal.md
 | **Email**                       | $6-12/mo             | Free                    |
 | **Hosting**                     | $20-50/mo            | Free                    |
 | **CI/CD**                       | $15-30/mo            | Free                    |
-| **Payment Processing**          | Stripe 2.9% + 30¢    | Helcim ~2.49% + 25¢     |
-| **Invoicing**                   | $25/mo extra         | Included free           |
+| **Banking**                     | $10-25/mo fees       | $0/mo (Fidelity)        |
+| **Payment Processing**          | Stripe 2.9% + 30¢    | Helcim 2.55%-2.97% avg  |
+| **Invoicing**                   | $25/mo extra         | Free (Helcim included)  |
+| **Investment Options**          | Separate account     | Built-in (Fidelity)     |
 | **Total 1st Year**              | ~$3,000              | ~$150                   |
 | **Total 5 Years**               | ~$15,000             | ~$150                   |
-| **Payment Fees (5yr @$10K/mo)** | ~$19,200             | ~$13,200                |
-| **Grand Total (5yr)**           | **~$34,200**         | **~$13,350**            |
-| **Savings**                     | -                    | **~$20,850**            |
+| **Payment Fees (5yr @$10K/mo)** | ~$19,200             | ~$16,200                |
+| **Grand Total (5yr)**           | **~$34,200**         | **~$16,350**            |
+| **Savings**                     | -                    | **~$17,850**            |
+
+_Payment fees assume: Stripe 2.9% + 30¢ vs Helcim 2.7% avg (mix of in-person, online, ACH)_
 
 ---
 
-## 🎓 Who Is This For?
+## 🎯 Who Is This For?
 
 ### Perfect For
 
@@ -330,14 +379,20 @@ open docs/phase-1-legal.md
 5. Enable GitHub Actions
 6. Add team members (if applicable)
 
-### Phase 4: Payment Processing & Banking (1 hour)
+### Phase 4: Banking & Payment Processing (1.5 hours)
 
-1. Open business bank account (Fidelity recommended)
-2. Sign up for Helcim (free, $0 monthly fee)
-3. Connect bank account to Helcim
-4. Set up payment methods (credit card, ACH)
+1. Open Fidelity business stock account (free)
+   - Business checking with cash management
+   - Optional: Set up investment preferences
+2. Sign up for Helcim ($0/month, pay-per-transaction)
+3. Connect Fidelity bank account to Helcim
+4. Set up payment methods:
+   - Credit/debit card processing
+   - ACH acceptance
+   - Surcharging preferences (optional)
 5. Configure invoicing templates
 6. Test a $1 transaction
+7. Document ACH details for direct payments
 
 ### Phase 5: Deployment & Website (1.5 hours)
 
@@ -353,7 +408,7 @@ open docs/phase-1-legal.md
 1. Document your processes in the monorepo
 2. Create onboarding checklist for future team
 3. Set up backup and recovery procedures
-4. Enable 2FA on all critical accounts (GitHub, Cloudflare, Helcim)
+4. Enable 2FA on all critical accounts (GitHub, Cloudflare, Helcim, Fidelity)
 5. Create runbook for common tasks
 6. Set up incident response process
 
@@ -385,4 +440,4 @@ MIT License - Use this however you want. Build your business. Kill monthly fees.
 **Made with ❤️ by founders who are tired of monthly fees.**
 
 **Start your business. Pay $150 once. Never pay monthly fees again.**  
-_(Except payment processing fees when you actually make sales - but even those are 40% cheaper than Stripe)_
+_(Except payment processing fees when you actually make sales - but even those are significantly cheaper with Helcim's transparent interchange-plus pricing)_
