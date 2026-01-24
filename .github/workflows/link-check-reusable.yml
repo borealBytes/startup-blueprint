@@ -1,0 +1,124 @@
+name: Check Documentation Links
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Specific commit SHA to check out'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Check if docs changed
+        id: check
+        run: |
+          set -e
+          echo "🔍 Checking if documentation files changed..."
+
+          # Determine base and head for diff
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.sha }}"
+          fi
+
+          # Check for .md files or docs/ directory changes
+          CHANGED_FILES=$(git diff --name-only $BASE $HEAD | grep -E '\.md$|^docs/' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "⏭️  No documentation files changed - skipping link check"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Documentation files changed:"
+            echo "$CHANGED_FILES" | head -n 5
+            if [ $(echo "$CHANGED_FILES" | wc -l) -gt 5 ]; then
+              echo "... and $(( $(echo "$CHANGED_FILES" | wc -l) - 5 )) more"
+            fi
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check links with lychee
+        if: steps.check.outputs.should_run == 'true'
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --verbose --no-progress --accept 200,403,429 '**/*.md' '**/*.html'
+          format: markdown
+          output: ./lychee-report.md
+          fail: false
+          jobSummary: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add results to Actions summary
+        if: always() && steps.check.outputs.should_run == 'true'
+        run: |
+          echo "## 🔗 Documentation Link Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f ./lychee-report.md ]; then
+            # Read the report
+            REPORT=$(cat ./lychee-report.md)
+
+            # Check if all links are working
+            if echo "$REPORT" | grep -q "0 Broken"; then
+              echo "✅ **All links are working!**" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **Some links may be broken:**" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            # Process the report to make redirect sections collapsible
+            IN_REDIRECT_SECTION=false
+            while IFS= read -r line; do
+              # Check if this is the start of a "Redirects per input" section
+              if echo "$line" | grep -q "Redirects per input"; then
+                IN_REDIRECT_SECTION=true
+                echo "<details>" >> $GITHUB_STEP_SUMMARY
+                echo "<summary><strong>Redirects per input</strong> (click to expand)</summary>" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                continue
+              fi
+
+              # Check if we're exiting the redirect section (next ## header)
+              if [ "$IN_REDIRECT_SECTION" = true ] && echo "$line" | grep -q "^## " && ! echo "$line" | grep -q "Redirects"; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "</details>" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                IN_REDIRECT_SECTION=false
+              fi
+
+              echo "$line" >> $GITHUB_STEP_SUMMARY
+            done < ./lychee-report.md
+
+            # Close redirect section if we reached end of file
+            if [ "$IN_REDIRECT_SECTION" = true ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "</details>" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "✅ **All links are working!**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Add summary for skipped check
+        if: always() && steps.check.outputs.should_run == 'false'
+        run: |
+          echo "## 🔗 Documentation Link Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⏭️ **Skipped** - No documentation files changed" >> $GITHUB_STEP_SUMMARY
