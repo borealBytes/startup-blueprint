@@ -1,0 +1,321 @@
+name: Validate Environment
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to check'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  ensure-required-labels:
+    name: Ensure Required Labels Exist
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check and create required labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const requiredLabels = [
+              {
+                name: 'Deploy: Website Preview',
+                color: '0366d6',
+                description: 'Triggers preview deployment to custom domain'
+              },
+              {
+                name: 'Deploy: Production',
+                color: '28a745',
+                description: 'Triggers production deployment'
+              },
+              {
+                name: 'Status: Blocked',
+                color: 'd93f0b',
+                description: 'PR is blocked by dependencies or issues'
+              },
+              {
+                name: 'Status: Ready for Review',
+                color: '0e8a16',
+                description: 'PR is ready for review'
+              }
+            ];
+
+            console.log('Checking required labels...');
+
+            // Get all existing labels
+            const { data: existingLabels } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            const existingLabelNames = existingLabels.map(l => l.name);
+            console.log(`Found ${existingLabels.length} existing labels`);
+
+            // Check each required label
+            for (const label of requiredLabels) {
+              if (existingLabelNames.includes(label.name)) {
+                console.log(`✅ Label "${label.name}" exists`);
+              } else {
+                console.log(`❗ Label "${label.name}" missing, creating...`);
+
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description
+                  });
+                  console.log(`✅ Created label "${label.name}"`);
+                } catch (error) {
+                  console.error(`❌ Failed to create label "${label.name}": ${error.message}`);
+                }
+              }
+            }
+
+            console.log('✅ All required labels verified/created');
+
+      - name: Add label check summary
+        run: |
+          echo "## 🏷️ Required Labels Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All required labels exist or have been created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Labels verified:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Deploy: Website Preview" >> $GITHUB_STEP_SUMMARY
+          echo "- Deploy: Production" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: Blocked" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: Ready for Review" >> $GITHUB_STEP_SUMMARY
+
+  validate-credentials:
+    name: Validate Credentials
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+
+      - name: Install dependencies
+        run: |
+          # Install wrangler for Cloudflare validation
+          npm install -g wrangler@latest
+
+          # Install jq for JSON parsing
+          sudo apt-get update && sudo apt-get install -y jq curl
+
+      - name: Validate all credentials
+        id: validate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REDIRECT_URI: ${{ vars.GOOGLE_REDIRECT_URI }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          bash scripts/validate-credentials.sh
+
+      - name: Post credential validation summary
+        if: always()
+        run: |
+          echo "## 🔐 Credential Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Validation completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f /tmp/credential-validation-summary.md ]; then
+            cat /tmp/credential-validation-summary.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Validation summary not found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check credential validation result
+        if: always()
+        run: |
+          if [ -f /tmp/credential-validation-result ]; then
+            RESULT=$(cat /tmp/credential-validation-result)
+            if [ "$RESULT" != "0" ]; then
+              echo "❌ Credential validation failed"
+              exit 1
+            fi
+          fi
+          echo "✅ All credentials validated successfully"
+
+  check-preview-label-conflicts:
+    name: Check Preview Label Conflicts
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'Deploy: Website Preview')
+
+    steps:
+      - name: Check for multiple PRs with preview label
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const currentPR = context.payload.pull_request.number;
+            const targetLabel = 'Deploy: Website Preview';
+
+            console.log(`Checking for conflicts with label: ${targetLabel}`);
+            console.log(`Current PR: #${currentPR}`);
+
+            // Find all open PRs with the preview label
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const prsWithLabel = prs.filter(pr =>
+              pr.labels.some(label => label.name === targetLabel)
+            );
+
+            console.log(`Found ${prsWithLabel.length} PR(s) with the label`);
+
+            if (prsWithLabel.length > 1) {
+              const conflictingPRs = prsWithLabel
+                .filter(pr => pr.number !== currentPR)
+                .map(pr => `#${pr.number}`);
+
+              console.log(`Conflict detected! Other PRs: ${conflictingPRs.join(', ')}`);
+
+              core.setOutput('has_conflict', 'true');
+              core.setOutput('conflicting_prs', conflictingPRs.join(', '));
+              core.setOutput('total_count', prsWithLabel.length);
+            } else {
+              console.log('No conflicts detected');
+              core.setOutput('has_conflict', 'false');
+            }
+
+      - name: Post warning comment on conflicting PRs
+        if: steps.check.outputs.has_conflict == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const currentPR = context.payload.pull_request.number;
+            const conflictingPRs = '${{ steps.check.outputs.conflicting_prs }}'.split(', ');
+            const totalCount = '${{ steps.check.outputs.total_count }}';
+
+            const warningComment = `## ⚠️ Preview Label Conflict Detected
+
+            **Warning:** Multiple pull requests (${totalCount}) currently have the \`Deploy: Website Preview\` label.
+
+            ### Why This Matters
+
+            The custom preview domain \`preview-startup-blueprint.SuperiorByteWorks.com\` can only point to **one** deployment at a time. When multiple PRs have this label:
+
+            - The custom domain will point to whichever deployment ran **most recently**
+            - Other labeled PRs will still have their direct Cloudflare URLs available
+            - This may cause confusion about which PR is actually "live" on the custom domain
+
+            ### Conflicting PRs
+
+            ${conflictingPRs.map(pr => `- ${pr}`).join('\n')}
+
+            ### Recommended Action
+
+            **Remove the \`Deploy: Website Preview\` label from all but one PR** to ensure predictable custom domain behavior.
+
+            The PR that keeps the label will have its preview accessible at:
+            - 🌐 Custom domain: https://preview-startup-blueprint.SuperiorByteWorks.com
+            - 🔗 Direct URL: (shown in deployment comment)
+
+            Other PRs can still be previewed using their direct Cloudflare Pages URLs.
+
+            ---
+
+            *This is an automated warning. The system will continue to function, but only the most recently deployed PR will be accessible via the custom domain.*`;
+
+            // Post comment on current PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: currentPR
+            });
+
+            const existingWarning = comments.find(c =>
+              c.user.type === 'Bot' &&
+              c.body.includes('Preview Label Conflict Detected')
+            );
+
+            if (existingWarning) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingWarning.id,
+                body: warningComment
+              });
+              console.log(`Updated warning comment on PR #${currentPR}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: currentPR,
+                body: warningComment
+              });
+              console.log(`Posted warning comment on PR #${currentPR}`);
+            }
+
+            // Also post on other conflicting PRs
+            for (const prNumber of conflictingPRs.map(pr => parseInt(pr.replace('#', '')))) {
+              const { data: prComments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber
+              });
+
+              const existingPRWarning = prComments.find(c =>
+                c.user.type === 'Bot' &&
+                c.body.includes('Preview Label Conflict Detected')
+              );
+
+              if (existingPRWarning) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingPRWarning.id,
+                  body: warningComment
+                });
+                console.log(`Updated warning on PR #${prNumber}`);
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: warningComment
+                });
+                console.log(`Posted warning on PR #${prNumber}`);
+              }
+            }
+
+      - name: Add conflict summary to output
+        if: always()
+        run: |
+          echo "## 🏷️ Preview Label Conflict Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.check.outputs.has_conflict }}" = "true" ]; then
+            echo "⚠️ **Label Conflict Detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Multiple PRs have the \`Deploy: Website Preview\` label." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Conflicting PRs: ${{ steps.check.outputs.conflicting_prs }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Only the most recently deployed PR will be accessible at the custom domain." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **No Conflicts**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "This is the only PR with the \`Deploy: Website Preview\` label." >> $GITHUB_STEP_SUMMARY
+          fi
