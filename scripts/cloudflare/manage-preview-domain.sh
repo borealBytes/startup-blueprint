@@ -91,64 +91,64 @@ if [ -n "$ALREADY_ASSIGNED" ] && [ "$ALREADY_ASSIGNED" = "$CUSTOM_DOMAIN" ]; the
 else
   log_info "Custom domain not yet assigned to $PROJECT_NAME"
   SKIP_DOMAIN_ADD=false
-  
+
   # Step 3: Remove custom domain from OTHER Pages projects (cleanup)
   log_step "Checking for assignments to other projects..."
-  
+
   # Get all Pages projects
   PROJECTS_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects" \
     -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
     -H "Content-Type: application/json")
-  
+
   PROJECT_COUNT=$(echo "$PROJECTS_RESPONSE" | jq -r '.result | length')
   log_info "Found $PROJECT_COUNT Pages project(s)"
-  
+
   # Store project names in an array
   mapfile -t PROJECT_NAMES < <(echo "$PROJECTS_RESPONSE" | jq -r '.result[].name')
-  
+
   REMOVED_COUNT=0
-  
+
   # Iterate through each project (except current one)
   for proj_name in "${PROJECT_NAMES[@]}"; do
     # Skip current project
     if [ "$proj_name" = "$PROJECT_NAME" ]; then
       continue
     fi
-    
+
     log_step "  Checking project: $proj_name"
-    
+
     # Get domains for this project
     DOMAINS_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${proj_name}/domains" \
       -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
       -H "Content-Type: application/json")
-    
+
     # Check if our custom domain is assigned to this project
     HAS_DOMAIN=$(echo "$DOMAINS_RESPONSE" | jq -r --arg domain "$CUSTOM_DOMAIN" '.result[]? | select(.name == $domain) | .name' 2>/dev/null || echo "")
-    
+
     if [ -n "$HAS_DOMAIN" ] && [ "$HAS_DOMAIN" = "$CUSTOM_DOMAIN" ]; then
       log_warn "    Found $CUSTOM_DOMAIN assigned to $proj_name - removing..."
-      
+
       DELETE_RESPONSE=$(curl -s -X DELETE "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${proj_name}/domains/${CUSTOM_DOMAIN}" \
         -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
         -H "Content-Type: application/json")
-      
+
       DELETE_SUCCESS=$(echo "$DELETE_RESPONSE" | jq -r '.success')
-      
+
       if [ "$DELETE_SUCCESS" = "true" ]; then
         log_info "    Successfully removed from $proj_name"
         REMOVED_COUNT=$((REMOVED_COUNT + 1))
-        
+
         # Wait a moment for the API to propagate the change
         sleep 2
       else
         log_warn "    Failed to remove from $proj_name"
-        echo "    API Response: $(echo "$DELETE_RESPONSE" | jq -c .)" 
+        echo "    API Response: $(echo "$DELETE_RESPONSE" | jq -c .)"
       fi
     else
       log_info "    Not assigned to $proj_name"
     fi
   done
-  
+
   if [ $REMOVED_COUNT -gt 0 ]; then
     log_info "Removed custom domain from $REMOVED_COUNT project(s)"
     log_step "Waiting for domain removal to propagate..."
@@ -161,29 +161,29 @@ fi
 # Step 4: Add custom domain to current project (if not already assigned)
 if [ "$SKIP_DOMAIN_ADD" = "false" ]; then
   log_step "Adding $CUSTOM_DOMAIN to $PROJECT_NAME..."
-  
+
   ADD_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${PROJECT_NAME}/domains" \
     -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
     -H "Content-Type: application/json" \
     -d "{
       \"name\": \"${CUSTOM_DOMAIN}\"
     }")
-  
+
   ADD_SUCCESS=$(echo "$ADD_RESPONSE" | jq -r '.success')
-  
+
   if [ "$ADD_SUCCESS" = "true" ]; then
     log_info "Successfully added custom domain to $PROJECT_NAME"
   else
     # Check if error is because domain is already added (race condition)
     ERROR_CODE=$(echo "$ADD_RESPONSE" | jq -r '.errors[0].code // "unknown"')
     ERROR_MSG=$(echo "$ADD_RESPONSE" | jq -r '.errors[0].message // "unknown"')
-    
+
     if [ "$ERROR_CODE" = "8000018" ]; then
       # Domain already added - this is OK (idempotent)
       log_warn "Domain already added (error 8000018) - continuing (idempotent)"
     else
       log_error "Failed to add custom domain"
-      echo "API Response:" 
+      echo "API Response:"
       echo "$ADD_RESPONSE" | jq .
       log_error "Error code: $ERROR_CODE"
       log_error "Error message: $ERROR_MSG"
@@ -225,7 +225,7 @@ if [ -n "$EXISTING_RECORD_ID" ] && [ "$EXISTING_RECORD_ID" != "null" ]; then
     log_step "  Updating existing DNS record (ID: $EXISTING_RECORD_ID)..."
     log_step "  Old target: $EXISTING_CONTENT"
     log_step "  New target: $CNAME_TARGET"
-    
+
     DNS_UPDATE_RESPONSE=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${EXISTING_RECORD_ID}" \
       -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
       -H "Content-Type: application/json" \
@@ -236,21 +236,21 @@ if [ -n "$EXISTING_RECORD_ID" ] && [ "$EXISTING_RECORD_ID" != "null" ]; then
         \"ttl\": 1,
         \"proxied\": true
       }")
-    
+
     DNS_SUCCESS=$(echo "$DNS_UPDATE_RESPONSE" | jq -r '.success')
-    
+
     if [ "$DNS_SUCCESS" = "true" ]; then
       log_info "Successfully updated DNS record"
     else
       log_error "Failed to update DNS record"
-      echo "API Response:" | jq . <<< "$DNS_UPDATE_RESPONSE"
+      jq . <<< "$DNS_UPDATE_RESPONSE"
       exit 1
     fi
   fi
 else
   # Create new record
   log_step "  Creating new DNS record..."
-  
+
   DNS_CREATE_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records" \
     -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
     -H "Content-Type: application/json" \
@@ -261,14 +261,14 @@ else
       \"ttl\": 1,
       \"proxied\": true
     }")
-  
+
   DNS_SUCCESS=$(echo "$DNS_CREATE_RESPONSE" | jq -r '.success')
-  
+
   if [ "$DNS_SUCCESS" = "true" ]; then
     log_info "Successfully created DNS record"
   else
     log_error "Failed to create DNS record"
-    echo "API Response:" | jq . <<< "$DNS_CREATE_RESPONSE"
+    jq . <<< "$DNS_CREATE_RESPONSE"
     exit 1
   fi
 fi
