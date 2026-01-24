@@ -7,15 +7,19 @@
 ## Why This Matters
 
 ### Consistency
-You don’t want to reinvent the wheel every time you:
+
+You don't want to reinvent the wheel every time you:
+
 - Onboard a client
 - Launch a feature
 - Run monthly reviews
 
 ### Delegation
+
 Processes make it possible to delegate to team members or contractors.
 
 ### Reliability
+
 Clear procedures reduce mistakes and firefighting.
 
 ---
@@ -23,15 +27,15 @@ Clear procedures reduce mistakes and firefighting.
 ## Architecture
 
 ```mermaid
-graph TD
-    A["Vision & Strategy"] --> B["Processes"]
-    B --> C["Checklists"]
-    C --> D["Execution"]
-    D --> E["Review & Improve"]
-    E --> B
-    
-    style B fill:#e1f5ff
-    style C fill:#c8e6c9
+flowchart TD
+    accTitle: Operations Continuous Improvement Cycle
+    accDescr: Cyclical process showing how vision and strategy flows through processes, checklists, execution, and review for continuous improvement
+
+    vision[Vision & Strategy] --> processes[Processes]
+    processes --> checklists[Checklists]
+    checklists --> execution[Execution]
+    execution --> review[Review & Improve]
+    review --> processes
 ```
 
 ---
@@ -65,7 +69,7 @@ Create `docs/operations/daily-ops.md`:
 - [ ] Review payment notifications (Stripe/PayPal)
 - [ ] Scan error logs (if any monitoring in place)
 - [ ] Check CI pipeline status (GitHub Actions)
-- [ ] Review today’s calendar
+- [ ] Review today's calendar
 ```
 
 ---
@@ -95,17 +99,20 @@ Create `docs/operations/monthly-ops.md`:
 # Monthly Review Checklist 📊
 
 ## Financial
+
 - [ ] Export P&L from accounting tool
 - [ ] Compare revenue vs prior month
 - [ ] Review top 10 expenses
 - [ ] Confirm tax savings account balance
 
 ## Operations
+
 - [ ] Review customer feedback
 - [ ] Identify recurring issues
 - [ ] Update FAQs and docs accordingly
 
 ## Strategy
+
 - [ ] Review current goals
 - [ ] Set goals for next month
 ```

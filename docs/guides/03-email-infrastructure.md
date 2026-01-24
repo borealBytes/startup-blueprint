@@ -7,15 +7,19 @@
 ## Why This Matters
 
 ### Professionalism
+
 `founder@BUSINESS-NAME.com` looks professional. `founder@gmail.com` doesn't scale.
 
 ### Email Credibility
+
 Recipients trust domain email more than personal Gmail.
 
 ### Multi-User Ready
+
 Add team members' emails without complex infrastructure.
 
 ### Cost Effective
+
 No email hosting needed—just forwarding + Gmail.
 
 ---
@@ -23,15 +27,14 @@ No email hosting needed—just forwarding + Gmail.
 ## Architecture
 
 ```mermaid
-graph LR
-    A["Incoming Email"] -->|Routed to Cloudflare| B["Cloudflare Email Routing"]
-    B -->|Forwards to| C["Gmail Inbox"]
-    D["Gmail SMTP"] -->|Sends as| E["founder@BUSINESS-NAME.com"]
-    F["Reply"] -->|Uses correct address| E
-    
-    style B fill:#e1f5ff
-    style C fill:#c8e6c9
-    style E fill:#fff3e0
+flowchart LR
+    accTitle: Email Routing Architecture
+    accDescr: Flow showing incoming email routed through Cloudflare to Gmail inbox, with Gmail SMTP sending emails from custom domain address
+
+    incoming_email[Incoming Email] --> cloudflare_routing[Cloudflare Email Routing]
+    cloudflare_routing --> gmail_inbox[Gmail Inbox]
+    gmail_smtp[Gmail SMTP] --> custom_address["founder@BUSINESS-NAME.com"]
+    reply[Reply] --> custom_address
 ```
 
 ---
@@ -58,6 +61,7 @@ graph LR
 ### What Happens
 
 Cloudflare automatically configures:
+
 - MX records (incoming mail routing)
 - TXT records (verification)
 - DKIM/SPF records (authentication)
@@ -79,6 +83,7 @@ Cloudflare automatically configures:
 6. Confirm
 
 ### Why Not SMS?
+
 SMS is vulnerable to SIM swapping. Authenticator apps are more secure.
 
 ---
@@ -96,12 +101,12 @@ Gmail allows `youremail+tag@gmail.com`. Cloudflare forwards to these addresses, 
 
 **Example mapping** (customize for your needs):
 
-| Public Address | Forwards To | Purpose |
-|---|---|---|
-| `founder@BUSINESS-NAME.com` | `yourname+founder@gmail.com` | Founder inquiries |
-| `hello@BUSINESS-NAME.com` | `yourname+hello@gmail.com` | General inquiries |
-| `support@BUSINESS-NAME.com` | `yourname+support@gmail.com` | Customer support |
-| `info@BUSINESS-NAME.com` | `yourname+info@gmail.com` | Information requests |
+| Public Address              | Forwards To                  | Purpose              |
+| --------------------------- | ---------------------------- | -------------------- |
+| `founder@BUSINESS-NAME.com` | `yourname+founder@gmail.com` | Founder inquiries    |
+| `hello@BUSINESS-NAME.com`   | `yourname+hello@gmail.com`   | General inquiries    |
+| `support@BUSINESS-NAME.com` | `yourname+support@gmail.com` | Customer support     |
+| `info@BUSINESS-NAME.com`    | `yourname+info@gmail.com`    | Information requests |
 
 ### In Cloudflare
 
@@ -202,6 +207,7 @@ Secured connection: TLS (checked)
 ### Repeat for Each Address
 
 Repeat steps above for each public address you want to send from:
+
 - `founder@BUSINESS-NAME.com`
 - `hello@BUSINESS-NAME.com`
 - etc.
@@ -286,18 +292,21 @@ Each needs its own app password and SMTP configuration.
 ## Troubleshooting
 
 ### Emails not forwarding
+
 - Check Cloudflare Email Routing is enabled
 - Verify DNS records are live (use DNS propagation checker)
 - Wait 24 hours for DNS to fully propagate
 - Check spam folder in Gmail
 
 ### "Send as" not working
+
 - Confirm app password has no spaces
 - Verify SMTP settings match exactly
 - Check "Uncheck treat as alias" was done
 - Try generating a new app password
 
 ### Filter not auto-applying label
+
 - Verify the plus-tag in "To" field matches the filter
 - Check label exists
 - Re-save the filter
