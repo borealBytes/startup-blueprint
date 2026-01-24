@@ -6,67 +6,65 @@ type LoopStep = {
 
 const steps: LoopStep[] = [
   {
-    id: "human-steering",
-    title: "Human Steering",
+    id: 'human-steering',
+    title: 'Human Steering',
     summary:
-      "Humans decide direction and priorities. AI executes the work you choose.",
+      'Humans decide direction and priorities. AI executes the work you choose.',
   },
   {
-    id: "agent-input",
-    title: "Agent Input",
+    id: 'agent-input',
+    title: 'Agent Input',
     summary:
-      "Perplexity, OpenCode, and Claude follow shared instructions and standards.",
+      'Perplexity, OpenCode, and Claude follow shared instructions and standards.',
   },
   {
-    id: "git-commit",
-    title: "Git Commit",
+    id: 'git-commit',
+    title: 'Git Commit',
     summary:
-      "Every change lands as a commit, capturing intent and audit history.",
+      'Every change lands as a commit, capturing intent and audit history.',
   },
   {
-    id: "ci-gates",
-    title: "CI Gates",
+    id: 'ci-gates',
+    title: 'CI Gates',
     summary:
-      "Environment checks, labels, and formatting keep the pipeline consistent.",
+      'Environment checks, labels, and formatting keep the pipeline consistent.',
   },
   {
-    id: "docs-checks",
-    title: "Docs Checks",
+    id: 'docs-checks',
+    title: 'Docs Checks',
     summary:
-      "Business docs are validated alongside code with link checks and linting.",
+      'Business docs are validated alongside code with link checks and linting.',
   },
   {
-    id: "tests-builds",
-    title: "Tests and Builds",
-    summary:
-      "Workspaces run targeted tests and builds only when needed.",
+    id: 'tests-builds',
+    title: 'Tests and Builds',
+    summary: 'Workspaces run targeted tests and builds only when needed.',
   },
   {
-    id: "deploy",
-    title: "Preview or Prod",
-    summary:
-      "Preview deploys on PRs, production deploys on main merges.",
+    id: 'deploy',
+    title: 'Preview or Prod',
+    summary: 'Preview deploys on PRs, production deploys on main merges.',
   },
   {
-    id: "crewai-base",
-    title: "CrewAI Base Review",
+    id: 'crewai-base',
+    title: 'CrewAI Base Review',
     summary:
-      "Always reviews the diff plus CI logs to suggest fixes and auto-debug.",
+      'Always reviews the diff plus CI logs to suggest fixes and auto-debug.',
   },
   {
-    id: "crewai-router",
-    title: "CrewAI Router",
+    id: 'crewai-router',
+    title: 'CrewAI Router',
     summary:
-      "Routes deeper reviews: quick, full, legal, and future marketing or board.",
+      'Routes deeper reviews: quick, full, legal, and future marketing or board.',
   },
 ];
 
-const LOOP_ID = "agentic-loop";
-const SVG_ID = "agentic-loop-svg";
-const CENTER_ID = "agentic-loop-center";
-const DETAILS_ID = "agentic-loop-details";
+const LOOP_ID = 'agentic-loop';
+const SVG_ID = 'agentic-loop-svg';
+const CENTER_ID = 'agentic-loop-center';
+const DETAILS_ID = 'agentic-loop-details';
 
-const activeClass = "ring-2 ring-indigo-500 shadow-xl";
+const activeClass = 'ring-2 ring-indigo-500 shadow-xl';
 
 const createSvgCircle = (
   svg: SVGSVGElement,
@@ -75,21 +73,21 @@ const createSvgCircle = (
   centerY: number
 ) => {
   const circle = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "circle"
+    'http://www.w3.org/2000/svg',
+    'circle'
   );
   const circumference = 2 * Math.PI * radius;
 
-  circle.setAttribute("cx", centerX.toString());
-  circle.setAttribute("cy", centerY.toString());
-  circle.setAttribute("r", radius.toString());
-  circle.setAttribute("fill", "none");
-  circle.setAttribute("stroke", "#6366f1");
-  circle.setAttribute("stroke-width", "2");
-  circle.setAttribute("stroke-dasharray", circumference.toString());
-  circle.setAttribute("stroke-dashoffset", circumference.toString());
-  circle.setAttribute("stroke-linecap", "round");
-  circle.setAttribute("opacity", "0.5");
+  circle.setAttribute('cx', centerX.toString());
+  circle.setAttribute('cy', centerY.toString());
+  circle.setAttribute('r', radius.toString());
+  circle.setAttribute('fill', 'none');
+  circle.setAttribute('stroke', '#6366f1');
+  circle.setAttribute('stroke-width', '2');
+  circle.setAttribute('stroke-dasharray', circumference.toString());
+  circle.setAttribute('stroke-dashoffset', circumference.toString());
+  circle.setAttribute('stroke-linecap', 'round');
+  circle.setAttribute('opacity', '0.5');
 
   svg.appendChild(circle);
   return { circle, circumference };
@@ -102,7 +100,7 @@ const animateCircle = (circle: SVGCircleElement, circumference: number) => {
   const tick = (now: number) => {
     const progress = Math.min((now - start) / duration, 1);
     const offset = circumference * (1 - progress);
-    circle.setAttribute("stroke-dashoffset", offset.toString());
+    circle.setAttribute('stroke-dashoffset', offset.toString());
     if (progress < 1) {
       requestAnimationFrame(tick);
     }
@@ -111,12 +109,18 @@ const animateCircle = (circle: SVGCircleElement, circumference: number) => {
   requestAnimationFrame(tick);
 };
 
-const updateDetails = (step: LoopStep, center: HTMLElement, details: HTMLElement) => {
-  const titleEl = center.querySelector<HTMLElement>("[data-loop-title]");
-  const summaryEl = center.querySelector<HTMLElement>("[data-loop-summary]");
-  const detailTitle = details.querySelector<HTMLElement>("[data-loop-detail-title]");
+const updateDetails = (
+  step: LoopStep,
+  center: HTMLElement,
+  details: HTMLElement
+) => {
+  const titleEl = center.querySelector<HTMLElement>('[data-loop-title]');
+  const summaryEl = center.querySelector<HTMLElement>('[data-loop-summary]');
+  const detailTitle = details.querySelector<HTMLElement>(
+    '[data-loop-detail-title]'
+  );
   const detailSummary = details.querySelector<HTMLElement>(
-    "[data-loop-detail-summary]"
+    '[data-loop-detail-summary]'
   );
 
   if (titleEl) titleEl.textContent = step.title;
@@ -133,11 +137,11 @@ const setActive = (
 ) => {
   nodes.forEach((node, id) => {
     if (id === step.id) {
-      node.classList.add(...activeClass.split(" "));
-      node.setAttribute("aria-pressed", "true");
+      node.classList.add(...activeClass.split(' '));
+      node.setAttribute('aria-pressed', 'true');
     } else {
-      node.classList.remove(...activeClass.split(" "));
-      node.setAttribute("aria-pressed", "false");
+      node.classList.remove(...activeClass.split(' '));
+      node.setAttribute('aria-pressed', 'false');
     }
   });
   updateDetails(step, center, details);
@@ -158,7 +162,7 @@ const initLoop = () => {
   const centerY = size / 2;
   const stepAngle = (Math.PI * 2) / steps.length;
 
-  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+  svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
   const { circle, circumference } = createSvgCircle(
     svg,
     radius,
@@ -174,20 +178,22 @@ const initLoop = () => {
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
 
-    const node = document.createElement("button");
-    node.type = "button";
+    const node = document.createElement('button');
+    node.type = 'button';
     node.className =
-      "agentic-loop-node absolute flex h-24 w-24 flex-col items-center justify-center rounded-full border border-indigo-200 bg-white text-center text-xs font-semibold text-gray-900 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none";
+      'agentic-loop-node absolute flex h-24 w-24 flex-col items-center justify-center rounded-full border border-indigo-200 bg-white text-center text-xs font-semibold text-gray-900 shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none';
     node.style.left = `${x}px`;
     node.style.top = `${y}px`;
-    node.style.transform = "translate(-50%, -50%)";
-    node.setAttribute("aria-pressed", "false");
+    node.style.transform = 'translate(-50%, -50%)';
+    node.setAttribute('aria-pressed', 'false');
     node.textContent = step.title;
 
-    node.addEventListener("mouseenter", () =>
+    node.addEventListener('mouseenter', () =>
       setActive(step, nodes, center, details)
     );
-    node.addEventListener("focus", () => setActive(step, nodes, center, details));
+    node.addEventListener('focus', () =>
+      setActive(step, nodes, center, details)
+    );
 
     loop.appendChild(node);
     nodes.set(step.id, node);
@@ -196,4 +202,4 @@ const initLoop = () => {
   setActive(steps[0], nodes, center, details);
 };
 
-document.addEventListener("DOMContentLoaded", initLoop);
+document.addEventListener('DOMContentLoaded', initLoop);
