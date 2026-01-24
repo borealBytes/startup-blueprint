@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler pages dev src/pages --port 8788",
     "build": "npm run build:pages && npm run build:workers",
-    "build:pages": "mkdir -p dist && cp -r src/pages/* dist/",
+    "build:pages": "tsc -p tsconfig.pages.json && mkdir -p dist && cp -r src/pages/* dist/",
     "build:workers": "wrangler deploy --dry-run",
     "deploy:preview": "bash scripts/setup-all.sh",
     "test": "vitest",

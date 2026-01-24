@@ -270,6 +270,36 @@ We're not dogmatic. Pay for value when it makes sense:
 
 ---
 
+## 🔁 AI-Native Loop
+
+This repo is the **entire business** — code, docs, operations, and decisions. Every commit runs through a consistent loop so the work stays clean and reviewable.
+
+**Core ideas:**
+
+- Humans decide direction and priorities; AI executes the work.
+- CI validates **code and business docs** (lint, format, link checks, tests/builds).
+- CrewAI always performs a **base review of the diff + CI logs**, then routes deeper reviews (legal, marketing, board, ops as we expand).
+- The review becomes a multi-voice sounding board; you choose what to adopt and feed it back into the next input cycle.
+
+```mermaid
+flowchart TD
+  Human[Human Steering] --> Agent[Agent Input]
+  Agent --> Commit[Commit to Git]
+  Commit --> CI[CI Gates]
+  CI --> Env[Env and Labels]
+  CI --> Lint[Lint and Format]
+  CI --> Docs[Docs Link Checks]
+  CI --> Tests[Workspace Tests and Builds]
+  CI --> Deploy[Preview or Prod Deploy]
+  CI --> Base[Base Review Diff and CI Logs]
+  Base --> CrewAI[CrewAI Router Review]
+  CrewAI --> Voices[Quick Full Legal\nFuture Marketing Board Ops]
+  Voices --> Review[Unified Review Suggestions]
+  Review --> Human
+```
+
+---
+
 ## 🧠 Agentic Workflow Framework
 
 We ship a ready-to-use agentic coding framework that works across **Perplexity**, **OpenCode**, and **Claude Code**. It keeps AI output consistent, reviewable, and safe—with clear human checkpoints.

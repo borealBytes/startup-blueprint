@@ -165,6 +165,95 @@
       </div>
     </section>
 
+    <!-- AI-Native Loop -->
+    <section class="bg-gradient-to-br from-indigo-50 via-white to-blue-50 py-16">
+      <div class="container mx-auto px-4 max-w-6xl">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+            🔁 The AI-Native Loop
+          </h2>
+          <p class="text-xl text-gray-700 max-w-4xl mx-auto">
+            Work with Perplexity, OpenCode, or Claude on the input side, then let CI
+            validate code and business docs before CrewAI reviews every commit. Humans
+            decide; AI executes.
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-10 items-center">
+          <div class="relative mx-auto w-full max-w-[560px]">
+            <div
+              id="agentic-loop"
+              class="relative mx-auto h-[520px] w-[520px] md:h-[600px] md:w-[600px]"
+            >
+              <svg
+                id="agentic-loop-svg"
+                class="absolute inset-0 h-full w-full"
+                aria-hidden="true"
+              ></svg>
+              <div
+                id="agentic-loop-center"
+                class="absolute inset-0 flex items-center justify-center"
+              >
+                <div class="text-center max-w-xs">
+                  <p
+                    class="text-xs uppercase tracking-[0.2em] text-indigo-500 mb-2"
+                  >
+                    Active Stage
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-gray-900"
+                    data-loop-title
+                  ></h3>
+                  <p
+                    class="text-sm text-gray-600 mt-3"
+                    data-loop-summary
+                  ></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-lg">
+              <h3 class="text-xl font-bold text-gray-900 mb-2">
+                Why this loop matters
+              </h3>
+              <p class="text-gray-600">
+                This repo is the entire company: code, docs, operations, and
+                decisions. CI validates business documentation alongside software,
+                then CrewAI reviews the diff and logs to surface fixes before you
+                merge.
+              </p>
+            </div>
+            <div
+              id="agentic-loop-details"
+              class="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100"
+            >
+              <p class="text-xs uppercase tracking-[0.2em] text-indigo-500 mb-2">
+                Focus
+              </p>
+              <h3
+                class="text-lg font-semibold text-gray-900"
+                data-loop-detail-title
+              ></h3>
+              <p class="text-gray-600 mt-3" data-loop-detail-summary></p>
+            </div>
+            <div class="bg-indigo-600 text-white rounded-2xl p-6 shadow-lg">
+              <h3 class="text-lg font-semibold mb-2">
+                CrewAI = the company review board
+              </h3>
+              <p class="text-white/90">
+                Every commit gets a base review of the diff + CI logs, then the
+                router spins up deeper reviews (legal, marketing, board, ops). You
+                decide what to adopt and feed the guidance back into the next agent
+                run.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Why Most People Never Start (NEW SECTION) -->
     <section
       class="bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 py-16"
@@ -637,6 +726,8 @@
         </div>
       </div>
     </section>
+
+    <script type="module" src="/agentic-loop.js"></script>
 
     <!-- What You'll Build -->
     <section class="container mx-auto px-4 py-16 max-w-6xl">
