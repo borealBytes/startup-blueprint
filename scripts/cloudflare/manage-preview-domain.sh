@@ -1,10 +1,6 @@
 #!/bin/bash
-#
-# Manage custom domain for preview deployments
-# This script ensures preview-startup-blueprint.SuperiorByteWorks.com points to the active preview
-#
-# Usage: bash manage-preview-domain.sh <project_name> <deployment_url>
-# Example: bash manage-preview-domain.sh website https://abc123.website.pages.dev
+# Manage custom preview domain for Cloudflare Pages deployment
+# Removes old domain assignment and adds to current deployment
 
 set -euo pipefail
 
@@ -28,209 +24,209 @@ log_error() {
 }
 
 log_step() {
-  echo -e "${BLUE}▶${NC} $1"
+  echo -e "${BLUE}→${NC} $1"
 }
 
-# Validate environment variables
-if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
-  log_error "CLOUDFLARE_API_TOKEN is not set"
-  exit 1
-fi
-
-if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
-  log_error "CLOUDFLARE_ACCOUNT_ID is not set"
-  exit 1
-fi
-
 # Configuration
-PROJECT_NAME="${1:-website}"
+PROJECT_NAME="${1:-startup-blueprint}"
 DEPLOYMENT_URL="${2:-}"
 CUSTOM_DOMAIN="preview-startup-blueprint.SuperiorByteWorks.com"
 BASE_DOMAIN="SuperiorByteWorks.com"
 SUBDOMAIN="preview-startup-blueprint"
 
+# Check required environment variables
+if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+  log_error "CLOUDFLARE_API_TOKEN environment variable is required"
+  exit 1
+fi
+
+if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+  log_error "CLOUDFLARE_ACCOUNT_ID environment variable is required"
+  exit 1
+fi
+
 if [ -z "$DEPLOYMENT_URL" ]; then
-  log_error "Usage: $0 <project_name> <deployment_url>"
-  log_error "Example: $0 website https://abc123.website.pages.dev"
+  log_error "Deployment URL is required as second argument"
   exit 1
 fi
 
 echo ""
-echo "🌐 Custom Preview Domain Management"
-echo "═══════════════════════════════════════"
+log_step "🌐 Managing Custom Preview Domain"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Project: $PROJECT_NAME"
-echo "Domain: $CUSTOM_DOMAIN"
-echo "Target: $DEPLOYMENT_URL"
+echo "Custom Domain: $CUSTOM_DOMAIN"
+echo "Deployment URL: $DEPLOYMENT_URL"
 echo ""
 
-# Extract deployment domain from URL (e.g., abc123.website.pages.dev)
-DEPLOYMENT_DOMAIN=$(echo "$DEPLOYMENT_URL" | sed -E 's|https?://([^/]+).*|\1|')
-log_info "Deployment domain: $DEPLOYMENT_DOMAIN"
-
 # Step 1: Get Zone ID for base domain
-log_step "Step 1: Finding zone ID for $BASE_DOMAIN"
+log_step "Finding Zone ID for $BASE_DOMAIN..."
 
-ZONE_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$BASE_DOMAIN" \
-  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+ZONE_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${BASE_DOMAIN}" \
+  -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
   -H "Content-Type: application/json")
 
 ZONE_ID=$(echo "$ZONE_RESPONSE" | jq -r '.result[0].id // empty')
 
-if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" == "null" ]; then
-  log_error "Failed to find zone ID for $BASE_DOMAIN"
-  echo "Response: $ZONE_RESPONSE" | jq .
+if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" = "null" ]; then
+  log_error "Could not find Zone ID for $BASE_DOMAIN"
+  echo "API Response: $ZONE_RESPONSE" | jq .
   exit 1
 fi
 
-log_info "Found zone ID: $ZONE_ID"
+log_info "Found Zone ID: $ZONE_ID"
 
-# Step 2: Remove custom domain from ALL Cloudflare Pages projects
-log_step "Step 2: Removing custom domain from any existing projects"
+# Step 2: Extract deployment ID from URL
+log_step "Extracting deployment info from URL..."
 
-# List all Pages projects
-PROJECTS_RESPONSE=$(curl -s -X GET \
-  "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects" \
-  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+# URL format: https://[deployment-id].[project-name].pages.dev
+DEPLOYMENT_ID=$(echo "$DEPLOYMENT_URL" | grep -oP 'https://\K[^.]+' || echo "")
+
+if [ -z "$DEPLOYMENT_ID" ]; then
+  log_error "Could not extract deployment ID from URL: $DEPLOYMENT_URL"
+  exit 1
+fi
+
+log_info "Deployment ID: $DEPLOYMENT_ID"
+
+# Step 3: Remove custom domain from ALL Pages projects (cleanup)
+log_step "Checking for existing custom domain assignments..."
+
+# Get all Pages projects
+PROJECTS_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects" \
+  -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
   -H "Content-Type: application/json")
 
-PROJECTS=$(echo "$PROJECTS_RESPONSE" | jq -r '.result[].name // empty')
+PROJECT_COUNT=$(echo "$PROJECTS_RESPONSE" | jq -r '.result | length')
+log_info "Found $PROJECT_COUNT Pages project(s)"
 
-if [ -n "$PROJECTS" ]; then
-  for project in $PROJECTS; do
-    log_info "Checking project: $project"
+# Check each project for the custom domain
+REMOVED_COUNT=0
+echo "$PROJECTS_RESPONSE" | jq -r '.result[].name' | while read -r proj_name; do
+  log_step "  Checking project: $proj_name"
+  
+  # Get domains for this project
+  DOMAINS_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${proj_name}/domains" \
+    -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+    -H "Content-Type: application/json")
+  
+  # Check if our custom domain is assigned to this project
+  HAS_DOMAIN=$(echo "$DOMAINS_RESPONSE" | jq -r --arg domain "$CUSTOM_DOMAIN" '.result[] | select(.name == $domain) | .name' || echo "")
+  
+  if [ -n "$HAS_DOMAIN" ]; then
+    log_warn "    Removing $CUSTOM_DOMAIN from $proj_name"
     
-    # List custom domains for this project
-    DOMAINS_RESPONSE=$(curl -s -X GET \
-      "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$project/domains" \
-      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    DELETE_RESPONSE=$(curl -s -X DELETE "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${proj_name}/domains/${CUSTOM_DOMAIN}" \
+      -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
       -H "Content-Type: application/json")
     
-    HAS_DOMAIN=$(echo "$DOMAINS_RESPONSE" | jq -r ".result[] | select(.name == \"$CUSTOM_DOMAIN\") | .name // empty")
+    DELETE_SUCCESS=$(echo "$DELETE_RESPONSE" | jq -r '.success')
     
-    if [ -n "$HAS_DOMAIN" ]; then
-      log_warn "Found custom domain on project $project, removing..."
-      
-      DELETE_RESPONSE=$(curl -s -X DELETE \
-        "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$project/domains/$CUSTOM_DOMAIN" \
-        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-        -H "Content-Type: application/json")
-      
-      if echo "$DELETE_RESPONSE" | jq -e '.success' > /dev/null 2>&1; then
-        log_info "Removed custom domain from $project"
-      else
-        log_warn "Failed to remove from $project (may not exist): $(echo "$DELETE_RESPONSE" | jq -r '.errors[0].message // "Unknown error"')"
-      fi
+    if [ "$DELETE_SUCCESS" = "true" ]; then
+      log_info "    Successfully removed from $proj_name"
+      REMOVED_COUNT=$((REMOVED_COUNT + 1))
+    else
+      log_warn "    Failed to remove from $proj_name (may not exist)"
     fi
-  done
-else
-  log_warn "No Pages projects found"
-fi
+  else
+    log_info "    Not assigned to $proj_name"
+  fi
+done
 
-# Step 3: Add custom domain to current project
-log_step "Step 3: Adding custom domain to $PROJECT_NAME"
+log_info "Removed custom domain from $REMOVED_COUNT project(s)"
 
-ADD_RESPONSE=$(curl -s -X POST \
-  "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT_NAME/domains" \
-  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+# Step 4: Add custom domain to current project
+log_step "Adding $CUSTOM_DOMAIN to $PROJECT_NAME..."
+
+ADD_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${PROJECT_NAME}/domains" \
+  -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"$CUSTOM_DOMAIN\"}")
+  -d "{
+    \"name\": \"${CUSTOM_DOMAIN}\"
+  }")
 
-if echo "$ADD_RESPONSE" | jq -e '.success' > /dev/null 2>&1; then
+ADD_SUCCESS=$(echo "$ADD_RESPONSE" | jq -r '.success')
+
+if [ "$ADD_SUCCESS" = "true" ]; then
   log_info "Successfully added custom domain to $PROJECT_NAME"
 else
-  # Check if it already exists (which is fine)
-  ERROR_CODE=$(echo "$ADD_RESPONSE" | jq -r '.errors[0].code // empty')
-  if [ "$ERROR_CODE" == "8000007" ] || echo "$ADD_RESPONSE" | grep -q "already exists"; then
-    log_info "Custom domain already exists on $PROJECT_NAME (OK)"
-  else
-    log_error "Failed to add custom domain"
-    echo "$ADD_RESPONSE" | jq .
-    exit 1
-  fi
+  log_error "Failed to add custom domain"
+  echo "API Response:" | jq . <<< "$ADD_RESPONSE"
+  exit 1
 fi
 
-# Step 4: Create or update DNS CNAME record
-log_step "Step 4: Managing DNS CNAME record"
+# Step 5: Get the CNAME target from Cloudflare Pages
+log_step "Getting CNAME target for DNS..."
+
+# The CNAME target is typically the project's pages.dev domain
+CNAME_TARGET="${PROJECT_NAME}.pages.dev"
+
+log_info "CNAME target: $CNAME_TARGET"
+
+# Step 6: Update DNS record
+log_step "Updating DNS CNAME record..."
 
 # Check if DNS record already exists
-DNS_RECORDS_RESPONSE=$(curl -s -X GET \
-  "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=CNAME&name=$CUSTOM_DOMAIN" \
-  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+DNS_RECORDS_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records?type=CNAME&name=${CUSTOM_DOMAIN}" \
+  -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
   -H "Content-Type: application/json")
 
-RECORD_ID=$(echo "$DNS_RECORDS_RESPONSE" | jq -r '.result[0].id // empty')
+EXISTING_RECORD_ID=$(echo "$DNS_RECORDS_RESPONSE" | jq -r '.result[0].id // empty')
 
-if [ -n "$RECORD_ID" ] && [ "$RECORD_ID" != "null" ]; then
-  log_info "Found existing DNS record, updating..."
+if [ -n "$EXISTING_RECORD_ID" ] && [ "$EXISTING_RECORD_ID" != "null" ]; then
+  # Update existing record
+  log_step "  Updating existing DNS record (ID: $EXISTING_RECORD_ID)..."
   
-  UPDATE_RESPONSE=$(curl -s -X PATCH \
-    "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
-    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  DNS_UPDATE_RESPONSE=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${EXISTING_RECORD_ID}" \
+    -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
     -H "Content-Type: application/json" \
     -d "{
       \"type\": \"CNAME\",
-      \"name\": \"$SUBDOMAIN\",
-      \"content\": \"$DEPLOYMENT_DOMAIN\",
+      \"name\": \"${SUBDOMAIN}\",
+      \"content\": \"${CNAME_TARGET}\",
       \"ttl\": 1,
       \"proxied\": true
     }")
   
-  if echo "$UPDATE_RESPONSE" | jq -e '.success' > /dev/null 2>&1; then
-    log_info "DNS record updated successfully"
+  DNS_SUCCESS=$(echo "$DNS_UPDATE_RESPONSE" | jq -r '.success')
+  
+  if [ "$DNS_SUCCESS" = "true" ]; then
+    log_info "Successfully updated DNS record"
   else
     log_error "Failed to update DNS record"
-    echo "$UPDATE_RESPONSE" | jq .
+    echo "API Response:" | jq . <<< "$DNS_UPDATE_RESPONSE"
     exit 1
   fi
 else
-  log_info "Creating new DNS record..."
+  # Create new record
+  log_step "  Creating new DNS record..."
   
-  CREATE_RESPONSE=$(curl -s -X POST \
-    "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
-    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  DNS_CREATE_RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records" \
+    -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
     -H "Content-Type: application/json" \
     -d "{
       \"type\": \"CNAME\",
-      \"name\": \"$SUBDOMAIN\",
-      \"content\": \"$DEPLOYMENT_DOMAIN\",
+      \"name\": \"${SUBDOMAIN}\",
+      \"content\": \"${CNAME_TARGET}\",
       \"ttl\": 1,
       \"proxied\": true
     }")
   
-  if echo "$CREATE_RESPONSE" | jq -e '.success' > /dev/null 2>&1; then
-    log_info "DNS record created successfully"
+  DNS_SUCCESS=$(echo "$DNS_CREATE_RESPONSE" | jq -r '.success')
+  
+  if [ "$DNS_SUCCESS" = "true" ]; then
+    log_info "Successfully created DNS record"
   else
     log_error "Failed to create DNS record"
-    echo "$CREATE_RESPONSE" | jq .
+    echo "API Response:" | jq . <<< "$DNS_CREATE_RESPONSE"
     exit 1
   fi
 fi
 
-# Step 5: Verify setup
-log_step "Step 5: Verifying setup"
-
-# Check custom domain status
-STATUS_RESPONSE=$(curl -s -X GET \
-  "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PROJECT_NAME/domains/$CUSTOM_DOMAIN" \
-  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-  -H "Content-Type: application/json")
-
-STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.result.status // "unknown"')
-
-log_info "Custom domain status: $STATUS"
-
-if [ "$STATUS" == "active" ] || [ "$STATUS" == "pending" ]; then
-  log_info "Custom domain is active or pending verification"
-else
-  log_warn "Custom domain status is '$STATUS' - may need time to propagate"
-fi
-
 echo ""
-echo "═══════════════════════════════════════"
-log_info "✅ Custom domain setup complete!"
+log_info "✅ Custom domain configuration complete!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🌐 Your preview is accessible at: https://${CUSTOM_DOMAIN}"
+echo "🔗 Direct URL: ${DEPLOYMENT_URL}"
 echo ""
-log_info "Your preview is accessible at:"
-echo "   🔗 https://$CUSTOM_DOMAIN"
-echo ""
-log_info "DNS propagation may take 1-2 minutes"
+log_warn "Note: DNS propagation may take 1-2 minutes"
 echo ""
