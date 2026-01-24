@@ -81,6 +81,7 @@ jobs:
       workspace: website
       build_artifact: website-build
       pr_number: ${{ github.event.pull_request.number }}
+      head_ref: ${{ github.event.pull_request.head.ref }}
     secrets: inherit
 
   deploy-production:

@@ -15,6 +15,10 @@ on:
         description: 'Pull request number'
         required: true
         type: number
+      head_ref:
+        description: 'PR branch name for preview links'
+        required: false
+        type: string
     outputs:
       deployment_url:
         description: 'URL of the preview deployment'
@@ -77,6 +81,31 @@ jobs:
         with:
           name: ${{ inputs.build_artifact }}
           path: apps/startup-blueprint/dist
+
+      - name: Update GitHub links for preview branch
+        if: ${{ inputs.head_ref != '' }}
+        env:
+          HEAD_REF: ${{ inputs.head_ref }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          head_ref = os.environ.get("HEAD_REF", "").strip()
+          if not head_ref:
+              raise SystemExit(0)
+
+          path = Path("apps/startup-blueprint/dist/index.html")
+          if not path.exists():
+              raise SystemExit("Missing dist/index.html")
+
+          base = "https://github.com/borealBytes/startup-blueprint"
+          branch_url = f"{base}/tree/{head_ref}"
+
+          text = path.read_text()
+          text = text.replace(base, branch_url)
+          path.write_text(text)
+          PY
 
       - name: Create Cloudflare Pages project if needed
         env:
