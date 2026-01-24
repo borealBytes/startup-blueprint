@@ -420,7 +420,21 @@ _Payment fees assume: Stripe 2.9% + 30¢ vs Helcim 2.7% avg (mix of in-person, o
 
 Found a way to eliminate more monthly fees? Have a better free alternative? **We want to know!**
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+**How to contribute:**
+
+1. Fork this repository
+2. Create a branch for your improvement
+3. Make your changes
+4. Submit a pull request with a clear description
+5. We'll review and merge if it helps eliminate subscriptions or improves the blueprint
+
+**What we're looking for:**
+
+- Better free alternatives to recommended tools
+- Ways to reduce costs further
+- Improved documentation and guides
+- Bug fixes and corrections
+- Real-world success stories
 
 ---
 
@@ -432,8 +446,9 @@ MIT License - Use this however you want. Build your business. Kill monthly fees.
 
 ## 💬 Questions?
 
-- **GitHub Issues:** [Report bugs or ask questions](https://github.com/borealBytes/startup-blueprint/issues)
-- **Discussions:** [Share your setup](https://github.com/borealBytes/startup-blueprint/discussions)
+**GitHub Issues:** [Report bugs or ask questions](https://github.com/borealBytes/startup-blueprint/issues)
+
+We respond to all issues and are happy to help you get started!
 
 ---
 
