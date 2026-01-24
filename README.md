@@ -270,6 +270,28 @@ We're not dogmatic. Pay for value when it makes sense:
 
 ---
 
+## 🧠 Agentic Workflow Framework
+
+We ship a ready-to-use agentic coding framework that works across **Perplexity**, **OpenCode**, and **Claude Code**. It keeps AI output consistent, reviewable, and safe—with clear human checkpoints.
+
+**What you get:**
+
+- **Canonical agent docs:** `docs/agentic/instructions.md` plus a full bundle of standards and procedures.
+- **Entry points:** `OPENCODE.md` (primary) and `CLAUDE.md` (compatibility).
+- **Repeatable workflow:** 14-step process with design + code review checkpoints.
+- **Guardrails:** Autonomy boundaries, escalation rules, and error recovery playbooks.
+- **Operational clarity:** Context budget and file organization guides for long threads.
+
+**Use it like this:**
+
+1. Start with `OPENCODE.md` (or `CLAUDE.md`).
+2. Follow `docs/agentic/instructions.md` for the reading order.
+3. For Perplexity Spaces, paste `docs/agentic/instructions.md` and upload the rest of `docs/agentic/`.
+
+This gives you **clean, repeatable AI collaboration** with a single source of truth for how agents should work in the repo.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites

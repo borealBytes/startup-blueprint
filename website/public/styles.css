@@ -555,6 +555,53 @@ body {
   margin-bottom: var(--spacing-2xl);
 }
 
+/* Agentic Workflow Section */
+.agentic-section {
+  padding: var(--spacing-2xl) 0;
+  margin-bottom: var(--spacing-2xl);
+  background: var(--color-surface);
+  border-radius: var(--border-radius);
+  border: 2px solid rgb(99 102 241 / 30%);
+}
+
+.agentic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.agentic-card {
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.agentic-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-4px);
+}
+
+.agentic-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.agentic-card h3 {
+  font-size: 1.125rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-primary);
+}
+
+.agentic-card p {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 .banking-features {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -823,6 +870,7 @@ body {
   .process-grid,
   .payment-features,
   .banking-features,
+  .agentic-grid,
   .savings-grid {
     grid-template-columns: 1fr;
   }
