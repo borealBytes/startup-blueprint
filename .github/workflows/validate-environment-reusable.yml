@@ -98,7 +98,6 @@ jobs:
   validate-credentials:
     name: Validate Credentials
     runs-on: ubuntu-latest
-    needs: ensure-required-labels
     
     steps:
       - name: Checkout code
@@ -155,7 +154,6 @@ jobs:
   check-preview-label-conflicts:
     name: Check Preview Label Conflicts
     runs-on: ubuntu-latest
-    needs: ensure-required-labels
     if: |
       github.event_name == 'pull_request' &&
       contains(github.event.pull_request.labels.*.name, 'Deploy: Website Preview')
