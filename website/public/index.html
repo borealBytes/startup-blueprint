@@ -337,46 +337,86 @@
 
       <!-- Agentic Workflow Section -->
       <section class="agentic-section">
-        <h2 class="section-title">🧠 Agentic Workflow Framework</h2>
-        <p class="section-intro">
-          We ship a ready-to-use agentic coding system for Perplexity, OpenCode,
-          and Claude Code. It keeps AI work clean, reviewable, and aligned with
-          human checkpoints.
-        </p>
+        <div class="agentic-header">
+          <h2 class="section-title">🧠 Agentic Workflow Framework</h2>
+          <p class="section-intro">
+            A complete, repeatable AI workflow that works across Perplexity,
+            OpenCode, and Claude Code. It keeps agents aligned, reviews
+            consistent, and changes safe.
+          </p>
+        </div>
+
+        <div class="agentic-rails">
+          <div class="agentic-rail">
+            <span class="rail-label">Entry Points</span>
+            <span class="rail-value">OPENCODE.md / CLAUDE.md</span>
+          </div>
+          <div class="agentic-rail">
+            <span class="rail-label">Source of Truth</span>
+            <span class="rail-value">docs/agentic/</span>
+          </div>
+          <div class="agentic-rail">
+            <span class="rail-label">Workflow</span>
+            <span class="rail-value">14 steps + 3 human checkpoints</span>
+          </div>
+        </div>
 
         <div class="agentic-grid">
           <div class="agentic-card">
             <div class="agentic-icon">🧭</div>
-            <h3>Clear Entry Points</h3>
+            <h3>Standardized Starts</h3>
             <p>
-              Start with <strong>OPENCODE.md</strong> (primary) or
-              <strong>CLAUDE.md</strong> (compat). Both point to canonical
-              instructions.
+              Clear entry points funnel every agent into the same instruction
+              set, so each session starts with the same rules and context.
             </p>
           </div>
           <div class="agentic-card">
             <div class="agentic-icon">🧱</div>
             <h3>Canonical Standards</h3>
             <p>
-              Full workflow, autonomy boundaries, error recovery, and context
-              guides live in <strong>docs/agentic/</strong>.
+              Autonomy boundaries, contribution standards, error recovery, and
+              context controls live in one bundled system.
             </p>
           </div>
           <div class="agentic-card">
             <div class="agentic-icon">✅</div>
             <h3>Human Checkpoints</h3>
             <p>
-              A 14-step workflow with design + code review checkpoints keeps AI
-              changes transparent and intentional.
+              Design review, code review, and readiness approval keep AI changes
+              intentional, reviewable, and safe to merge.
             </p>
           </div>
           <div class="agentic-card">
             <div class="agentic-icon">📦</div>
-            <h3>Space-Ready Setup</h3>
+            <h3>Perplexity-Ready</h3>
             <p>
-              Paste <strong>instructions.md</strong> into Perplexity and upload
-              the rest of the bundle for reliable, low-friction agent runs.
+              Paste instructions and upload the bundle once. No GitHub syncing
+              required during work, so tool calls stay focused on real tasks.
             </p>
+          </div>
+        </div>
+
+        <div class="agentic-steps">
+          <div class="agentic-step">
+            <span class="step-pill">1</span>
+            <div>
+              <h4>Start at OPENCODE.md</h4>
+              <p>Follow the canonical reading order and guardrails.</p>
+            </div>
+          </div>
+          <div class="agentic-step">
+            <span class="step-pill">2</span>
+            <div>
+              <h4>Load docs/agentic/</h4>
+              <p>Use the full standard set for consistency and reviewability.</p>
+            </div>
+          </div>
+          <div class="agentic-step">
+            <span class="step-pill">3</span>
+            <div>
+              <h4>Ship with checkpoints</h4>
+              <p>Design + code review gates keep quality high.</p>
+            </div>
           </div>
         </div>
       </section>
