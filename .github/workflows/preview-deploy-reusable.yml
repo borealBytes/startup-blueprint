@@ -95,7 +95,7 @@ jobs:
           if not head_ref:
               raise SystemExit(0)
 
-          path = Path("apps/startup-blueprint/dist/index.html")
+          path = Path("dist/index.html")
           if not path.exists():
               raise SystemExit("Missing dist/index.html")
 
