@@ -4,11 +4,11 @@ Reusable bash scripts for deploying applications to Cloudflare infrastructure an
 
 ## Scripts Overview
 
-| Script | Purpose | Usage |
-|--------|---------|-------|
-| `deploy-helper.sh` | Shared deployment functions (D1, R2, KV, Pages) | Source in other scripts |
-| `manage-preview-domain.sh` | Custom domain management for previews | Standalone executable |
-| `teardown-helper.sh` | Cleanup preview deployments | Standalone executable |
+| Script                     | Purpose                                         | Usage                   |
+| -------------------------- | ----------------------------------------------- | ----------------------- |
+| `deploy-helper.sh`         | Shared deployment functions (D1, R2, KV, Pages) | Source in other scripts |
+| `manage-preview-domain.sh` | Custom domain management for previews           | Standalone executable   |
+| `teardown-helper.sh`       | Cleanup preview deployments                     | Standalone executable   |
 
 ---
 
@@ -28,17 +28,18 @@ export CLOUDFLARE_ACCOUNT_ID="your-account-id"
 
 ### Required API Token Permissions
 
-| Permission | Level | Used By |
-|------------|-------|----------|
-| **Account → Cloudflare Pages** | Edit | All scripts |
-| **Zone → DNS** | Edit | manage-preview-domain.sh |
-| **Zone → Zone** | Read | manage-preview-domain.sh |
+| Permission                     | Level | Used By                  |
+| ------------------------------ | ----- | ------------------------ |
+| **Account → Cloudflare Pages** | Edit  | All scripts              |
+| **Zone → DNS**                 | Edit  | manage-preview-domain.sh |
+| **Zone → Zone**                | Read  | manage-preview-domain.sh |
 
 ---
 
 ## 1. deploy-helper.sh
 
 ### Purpose
+
 Shared bash functions for setting up Cloudflare resources (D1, R2, KV) and deploying Pages/Workers.
 
 ### Usage
@@ -78,6 +79,7 @@ All setup functions check for existing resources before creation. Running twice 
 ## 2. manage-preview-domain.sh
 
 ### Purpose
+
 Manage custom domain assignment for preview deployments. Ensures only one deployment has the preview domain at a time.
 
 ### Features
@@ -136,6 +138,7 @@ SUBDOMAIN="preview-startup-blueprint"
 ## 3. teardown-helper.sh
 
 ### Purpose
+
 Cleanup preview deployments and associated resources.
 
 ### Usage
