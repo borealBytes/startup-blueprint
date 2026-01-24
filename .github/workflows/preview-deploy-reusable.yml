@@ -38,6 +38,10 @@ jobs:
       name: preview-pr-${{ inputs.pr_number }}
       url: ${{ steps.extract_url.outputs.url }}
 
+    defaults:
+      run:
+        working-directory: apps/startup-blueprint
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,19 +64,22 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_artifact }}
-          path: ./dist
+          path: apps/startup-blueprint/dist
 
       - name: Deploy to Cloudflare Pages
         id: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./dist --project-name=${{ inputs.workspace }} --branch=preview-pr-${{ inputs.pr_number }}
-          packageManager: pnpm
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "🚀 Deploying to Cloudflare Pages..."
+          pnpm exec wrangler pages deploy ./dist \
+            --project-name=${{ inputs.workspace }} \
+            --branch=preview-pr-${{ inputs.pr_number }}
 
       - name: Extract deployment URL
         id: extract_url
+        working-directory: .
         run: |
           # Cloudflare Pages preview URL pattern
           PREVIEW_URL="https://preview-pr-${{ inputs.pr_number }}.${{ inputs.workspace }}.pages.dev"
@@ -157,6 +164,7 @@ jobs:
             }
 
       - name: Verify preview deployment
+        working-directory: .
         run: |
           PREVIEW_URL="${{ steps.extract_url.outputs.url }}"
 
@@ -178,6 +186,7 @@ jobs:
           fi
 
       - name: Generate deployment summary
+        working-directory: .
         run: |
           echo "## 🚀 Preview Deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
