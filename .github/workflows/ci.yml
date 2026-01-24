@@ -13,12 +13,12 @@ permissions:
 
 jobs:
   # ============================================================================
-  # PHASE 1: Credential Validation & Core CI - Run in parallel
+  # PHASE 1: Environment Validation & Core CI - Run in parallel
   # ============================================================================
 
-  validate-credentials:
-    name: Validate Credentials
-    uses: ./.github/workflows/validate-credentials-reusable.yml
+  validate-environment:
+    name: Validate Environment
+    uses: ./.github/workflows/validate-environment-reusable.yml
     secrets: inherit
 
   core-ci:
@@ -69,11 +69,11 @@ jobs:
 
   deploy-preview:
     name: Deploy to Preview
-    needs: [test-website, validate-credentials]
+    needs: [test-website, validate-environment]
     if: |
       github.event_name == 'pull_request' &&
       needs.test-website.result == 'success' &&
-      needs.validate-credentials.result == 'success' &&
+      needs.validate-environment.result == 'success' &&
       contains(github.event.pull_request.labels.*.name, 'Deploy: Website Preview')
     uses: ./.github/workflows/preview-deploy-reusable.yml
     with:
