@@ -1,0 +1,21 @@
+{
+  "name": "startup-blueprint-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A comprehensive, free guide to starting a business",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "deploy:startup-blueprint": "turbo run deploy:preview --filter=startup-blueprint"
+  },
+  "devDependencies": {
+    "turbo": "^1.11.0",
+    "@cloudflare/workers-types": "^4.20240117.0"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

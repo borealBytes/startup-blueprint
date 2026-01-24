@@ -1,0 +1,45 @@
+name: Documentation Links Test
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        required: false
+        type: string
+        description: 'Commit SHA to test'
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+
+      - name: Check documentation links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: |
+            --verbose \
+            --no-progress \
+            --exclude-path '.github/**' \
+            --exclude-path 'node_modules/**' \
+            --exclude-path '.crewai/workspace/**' \
+            --exclude 'http://localhost*' \
+            --exclude 'https://example.com' \
+            './**/*.md'
+          fail: true
+          output: ''  # Disable PR comment output
+
+      - name: Link check summary
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ All documentation links are valid"
+          else
+            echo "❌ Some documentation links are broken"
+            echo "Please fix the broken links before merging"
+          fi

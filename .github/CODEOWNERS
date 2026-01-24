@@ -1,0 +1,17 @@
+# CODEOWNERS
+# Auto-requests reviews from these users when files are changed
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @borealBytes
+
+# CI/CD workflows - require review
+/.github/ @borealBytes
+
+# Documentation
+/docs/ @borealBytes
+
+# Root config files - require careful review
+/package.json @borealBytes
+/.gitignore @borealBytes
+/README.md @borealBytes

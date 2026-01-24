@@ -1,0 +1,52 @@
+name: Format & Lint
+
+on:
+  workflow_call:
+    outputs:
+      final-commit-sha:
+        description: 'Final commit SHA after potential auto-fixes'
+        value: ${{ jobs.format-lint.outputs.final-commit-sha }}
+
+jobs:
+  format-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    outputs:
+      final-commit-sha: ${{ steps.get-sha.outputs.sha }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff format
+        run: |
+          echo "🎨 Running ruff format..."
+          ruff format . --check || {
+            echo "⚠️ Format issues found. Run 'ruff format .' locally."
+            exit 1
+          }
+
+      - name: Run ruff lint
+        run: |
+          echo "🔍 Running ruff lint..."
+          ruff check . || {
+            echo "⚠️ Lint issues found. Run 'ruff check . --fix' locally."
+            exit 1
+          }
+
+      - name: Get final commit SHA
+        id: get-sha
+        run: |
+          echo "sha=${{ github.event.pull_request.head.sha || github.sha }}" >> $GITHUB_OUTPUT
