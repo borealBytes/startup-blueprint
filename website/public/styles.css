@@ -88,7 +88,6 @@ body {
     var(--color-gradient-start),
     var(--color-gradient-end)
   );
-  background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
@@ -120,14 +119,12 @@ body {
     var(--color-gradient-start),
     var(--color-gradient-end)
   );
-  background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .highlight-number.savings-color {
   background: var(--color-secondary);
-  background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
