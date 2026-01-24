@@ -195,13 +195,13 @@ your-company/
 
 #### Cost Comparison: Monthly Processing $10,000
 
-| Method                              | Your Cost  | Annual   | Notes                         |
-| ----------------------------------- | ---------- | -------- | ----------------------------- |
-| **Traditional (Stripe 2.9% + 30¢)** | ~$320/mo   | $3,840   | Standard processor            |
-| **Helcim (All Transactions)**       | ~$270/mo   | $3,240   | Save $600/year                |
-| **Helcim + 50% Direct ACH**         | ~$135/mo   | $1,620   | Save $2,220/year              |
-| **Helcim Surcharging**              | ~$50/mo    | $600     | Save $3,240/year              |
-| **100% Direct ACH to Fidelity**     | **$0/mo**  | **$0**   | **Save $3,840/year**          |
+| Method                              | Your Cost | Annual | Notes                |
+| ----------------------------------- | --------- | ------ | -------------------- |
+| **Traditional (Stripe 2.9% + 30¢)** | ~$320/mo  | $3,840 | Standard processor   |
+| **Helcim (All Transactions)**       | ~$270/mo  | $3,240 | Save $600/year       |
+| **Helcim + 50% Direct ACH**         | ~$135/mo  | $1,620 | Save $2,220/year     |
+| **Helcim Surcharging**              | ~$50/mo   | $600   | Save $3,240/year     |
+| **100% Direct ACH to Fidelity**     | **$0/mo** | **$0** | **Save $3,840/year** |
 
 ---
 
