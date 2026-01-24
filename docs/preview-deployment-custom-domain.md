@@ -22,11 +22,11 @@ This feature automatically configures a custom domain for PR preview deployments
 
 Your `CLOUDFLARE_API_TOKEN` must have these permissions:
 
-| Permission | Level | Purpose |
-|------------|-------|----------|
-| **Account → Cloudflare Pages** | Edit | Deploy to Pages, manage custom domains |
-| **Zone → DNS** | Edit | Create/update CNAME records |
-| **Zone → Zone** | Read | Find Zone ID for base domain |
+| Permission                     | Level | Purpose                                |
+| ------------------------------ | ----- | -------------------------------------- |
+| **Account → Cloudflare Pages** | Edit  | Deploy to Pages, manage custom domains |
+| **Zone → DNS**                 | Edit  | Create/update CNAME records            |
+| **Zone → Zone**                | Read  | Find Zone ID for base domain           |
 
 #### How to Verify/Update Token Permissions
 
@@ -68,11 +68,13 @@ If you get `"success": true` and see your zones, you're ready!
 **Important**: Only **ONE** PR should have the `Deploy: Website Preview` label at a time.
 
 **Why?** The custom domain can only point to one deployment. If multiple PRs have the label:
+
 - The custom domain will point to whichever deployed **most recently**
 - Other PRs will still have their direct Cloudflare URLs
 - A warning will be posted on all conflicting PRs
 
 **Recommended Process**:
+
 1. Remove the label from PR A when you want to preview PR B
 2. Add the label to PR B
 3. Wait for PR B to deploy and configure the custom domain
@@ -130,6 +132,7 @@ If you get `"success": true` and see your zones, you're ready!
 **Location**: `scripts/cloudflare/manage-preview-domain.sh`
 
 **What it does**:
+
 1. Validates environment variables (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`)
 2. Finds Zone ID for `SuperiorByteWorks.com`
 3. Loops through **all** Cloudflare Pages projects
@@ -143,16 +146,16 @@ If you get `"success": true` and see your zones, you're ready!
 
 ### Cloudflare API Calls
 
-| API Endpoint | Purpose | HTTP Method |
-|--------------|---------|-------------|
-| `/zones?name=SuperiorByteWorks.com` | Get Zone ID | GET |
-| `/pages/projects` | List all Pages projects | GET |
-| `/pages/projects/{name}/domains` | List domains for project | GET |
-| `/pages/projects/{name}/domains/{domain}` | Remove custom domain | DELETE |
-| `/pages/projects/{name}/domains` | Add custom domain | POST |
-| `/zones/{zone}/dns_records?type=CNAME` | Find existing DNS record | GET |
-| `/zones/{zone}/dns_records/{id}` | Update DNS record | PUT |
-| `/zones/{zone}/dns_records` | Create DNS record | POST |
+| API Endpoint                              | Purpose                  | HTTP Method |
+| ----------------------------------------- | ------------------------ | ----------- |
+| `/zones?name=SuperiorByteWorks.com`       | Get Zone ID              | GET         |
+| `/pages/projects`                         | List all Pages projects  | GET         |
+| `/pages/projects/{name}/domains`          | List domains for project | GET         |
+| `/pages/projects/{name}/domains/{domain}` | Remove custom domain     | DELETE      |
+| `/pages/projects/{name}/domains`          | Add custom domain        | POST        |
+| `/zones/{zone}/dns_records?type=CNAME`    | Find existing DNS record | GET         |
+| `/zones/{zone}/dns_records/{id}`          | Update DNS record        | PUT         |
+| `/zones/{zone}/dns_records`               | Create DNS record        | POST        |
 
 ---
 
@@ -200,6 +203,7 @@ If you get `"success": true` and see your zones, you're ready!
 **Impact**: The custom domain points to whichever PR deployed **most recently**
 
 **Solution**:
+
 1. Decide which PR should have the custom domain
 2. Remove the label from the other PR(s)
 3. The warning will automatically be removed
