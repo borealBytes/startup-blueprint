@@ -12,11 +12,93 @@ permissions:
   contents: read
   checks: write
   pull-requests: write
+  issues: write
 
 jobs:
+  ensure-required-labels:
+    name: Ensure Required Labels Exist
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check and create required labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const requiredLabels = [
+              {
+                name: 'Deploy: Website Preview',
+                color: '0366d6',
+                description: 'Triggers preview deployment to custom domain'
+              },
+              {
+                name: 'Deploy: Production',
+                color: '28a745',
+                description: 'Triggers production deployment'
+              },
+              {
+                name: 'Status: Blocked',
+                color: 'd93f0b',
+                description: 'PR is blocked by dependencies or issues'
+              },
+              {
+                name: 'Status: Ready for Review',
+                color: '0e8a16',
+                description: 'PR is ready for review'
+              }
+            ];
+            
+            console.log('Checking required labels...');
+            
+            // Get all existing labels
+            const { data: existingLabels } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            
+            const existingLabelNames = existingLabels.map(l => l.name);
+            console.log(`Found ${existingLabels.length} existing labels`);
+            
+            // Check each required label
+            for (const label of requiredLabels) {
+              if (existingLabelNames.includes(label.name)) {
+                console.log(`✅ Label "${label.name}" exists`);
+              } else {
+                console.log(`❗ Label "${label.name}" missing, creating...`);
+                
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description
+                  });
+                  console.log(`✅ Created label "${label.name}"`);
+                } catch (error) {
+                  console.error(`❌ Failed to create label "${label.name}": ${error.message}`);
+                }
+              }
+            }
+            
+            console.log('✅ All required labels verified/created');
+
+      - name: Add label check summary
+        run: |
+          echo "## 🏷️ Required Labels Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All required labels exist or have been created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Labels verified:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Deploy: Website Preview" >> $GITHUB_STEP_SUMMARY
+          echo "- Deploy: Production" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: Blocked" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: Ready for Review" >> $GITHUB_STEP_SUMMARY
+
   validate-credentials:
     name: Validate Credentials
     runs-on: ubuntu-latest
+    needs: ensure-required-labels
     
     steps:
       - name: Checkout code
@@ -73,6 +155,7 @@ jobs:
   check-preview-label-conflicts:
     name: Check Preview Label Conflicts
     runs-on: ubuntu-latest
+    needs: ensure-required-labels
     if: |
       github.event_name == 'pull_request' &&
       contains(github.event.pull_request.labels.*.name, 'Deploy: Website Preview')
@@ -222,7 +305,7 @@ jobs:
       - name: Add conflict summary to output
         if: always()
         run: |
-          echo "## 🏷️ Preview Label Check" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏷️ Preview Label Conflict Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ "${{ steps.check.outputs.has_conflict }}" = "true" ]; then
