@@ -78,6 +78,7 @@ Total:                    200,000 tokens (100%)
 ### Real-World Allocation
 
 **Simple task** (bug fix):
+
 ```
 Base:     4,000
 Task:     2,000
@@ -86,6 +87,7 @@ Buffer:  174,000 ← Tons of room
 ```
 
 **Complex task** (refactor):
+
 ```
 Base:     4,000
 Task:    10,000
@@ -94,6 +96,7 @@ Buffer:  86,000 ← Still safe
 ```
 
 **Very complex task** (architecture):
+
 ```
 Base:     4,000
 Task:    20,000
@@ -108,6 +111,7 @@ Buffer:  26,000 ← Getting tight, consider new thread
 ### Signs You Should Create New Thread
 
 ✅ **Create new thread when**:
+
 - Context usage > 70% (140K tokens)
 - Conversation has 50+ messages
 - Task changes significantly
@@ -116,6 +120,7 @@ Buffer:  26,000 ← Getting tight, consider new thread
 - Work feels slow (agent struggling)
 
 ❌ **Don't create new thread**:
+
 - You have < 5 messages
 - Task is almost done
 - Context usage < 50%
@@ -156,6 +161,7 @@ When context is getting full:
 ### Strategy 1: Reference Files By Name
 
 ❌ **Bad** (uses lots of context):
+
 ```
 You: "Here's the Button component I want to fix:
 
@@ -167,6 +173,7 @@ Context used: ~2,000 tokens
 ```
 
 ✅ **Good** (saves context):
+
 ```
 You: "Fix the Button component (src/components/Button.tsx).
 Add a 'disabled' prop that greys out the button."
@@ -180,12 +187,14 @@ Me: "I can see Button.tsx in the repo. Here's what I'll do:
 ### Strategy 2: Ask for Specific Sections
 
 ❌ **Bad**:
+
 ```
 You: "Review the entire codebase and find performance issues."
 Context used: ~50,000 tokens (entire repo loaded)
 ```
 
 ✅ **Good**:
+
 ```
 You: "Review the database query in
 QueryBuilder.ts (lines 45-60) for performance issues."
@@ -195,12 +204,14 @@ Context used: ~500 tokens (specific section)
 ### Strategy 3: Keep Tasks Focused
 
 ❌ **Bad** (multiple tasks):
+
 ```
 "Build dark mode, add animations, refactor DB, optimize images"
 Context used: Explodes because each task needs full context
 ```
 
 ✅ **Good** (single focus):
+
 ```
 "Build dark mode toggle. That's it.
 Animations and refactoring in separate threads."
@@ -210,12 +221,14 @@ Context used: ~40% of budget
 ### Strategy 4: Summarize Frequently
 
 ❌ **Bad** (scroll through history):
+
 ```
 Thread has 100 messages. Need to reference decision from message 15.
 Context used: Need to load all 100 messages to find it.
 ```
 
 ✅ **Good** (save summaries):
+
 ```
 Every 20 messages: "Summary so far:
 - Decided to use React for UI
@@ -274,7 +287,7 @@ Solution: Summarize or create new thread
 ### Slow Pace (Less Context)
 
 ```
-Thread: 50 messages, 50K tokens  
+Thread: 50 messages, 50K tokens
 Pacing: 1K tokens per message
 Length: 5 hours
 Risk: Low, you can keep going
@@ -359,7 +372,7 @@ Can you implement?"
 Context at 50% (100K tokens used)
 ✅ Safe, continue normally
 
-Context at 70% (140K tokens used)  
+Context at 70% (140K tokens used)
 ⚠️ Getting full, start wrapping up
 
 Context at 85% (170K tokens used)
@@ -371,6 +384,7 @@ Context at 85% (170K tokens used)
 I'll tell you if context is getting full.
 
 Or you can estimate:
+
 - Simple conversation: ~1K tokens per message
 - With code: ~2-5K tokens per message
 - With large files: ~5-10K tokens per message
@@ -439,6 +453,7 @@ In middle of task
 - Keep 20-30K as buffer
 
 **To use context efficiently**:
+
 1. Reference files by name (don't paste)
 2. Ask for specific sections (not whole files)
 3. Keep tasks focused (one per thread)

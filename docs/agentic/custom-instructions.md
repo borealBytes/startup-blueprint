@@ -32,12 +32,12 @@ BUSINESS_NAME/
 
 ### Workspace Definitions
 
-| Path | Type | Purpose | Deploy Target | Scope Prefix |
-|------|------|---------|---------------|--------|
-| `apps/*` | Application | Standalone deployed services | Varies per app | `app(<name>)` |
-| `packages/*` | Library | Shared code, utilities, design system | NPM / internal | `pkg(<name>)` |
-| `website/` | Application | Main BUSINESS_NAME website | Cloudflare Pages | `website` |
-| `data/` | Scripts | Database migrations, seeds, data tools | (not deployed) | `data` |
+| Path         | Type        | Purpose                                | Deploy Target    | Scope Prefix  |
+| ------------ | ----------- | -------------------------------------- | ---------------- | ------------- |
+| `apps/*`     | Application | Standalone deployed services           | Varies per app   | `app(<name>)` |
+| `packages/*` | Library     | Shared code, utilities, design system  | NPM / internal   | `pkg(<name>)` |
+| `website/`   | Application | Main BUSINESS_NAME website             | Cloudflare Pages | `website`     |
+| `data/`      | Scripts     | Database migrations, seeds, data tools | (not deployed)   | `data`        |
 
 ### Configuration Files
 

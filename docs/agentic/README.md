@@ -169,11 +169,13 @@ From **[agentic_coding.md](agentic_coding.md)**:
 Path: `docs/agentic/`
 
 **Source of truth:**
+
 - The repo is authoritative
 - Space uploads are a convenience copy
 - If Space and repo differ, follow the repo
 
 **For decision records:**
+
 - ADR files live in `docs/agentic/adr/`
 - See `agentic_coding.md` for decision rationale
 

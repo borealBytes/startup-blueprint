@@ -2,19 +2,21 @@
 
 **Status**: Accepted  
 **Date**: 2026-01-12  
-**Decision Maker**: [Your Name]  
+**Decision Maker**: [Your Name]
 
 ---
 
 ## Problem Statement
 
 When errors occur during development:
+
 1. **Agents don't know what to do** (should they retry? escalate? rollback?)
 2. **Humans don't know it happened** (error silently gets buried)
 3. **Work is lost or conflicted** (no recovery procedures)
 4. **Costs accumulate** (fixing error takes as long as original work)
 
 **Current state**:
+
 - ❌ Agents might panic and escalate unnecessarily
 - ❌ Agents might make things worse trying to fix
 - ❌ Humans unaware until much later
@@ -88,12 +90,14 @@ When errors occur during development:
 ### **Positive**
 
 ✅ **Agents know what to do**
+
 - Clear procedures reduce uncertainty
 - Confidence to attempt recovery
 - Know when to escalate (explicit rules)
 - Results in faster error resolution
 
 ✅ **Humans get clear error reports**
+
 - Exact error message included
 - Context provided (branch, task status)
 - Recovery steps already attempted
@@ -101,18 +105,21 @@ When errors occur during development:
 - Reduces back-and-forth clarification
 
 ✅ **Fewer wasted attempts**
+
 - Documented procedures prevent trial-and-error
 - Proven recovery steps
 - Less time debugging
 - Less frustration
 
 ✅ **Scalable error handling**
+
 - New agents can read procedures
 - Consistent response to same error
 - Training built-in (procedures = documentation)
 - Errors become learning opportunities
 
 ✅ **Prevention awareness**
+
 - Tips prevent many errors before they happen
 - "Run tests before pushing" catches issues early
 - "Pull before working" prevents conflicts
@@ -121,14 +128,17 @@ When errors occur during development:
 ### **Negative / Trade-offs**
 
 ⚠️ **Requires maintaining procedures**
+
 - As tools/frameworks change, procedures may need updating
 - Mitigation: Review procedures every quarter, update as needed
 
 ⚠️ **Might not cover all errors**
+
 - New error types might not be in list
 - Mitigation: Procedure for unknown errors (investigate then escalate if stuck)
 
 ⚠️ **Agents might follow procedures wrong**
+
 - If procedures misunderstood, error might worsen
 - Mitigation: Clear step-by-step format, test with first errors
 
@@ -139,6 +149,7 @@ When errors occur during development:
 ### **Alternative 1: No documented procedures**
 
 **Why rejected**:
+
 - Agents make ad-hoc decisions
 - Inconsistent responses to same error
 - Humans unaware errors happened
@@ -147,6 +158,7 @@ When errors occur during development:
 ### **Alternative 2: Escalate everything**
 
 **Why rejected**:
+
 - Bottleneck on humans
 - Simple errors (lint, format) need human approval
 - Defeats purpose of having agents
@@ -155,12 +167,14 @@ When errors occur during development:
 ### **Alternative 3: "Try to fix, if stuck ask"**
 
 **Why rejected**:
+
 - Too vague (agents might make things worse)
 - No clear criteria for "stuck"
 - Humans don't know what was tried
 - Creates more work, not less
 
 **Chosen approach** wins because:
+
 - ✅ Clear categories (agents know which applies)
 - ✅ Specific procedures (agents follow steps)
 - ✅ Escalation rules (agents know when to ask)
@@ -172,6 +186,7 @@ When errors occur during development:
 ## Implementation
 
 ### **Phase 1: Procedures Documented**
+
 - ✅ Created `agent_error_recovery.md`
 - ✅ Covered 9 error categories
 - ✅ Each has clear steps
@@ -179,6 +194,7 @@ When errors occur during development:
 - ✅ Prevention tips included
 
 ### **Phase 2: Testing** (Pending)
+
 - [ ] First agent encounters first error
 - [ ] Follow documented procedures
 - [ ] Verify procedure works
@@ -186,6 +202,7 @@ When errors occur during development:
 - [ ] Document what changed
 
 ### **Phase 3: Iteration** (Ongoing)
+
 - [ ] Quarterly review of procedures
 - [ ] Add new error types as discovered
 - [ ] Refine steps based on experience

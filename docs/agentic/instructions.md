@@ -19,14 +19,17 @@ If you are working in a Perplexity Space:
 ## Your Core References (Always Read First)
 
 ### 1. **Agentic Coding** (Comprehensive Specification) ⭐
+
 `docs/agentic/agentic_coding.md`  
 What you CAN/MUST/NEVER do, 14-step workflow, escalation rules, PR management.
 
 ### 2. **Autonomy Boundaries** (Quick Reference)
+
 `docs/agentic/autonomy_boundaries.md`  
 Capability matrix and escalation procedures.
 
 ### 3. **Workflow Guide** (Process Steps)
+
 `docs/agentic/workflow_guide.md`  
 14-step transparent process with human checkpoints.
 
@@ -35,18 +38,21 @@ Capability matrix and escalation procedures.
 ## Backlog Usage (BACKLOG.md)
 
 **Format convention:**
+
 - Each backlog line is a checklist item: `- [ ] [P#] [domain] Description...` or `- [x] [P#] [domain] Description...`.
 - **Status** is the checkbox: `[ ]` for open, `[x]` for done.
 - **Priority** is one of `[P0]`, `[P1]`, `[P2]`, `[P3]` (P0 highest).
 - **Domain** is a free-text tag like `[auth]`, `[infra]`, `[backend]`, `[ux]`.
 
 **Adding items:**
+
 - Put all new work into `## 📋 To Triage (New Items)` in `BACKLOG.md`.
 - Use: `- [ ] [P#] [domain] Short description. Est: Nd.`  
   Example: `- [ ] [P1] [auth] Implement JWT auth ... Est: 2d.`
 - Include enough detail that an agent can start a design doc without more clarification when possible.
 
 **Updating items while working:**
+
 - When starting work from a backlog item, create a feature branch and PR as usual, then append back on that same line:  
   `BRANCH: \`branch-name\` PR: #NNN` once those exist.
 - Move the item between sections (`To Triage` → `High Priority` → `In Progress` → `Done`) by cutting/pasting the same line; keep the text (including BRANCH/PR) intact so agents can jump directly.
@@ -59,10 +65,12 @@ This keeps the backlog as the **single lightweight index** for in-repo work, wit
 ## Before Starting Your Task
 
 **Simple fixes or small features:**
+
 - ✅ `contribute_standards.md` (code style, testing, docs)
 - ✅ `custom-instructions.md` (repo-specific decisions)
 
 **Complex refactors or infrastructure changes:**
+
 - ✅ `operational_readiness.md` (constraints & limits)
 - ✅ `context_budget_guide.md` (token management)
 - ✅ `contribute_standards.md` (code standards)
@@ -81,6 +89,7 @@ This keeps the backlog as the **single lightweight index** for in-repo work, wit
 ## TL;DR: Your Capabilities & Boundaries
 
 ✅ **What You Can Do Autonomously:**
+
 - Write code following standards
 - Create branches with proper naming
 - Make commits with Conventional Commits format
@@ -89,6 +98,7 @@ This keeps the backlog as the **single lightweight index** for in-repo work, wit
 - Respond to feedback and iterate
 
 ❌ **What You Cannot Do:**
+
 - Merge PRs (only humans merge)
 - Deploy to production (only humans deploy)
 - Approve your own PR (can't approve own work)
@@ -96,6 +106,7 @@ This keeps the backlog as the **single lightweight index** for in-repo work, wit
 - Force-push or rewrite history
 
 📋 **When You Must Escalate (Ask first):**
+
 - Breaking changes to APIs
 - Security/authentication modifications
 - Database schema changes
@@ -117,13 +128,16 @@ This keeps the backlog as the **single lightweight index** for in-repo work, wit
 ## File Locations & Source of Truth
 
 ### Instruction Files (`docs/agentic/`)
+
 **Location:** `docs/agentic/` in this repo  
 **Purpose:** Your operating instructions and workflow guides  
 **Source of truth:** This repo. For Spaces, upload copies of the same files.
 
 ### Development Work (Actual Code)
+
 **Default branch:** `main` (unless human directs you to use another base branch)  
 **Your workflow:**
+
 ```bash
 # When starting new work:
 git checkout main
@@ -149,6 +163,7 @@ git checkout -b feat/your-feature-name
 ## All Files Available
 
 **Core Documentation** (`docs/agentic/`):
+
 - `README.md` - Visual overview with diagrams
 - `agentic_coding.md` - Comprehensive agent specification ⭐
 - `autonomy_boundaries.md` - Capability matrix
@@ -161,6 +176,7 @@ git checkout -b feat/your-feature-name
 - `file_organization.md` - File sync strategy
 
 **Architecture Records** (`docs/agentic/adr/`):
+
 - `ADR-001-perplexity-spaces.md` - Why this architecture
 - `ADR-002-monorepo-structure.md` - Monorepo decisions
 - `ADR-003-idempotent-scripts.md` - Deployment safety

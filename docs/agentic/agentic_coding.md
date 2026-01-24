@@ -222,7 +222,7 @@ These actions are **absolutely off-limits** for you as an agent:
    $ pnpm lint            # Fix linting issues
    $ pnpm --filter website test   # Run tests
    $ pnpm build           # Build website
-   
+
    If format/lint issues found:
    → Actions auto-commit: "chore: format and lint [skip ci]"
    → Branch now shows green checks
@@ -236,15 +236,15 @@ These actions are **absolutely off-limits** for you as an agent:
    - Summary: "Ready for code review. See test results above."
    - **DO NOT change from Draft to Ready yet**
    - Comment in PR:
-     "Design and implementation complete. See PR description 
-      for status checklist. Awaiting human confirmation before 
+     "Design and implementation complete. See PR description
+      for status checklist. Awaiting human confirmation before
       marking as Ready for Review."
 
 9. HUMAN PROVIDES CODE REVIEW
    - Reviews actual implementation (code, tests, docs)
    - Provides feedback or approval
    - If approved: **Explicitly confirms** in PR comment:
-     "Code review complete. Looks good—you can mark this 
+     "Code review complete. Looks good—you can mark this
       as Ready for Review when ready."
 
 10. YOU MARK PR READY FOR REVIEW
@@ -252,7 +252,7 @@ These actions are **absolutely off-limits** for you as an agent:
     - Update PR description status:
       * 🎯 Status: "Ready for Review - Approved by [human]"
     - Change from Draft to Ready
-    - Signals to other reviewers: "Design + code approved, 
+    - Signals to other reviewers: "Design + code approved,
       awaiting merge decision"
 
 11. YOU WAIT FOR FINAL APPROVAL
@@ -282,16 +282,19 @@ These actions are **absolutely off-limits** for you as an agent:
 ### Why This Workflow Improves Transparency
 
 **Design Checkpoint (Step 5)**
+
 - Human sees approach BEFORE coding begins
 - Early feedback prevents wasted effort
 - Clear approval gate before implementation
 
 **Status Updates (Step 8)**
+
 - PR description becomes a progress checklist
 - Humans see: ✅ Design done, ✅ Code done, ✅ Tests pass
 - Self-documenting progress
 
 **Explicit "Ready" Approval (Step 9 + 10)**
+
 - Status change is intentional, not automatic
 - Human explicitly confirms readiness
 - Clear decision point in audit trail
@@ -320,6 +323,7 @@ This builds trust and helps humans review faster.
 Implement JWT token refresh strategy for API authentication. This allows clients to obtain short-lived access tokens and refresh them without re-entering credentials.
 
 **Key additions:**
+
 - JWT token generation and validation in `packages/auth`
 - Token refresh endpoint in `api` that accepts refresh tokens
 - Secure cookie storage for refresh tokens (HttpOnly, SameSite)
@@ -342,11 +346,13 @@ Implement JWT token refresh strategy for API authentication. This allows clients
 **Approach**: JWT + refresh token pattern (industry standard)
 
 **Alternatives considered:**
+
 1. Session-based auth (requires server storage; less suitable for microservices)
 2. OAuth 2.0 with external provider (adds dependency; overkill for internal API)
 3. Long-lived tokens (security risk; no forced re-auth)
 
 **Why JWT + refresh tokens?**
+
 - Stateless (scales horizontally)
 - Compatible with mobile clients (no cookies)
 - Short-lived access tokens reduce breach window
@@ -368,11 +374,13 @@ Implement JWT token refresh strategy for API authentication. This allows clients
 **Current**: Ready for review
 
 **Notes**:
+
 - Refresh token stored in HttpOnly cookie (cannot access via JavaScript)
 - Access token stored in memory (cleared on tab close)
 - Migration plan for existing users: old sessions expire, users log in again
 
 **Next steps** (after approval):
+
 - Update client libraries to handle token refresh
 - Add refresh token rotation (bonus feature)
 ```

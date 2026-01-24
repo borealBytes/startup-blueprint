@@ -9,22 +9,27 @@
 ## The 14 Steps
 
 ### **Step 1: Human Creates Task**
+
 ```
 Human: "Add dark mode toggle to website"
 ```
+
 Agent receives clear task description.
 
 ---
 
 ### **Step 2: Agent Creates Branch**
+
 ```bash
-$ git checkout -b feat/website-dark-mode
+git checkout -b feat/website-dark-mode
 ```
+
 Branch naming: `feat/`, `fix/`, `docs/`, `chore/` prefix.
 
 ---
 
 ### **Step 3: Agent Documents Approach** ← NEW
+
 ```
 Agent creates design doc:
 - What: Dark mode toggle component
@@ -41,6 +46,7 @@ Push to remote
 ---
 
 ### **Step 4: Agent Creates Draft PR** ← MODIFIED
+
 ```
 PR title: "feat(website): add dark mode toggle"
 
@@ -58,6 +64,7 @@ Mark as DRAFT (not Ready for Review)
 ---
 
 ### **Step 5: Human Reviews Design** ← NEW CHECKPOINT
+
 ```
 Human reviews:
 ✅ Design doc from Step 3
@@ -76,6 +83,7 @@ Agent responds to feedback in PR comments
 ---
 
 ### **Step 6: Agent Implements (After Design Approval)** ← MODIFIED
+
 ```
 Once human approves approach:
 ✅ Write dark mode toggle component
@@ -92,11 +100,12 @@ Push to remote
 ---
 
 ### **Step 7: GitHub Actions Run (Automatic)**
+
 ```bash
-$ pnpm format          # Fix formatting
-$ pnpm lint            # Fix linting issues
-$ pnpm --filter website test   # Run tests
-$ pnpm build           # Build website
+pnpm format          # Fix formatting
+pnpm lint            # Fix linting issues
+pnpm --filter website test   # Run tests
+pnpm build           # Build website
 ```
 
 **If issues found**:
@@ -106,6 +115,7 @@ $ pnpm build           # Build website
 ---
 
 ### **Step 8: Agent Updates PR Status** ← NEW
+
 ```
 Agent updates PR description with progress:
 ✅ Design review completed
@@ -116,8 +126,8 @@ Agent updates PR description with progress:
 Summary: "Ready for code review. See test results above."
 
 Comment in PR:
-"Design and implementation complete. 
-See PR description status checklist. 
+"Design and implementation complete.
+See PR description status checklist.
 Awaiting human confirmation before marking as Ready for Review."
 
 DO NOT change from Draft to Ready yet
@@ -128,6 +138,7 @@ DO NOT change from Draft to Ready yet
 ---
 
 ### **Step 9: Human Provides Code Review** ← NEW CHECKPOINT
+
 ```
 Human reviews:
 ✅ Actual implementation (code, tests, docs)
@@ -147,6 +158,7 @@ Agent responds to feedback (see Step 12 if needed)
 ---
 
 ### **Step 10: Agent Marks PR Ready** ← NEW (With Permission)
+
 ```
 ONLY after human confirmation from Step 9:
 
@@ -166,6 +178,7 @@ Signals to other reviewers:
 ---
 
 ### **Step 11: Agent Waits for Final Approval**
+
 ```
 Agent monitors PR for:
 ✅ Watching for additional feedback
@@ -179,6 +192,7 @@ Agent CANNOT request approval from another agent
 ---
 
 ### **Step 12: Agent Responds to Feedback (If Any)**
+
 ```
 If human provided feedback in Step 9:
 
@@ -194,6 +208,7 @@ Agent:
 ---
 
 ### **Step 13: Human Merges**
+
 ```
 Human:
 ✅ Final approval
@@ -204,6 +219,7 @@ Human:
 ---
 
 ### **Step 14: Deployment (If Applicable)**
+
 ```
 GitHub Actions may trigger:
 ✅ Staging deploy (if configured)
@@ -218,22 +234,24 @@ Production deploy requires:
 
 This workflow includes **3 clear human approval gates**:
 
-| Checkpoint | Step | When | Who | Why |
-|-----------|------|------|-----|-----|
-| **Design Review** | 5 | BEFORE coding | Human | Steer approach early, prevent wasted effort |
-| **Code Review** | 9 | AFTER implementation | Human | Verify quality before "Ready" status |
-| **Status Approval** | 10 | BEFORE marking "Ready" | Human | Intentional status change, not automatic |
+| Checkpoint          | Step | When                   | Who   | Why                                         |
+| ------------------- | ---- | ---------------------- | ----- | ------------------------------------------- |
+| **Design Review**   | 5    | BEFORE coding          | Human | Steer approach early, prevent wasted effort |
+| **Code Review**     | 9    | AFTER implementation   | Human | Verify quality before "Ready" status        |
+| **Status Approval** | 10   | BEFORE marking "Ready" | Human | Intentional status change, not automatic    |
 
 ---
 
 ## Why This Workflow
 
 ### **Old Workflow** (10 steps, no checkpoints)
+
 - Agent codes → Human reviews → Issue discovered → Agent rewrites
 - **Cost**: 8+ hours for mistakes caught too late
 - **Frustration**: Wasted effort on wrong direction
 
 ### **New Workflow** (14 steps, 3 checkpoints)
+
 - Agent designs → Human approves → Agent codes → Human reviews
 - **Cost**: 4.5 hours with early course correction
 - **Clarity**: Transparent intent at every stage
@@ -245,12 +263,14 @@ This workflow includes **3 clear human approval gates**:
 ## Key Principles
 
 ### **Transparency**
+
 - ✅ PR description documents progress
 - ✅ Status is explicit (Draft vs. Ready)
 - ✅ Human feedback is clear
 - ✅ Audit trail shows all approvals
 
 ### **Human Control**
+
 - ✅ Humans steer design early
 - ✅ Humans approve approach before coding
 - ✅ Humans review implementation
@@ -258,6 +278,7 @@ This workflow includes **3 clear human approval gates**:
 - ✅ Humans decide merge
 
 ### **Efficiency**
+
 - ✅ Design checkpoint prevents wasted coding
 - ✅ Status updates prevent surprises
 - ✅ Selective file loading manages context
@@ -268,6 +289,7 @@ This workflow includes **3 clear human approval gates**:
 ## Common Scenarios
 
 ### **Scenario: Design Gets Rejected**
+
 ```
 Step 5: Human: "This direction won't work. Try approach B instead."
 
@@ -282,6 +304,7 @@ Time saved: ~6 hours (avoided coding wrong approach)
 ```
 
 ### **Scenario: Code Needs Changes**
+
 ```
 Step 9: Human: "Add test for edge case X"
 
@@ -295,6 +318,7 @@ Agent response:
 ```
 
 ### **Scenario: Build Fails in GitHub Actions**
+
 ```
 Step 7: Build fails: "Lint error on line 42"
 
@@ -307,6 +331,7 @@ Agent response:
 ```
 
 ### **Scenario: Breaking Change Needed**
+
 ```
 Step 3 (Design): Agent recognizes breaking change
 
@@ -321,22 +346,22 @@ Agent action:
 
 ## Quick Reference: When to Do What
 
-| Step | Who | Action | Status |
-|------|-----|--------|--------|
-| 1 | Human | Create task | - |
-| 2 | Agent | Create branch | In progress |
-| 3 | Agent | Document approach | Awaiting review |
-| 4 | Agent | Create Draft PR | Awaiting design review |
-| 5 | **Human** | **Review design** | **CHECKPOINT 1** |
-| 6 | Agent | Implement (if approved) | In progress |
-| 7 | Automation | Run tests/lint | In progress |
-| 8 | Agent | Update PR status | Awaiting code review |
-| 9 | **Human** | **Review code** | **CHECKPOINT 2** |
-| 10 | Agent | Mark Ready (if approved) | Awaiting merge |
-| 11 | Agent | Wait | Awaiting final approval |
-| 12 | Agent | Respond to feedback (if any) | Back to Step 7 |
-| 13 | **Human** | **Merge** | Complete |
-| 14 | Automation | Deploy (if configured) | Done |
+| Step | Who        | Action                       | Status                  |
+| ---- | ---------- | ---------------------------- | ----------------------- |
+| 1    | Human      | Create task                  | -                       |
+| 2    | Agent      | Create branch                | In progress             |
+| 3    | Agent      | Document approach            | Awaiting review         |
+| 4    | Agent      | Create Draft PR              | Awaiting design review  |
+| 5    | **Human**  | **Review design**            | **CHECKPOINT 1**        |
+| 6    | Agent      | Implement (if approved)      | In progress             |
+| 7    | Automation | Run tests/lint               | In progress             |
+| 8    | Agent      | Update PR status             | Awaiting code review    |
+| 9    | **Human**  | **Review code**              | **CHECKPOINT 2**        |
+| 10   | Agent      | Mark Ready (if approved)     | Awaiting merge          |
+| 11   | Agent      | Wait                         | Awaiting final approval |
+| 12   | Agent      | Respond to feedback (if any) | Back to Step 7          |
+| 13   | **Human**  | **Merge**                    | Complete                |
+| 14   | Automation | Deploy (if configured)       | Done                    |
 
 ---
 

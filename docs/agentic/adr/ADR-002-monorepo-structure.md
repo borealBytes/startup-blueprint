@@ -2,13 +2,14 @@
 
 **Status**: Accepted  
 **Date**: 2026-01-12  
-**Decision Maker**: BUSINESS_NAME Development Team  
+**Decision Maker**: BUSINESS_NAME Development Team
 
 ---
 
 ## Problem Statement
 
 BUSINESS_NAME is expanding from a single product (primary app) to multiple products and services:
+
 - Primary app (current)
 - Marketing website (future)
 - Customer portal (future)
@@ -18,24 +19,28 @@ BUSINESS_NAME is expanding from a single product (primary app) to multiple produ
 Without a monorepo structure, BUSINESS_NAME would face:
 
 **Challenge 1: Code Duplication**
+
 - ❌ Authentication logic replicated across apps
 - ❌ Database schemas duplicated
 - ❌ UI components redefined in each app
 - ❌ Utility functions copied instead of shared
 
 **Challenge 2: Deployment Complexity**
+
 - ❌ Changes to shared code require manual coordination
 - ❌ Unclear which apps need rebuilding
 - ❌ Difficult to test changes across multiple products
 - ❌ Risk of inconsistent versions
 
 **Challenge 3: Scaling Bottlenecks**
+
 - ❌ Can't quickly add new products
 - ❌ Repository structure prevents independent deployment
 - ❌ Difficult to organize team ownership
 - ❌ Hard to extract products to separate repos later
 
 **Challenge 4: Cloudflare Workers Complexity**
+
 - ❌ Multiple `wrangler.toml` files scattered
 - ❌ Unclear which deployables are where
 - ❌ Configuration management becomes chaotic
@@ -221,15 +226,18 @@ BUSINESS_NAME/
 **Why product names?**
 
 ✅ **Domains change, products don't**
+
 - If `api.business_name.com` moves to `api.example.com`, product folder stays `apps/primary-app/`
 - Refactoring domains doesn't require restructuring
 
 ✅ **Ownership clarity**
+
 - Teams own products, not domains
 - Easy to say "Primary App team owns `apps/primary-app/`"
 - Domains can be reassigned without confusion
 
 ✅ **Extraction friendly**
+
 - If Primary App becomes separate company later, folder is already isolated
 - Can move `apps/primary-app/` to `BUSINESS_NAME/primary-app` repo
 - No refactoring needed
@@ -239,18 +247,21 @@ BUSINESS_NAME/
 **Each app deploys autonomously:**
 
 ✅ **Own Cloudflare resources**
+
 - `primary-app` has own KV namespace
 - `marketing-site` has own R2 bucket
 - `customer-portal` has own D1 database
 - No resource conflicts or contention
 
 ✅ **Own deployment pipeline**
+
 - Changes to `apps/primary-app/` don't affect other apps
 - Primary App can deploy multiple times per day
 - Marketing site on separate release schedule
 - Zero coupling between deployments
 
 ✅ **Version independence**
+
 - Primary App can use Framework v2, Marketing site uses v3
 - Each app pinned to dependency versions
 - Upgrades don't block other products
@@ -260,16 +271,19 @@ BUSINESS_NAME/
 **DRY principle without duplication:**
 
 ✅ **Single source of truth**
+
 - Authentication logic in `packages/auth/`
 - All apps import same implementation
 - Bug fix in auth library fixes all apps
 
 ✅ **Type-safe sharing**
+
 - TypeScript types in `packages/database/`
 - Apps use same types for database records
 - Compile-time errors prevent mismatches
 
 ✅ **Workspace dependencies**
+
 - Import like: `import { validateToken } from '@business_name/auth'`
 - pnpm automatically links local package
 - No build step needed during development
@@ -280,6 +294,7 @@ BUSINESS_NAME/
 **Easy to grow:**
 
 ✅ **Add apps incrementally**
+
 ```bash
 mkdir -p apps/new-product/src
 cp -r apps/primary-app/{wrangler.toml,package.json,tsconfig.json} apps/new-product/
@@ -287,12 +302,14 @@ cp -r apps/primary-app/{wrangler.toml,package.json,tsconfig.json} apps/new-produ
 ```
 
 ✅ **Extract to separate repos later**
+
 ```bash
 git subtree split --prefix apps/primary-app -b primary-app-repo
 # Push to new repository
 ```
 
 ✅ **Add teams with clear ownership**
+
 - Platform team owns `packages/`
 - Primary App team owns `apps/primary-app/`
 - Marketing site team owns `apps/marketing-site/`
@@ -320,10 +337,7 @@ git subtree split --prefix apps/primary-app -b primary-app-repo
     "test": "turbo run test",
     "format": "prettier --write ."
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "devDependencies": {
     "turbo": "latest",
     "prettier": "latest",
@@ -449,36 +463,42 @@ packages:
 ### **Positive**
 
 ✅ **Shared Code**
+
 - Auth logic defined once, used everywhere
 - Bug fixes benefit all products
 - Type-safe sharing prevents errors
 - New products quickly inherit standards
 
 ✅ **Independent Deployments**
+
 - Primary App ships without touching Marketing site
 - Zero coupling between products
 - Each team controls own release schedule
 - Faster iteration on individual products
 
 ✅ **Scaling**
+
 - Easy to add new products
 - Clear ownership structure
 - Teams autonomously ship
 - Can extract products to separate repos later
 
 ✅ **Build Efficiency**
+
 - Turborepo only rebuilds what changed
 - Parallel builds (faster CI/CD)
 - Shared caching across team
 - Smaller cache size = faster CI/CD
 
 ✅ **Operational Clarity**
+
 - Clear directory structure
 - New developers quickly understand organization
 - Products are discoverable
 - Responsibility is obvious
 
 ✅ **Cloudflare Integration**
+
 - Each app has own Worker
 - Own KV/R2/D1 namespaces
 - Independent configurations
@@ -487,24 +507,28 @@ packages:
 ### **Negative / Trade-offs**
 
 ⚠️ **More complex initially**
+
 - More files to manage upfront
 - Setup takes longer than single app
 - More boilerplate in early phase
 - Mitigation: Templates provided for new apps
 
 ⚠️ **Workspace complexity**
+
 - Need to understand pnpm workspaces
 - Dependency resolution slightly complex
 - monorepo-specific debugging skills needed
 - Mitigation: Documentation provided, team trained
 
 ⚠️ **CI/CD coordination**
+
 - Multiple deployments to orchestrate
 - More complex GitHub Actions workflows
 - Secrets management more complex (per-app secrets)
 - Mitigation: Automation scripts handle complexity
 
 ⚠️ **Extraction overhead**
+
 - If a product grows huge, extraction requires planning
 - Shared packages need careful version management
 - Mitigation: Clear versioning strategy documented
@@ -516,6 +540,7 @@ packages:
 ### **Alternative 1: Multiple Repositories**
 
 **Why rejected**:
+
 - ❌ Shared code duplicated across repos
 - ❌ Version mismatches across products
 - ❌ Complex cross-repo dependency management
@@ -526,6 +551,7 @@ packages:
 ### **Alternative 2: Single Repository with All Code at Root**
 
 **Why rejected**:
+
 - ❌ Unclear which code belongs to which product
 - ❌ Products cannot deploy independently
 - ❌ Scaling to 3+ products becomes chaotic
@@ -536,6 +562,7 @@ packages:
 ### **Alternative 3: Domain-Based Naming**
 
 **Why rejected**:
+
 - ❌ `apps/api.business_name.com/` breaks if domain changes
 - ❌ Requires refactoring when business needs change
 - ❌ Ownership is about domain, not product
@@ -543,6 +570,7 @@ packages:
 - ❌ Team organization unclear
 
 **Chosen approach** wins because:
+
 - ✅ Scalable to 10+ products
 - ✅ Clear ownership per product
 - ✅ Products deploy independently
@@ -557,23 +585,27 @@ packages:
 ## Managing Growth
 
 ### **Phase 1: Current (1-2 apps)**
+
 - Single team maintains both apps
 - Shared packages used by both
 - Root-level scripts work smoothly
 
 ### **Phase 2: Scaling (3-5 apps)**
+
 - Separate teams per major product
 - Shared packages maintained by platform team
 - Tighter dependency versioning
 - More sophisticated CI/CD
 
 ### **Phase 3: Multiple Teams (5+ apps)**
+
 - Clear API boundaries between packages
 - Versioned package releases
 - Cross-team dependency negotiation
 - Possible monorepo split
 
 ### **Phase 4: Extraction (if needed)**
+
 - High-value product extracted to separate repo
 - Shared packages versioned and published internally
 - Clear version contracts maintained
@@ -673,7 +705,7 @@ npm install @business_name/auth@1.0.0
 - **Monorepo Documentation**: `MONOREPO_STRUCTURE.md` — User guide
 - **Spec**: `docs/SPEC_MONOREPO.md` — Technical specification
 - **PR #5**: [Monorepo Restructure](https://github.com/BUSINESS_NAME/BUSINESS_NAME/pull/5)
-- **Turborepo**: https://turbo.build/repo/docs
-- **pnpm Workspaces**: https://pnpm.io/workspaces
-- **Cloudflare Workers**: https://developers.cloudflare.com/workers/
-- **Cloudflare Pages Monorepos**: https://developers.cloudflare.com/pages/configuration/monorepos/
+- **Turborepo**: <https://turbo.build/repo/docs>
+- **pnpm Workspaces**: <https://pnpm.io/workspaces>
+- **Cloudflare Workers**: <https://developers.cloudflare.com/workers/>
+- **Cloudflare Pages Monorepos**: <https://developers.cloudflare.com/pages/configuration/monorepos/>

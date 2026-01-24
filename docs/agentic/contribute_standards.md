@@ -175,6 +175,7 @@ Every PR MUST include:
 Brief description of what changed and why.
 
 **Key additions/changes:**
+
 - Major point 1
 - Major point 2
 - Major point 3
@@ -237,12 +238,15 @@ When writing PR comments, issue comments, or review feedback:
 
 ```markdown
 **Issue**
+
 - Describe the problem
 
 **Why it matters**
+
 - Explain the impact
 
 **Suggested change**
+
 - Provide a solution or question
 ```
 
@@ -276,7 +280,7 @@ Use blockquotes for important notes:
 
 ### Code and Diagrams
 
-- Use fenced code blocks with language tags (e.g., ```javascript, ```bash)
+- Use fenced code blocks with language tags (e.g., `javascript,`bash)
 - In `.md` documentation, **prefer Mermaid diagrams** for architecture, workflows, data flows, or state diagrams
 - When a diagram is warranted, **default to Mermaid** (instead of ASCII art or embedded images)
 - Keep diagrams **close to the section they explain**
@@ -284,7 +288,7 @@ Use blockquotes for important notes:
 
 ### Example Documentation Structure
 
-```markdown
+````markdown
 # Feature Title
 
 Brief introduction (1-2 sentences).
@@ -303,6 +307,7 @@ Detailed explanation. Include diagrams if helpful.
 graph LR
   A[Input] --> B[Process] --> C[Output]
 ```
+````
 
 ## 🛠️ Configuration
 
@@ -312,7 +317,8 @@ How to configure this feature.
 
 > **Warning**: Common gotcha.
 > **Note**: Helpful context.
-```
+
+````
 
 ---
 
@@ -339,7 +345,7 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/mydb
 # Third-party APIs
 STRIPE_API_KEY=pk_test_...
 SENDGRID_API_KEY=SG_...
-```
+````
 
 ---
 

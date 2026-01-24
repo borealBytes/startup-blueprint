@@ -12,6 +12,7 @@
 ### Repo is Source of Truth
 
 **This repository** contains:
+
 - ✅ All official files
 - ✅ Complete history (git commits)
 - ✅ Latest version
@@ -20,6 +21,7 @@
 **Location**: `docs/agentic/`
 
 **Path structure**:
+
 ```
 startup-blueprint/
 └── docs/
@@ -46,11 +48,13 @@ startup-blueprint/
 ## Perplexity Space Copies
 
 **Perplexity Space** should contain:
+
 - ✅ `instructions.md` pasted into Space instructions
 - ✅ The rest of `docs/agentic/` uploaded as files
 - ✅ ADRs from `docs/agentic/adr/`
 
 **Why Space exists**:
+
 - Quick access for agents
 - No need to browse repo UI
 - Convenience for quick reference
@@ -145,6 +149,7 @@ ADR-004-error-recovery.md
 ### When to Re-Upload
 
 Re-upload Space files when:
+
 - A change is committed under `docs/agentic/`
 - You update ADRs in `docs/agentic/adr/`
 - You modify entry points (`OPENCODE.md`, `CLAUDE.md`)

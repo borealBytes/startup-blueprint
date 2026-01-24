@@ -75,6 +75,7 @@ $ git push origin your-branch
 ### When to Escalate
 
 ✅ **Escalate** if:
+
 - Conflict is in critical business logic
 - You're unsure which version is correct
 - Both versions have important changes
@@ -156,17 +157,18 @@ $ git commit -m "fix: correct import paths"
 
 ### Common Build Errors
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Module not found` | Import path wrong | Fix import path |
-| `Cannot find module` | File deleted | Restore file or remove import |
-| `Unexpected token` | Syntax error | Fix syntax (missing comma, bracket, etc.) |
-| `ReferenceError: X is not defined` | Variable not declared | Declare variable or import it |
-| `Type mismatch` | TypeScript error | Fix type annotation |
+| Error                              | Cause                 | Fix                                       |
+| ---------------------------------- | --------------------- | ----------------------------------------- |
+| `Module not found`                 | Import path wrong     | Fix import path                           |
+| `Cannot find module`               | File deleted          | Restore file or remove import             |
+| `Unexpected token`                 | Syntax error          | Fix syntax (missing comma, bracket, etc.) |
+| `ReferenceError: X is not defined` | Variable not declared | Declare variable or import it             |
+| `Type mismatch`                    | TypeScript error      | Fix type annotation                       |
 
 ### When to Escalate
 
 ✅ **Escalate** if:
+
 - Build fails for unknown reason
 - Error message doesn't make sense
 - You've tried common fixes and still broken
@@ -239,6 +241,7 @@ $ git commit -m "fix: correct multiply test"
 ### When to Escalate
 
 ✅ **Escalate** if:
+
 - Test is checking correct behavior
 - Implementation matches test expectations
 - But test still fails
@@ -364,6 +367,7 @@ $ git commit -m "fix: apply pending database migration"
 ### When to Escalate
 
 ✅ **Escalate** if:
+
 - Data corruption suspected
 - Production database affected
 - Need to rollback migration
@@ -463,6 +467,7 @@ Notice: Consider creating new Thread
    - Continue work in fresh thread
 
 2. **Provide context in new thread**
+
    ```
    Task: Implement dark mode toggle
    Progress: Completed 70%, working on button styling
@@ -557,6 +562,7 @@ Error occurred
 ## Summary
 
 **Most errors are recoverable** if you:
+
 1. Read the error message carefully
 2. Understand what went wrong
 3. Follow the recovery steps

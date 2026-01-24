@@ -2,13 +2,14 @@
 
 **Status**: Accepted  
 **Date**: 2026-01-12  
-**Decision Maker**: [Your Name]  
+**Decision Maker**: [Your Name]
 
 ---
 
 ## Problem Statement
 
 AI-assisted development needs:
+
 1. **Clear autonomy boundaries** (what agents can/cannot do)
 2. **Transparent workflows** (human control at critical points)
 3. **Efficient context management** (large instruction files bloat every conversation)
@@ -16,6 +17,7 @@ AI-assisted development needs:
 5. **Audit trail** (who approved what, when)
 
 **Challenge**: Traditional documentation approaches result in:
+
 - ❌ Monolithic files agents must load fully
 - ❌ Ambiguous boundaries (agents unsure what to escalate)
 - ❌ No human checkpoints (agents proceed without approval)
@@ -81,30 +83,35 @@ AI-assisted development needs:
 ### **Positive**
 
 ✅ **Efficient context usage**
+
 - Base instructions only 40 lines (not 300+)
 - Files loaded selectively (agents request what they need)
 - Saves ~70% of context overhead vs. monolithic approach
 - Allows more room for actual work in conversation
 
 ✅ **Clear autonomy boundaries**
+
 - Explicit "can do" list (agents know what's safe)
 - Explicit "must escalate" list (agents know what to ask about)
 - Explicit "never" list (hard boundaries)
 - Reduces ambiguous situations
 
 ✅ **Human control at critical points**
+
 - Design checkpoint prevents wasted coding
 - Code review checkpoint ensures quality
 - Status approval checkpoint prevents surprises
 - Clear audit trail (PR comments show all approvals)
 
 ✅ **Reusable across projects**
+
 - Generic files apply to any Git repo
 - Project-specific rules in separate file
 - Copy structure to new projects, customize minimally
 - Framework scalable and repeatable
 
 ✅ **Version-controlled**
+
 - All changes tracked in Git
 - Can revert to previous versions
 - Commit history shows why decisions changed
@@ -113,21 +120,25 @@ AI-assisted development needs:
 ### **Negative / Trade-offs**
 
 ⚠️ **Manual Space sync required**
+
 - Space files must be re-uploaded when docs change
 - If files drift, Space instructions may be stale
 - Mitigation: Keep `docs/agentic/perplexity/README.md` updated
 
 ⚠️ **Multiple files to maintain**
+
 - More files = more coordination
 - If one file gets out of date, inconsistency
 - Mitigation: Clear hierarchy, single source of truth
 
 ⚠️ **Agents must understand modular structure**
+
 - Agents need to know which file to reference
 - If agents confused about which file is which, might load wrong one
 - Mitigation: `file_organization.md` explains everything
 
 ⚠️ **Context switching between files**
+
 - If agents need 3 different files in one task, loads them all
 - Might accumulate context
 - Mitigation: `context_budget_guide.md` explains management
@@ -139,6 +150,7 @@ AI-assisted development needs:
 ### **Alternative 1: Single monolithic file**
 
 **Why rejected**:
+
 - 5,000+ lines loaded for every thread
 - Agents miss important details buried in large file
 - Context bloat (unnecessary overhead)
@@ -147,6 +159,7 @@ AI-assisted development needs:
 ### **Alternative 2: No documentation**
 
 **Why rejected**:
+
 - Agents have no guidance
 - Unpredictable behavior
 - Humans have to micromanage
@@ -155,6 +168,7 @@ AI-assisted development needs:
 ### **Alternative 3: Documentation in Notion/Wiki only**
 
 **Why rejected**:
+
 - Requires manual copying into each thread
 - No version control
 - Hard to keep in sync
@@ -163,11 +177,13 @@ AI-assisted development needs:
 ### **Alternative 4: GitHub wiki**
 
 **Why rejected**:
+
 - Perplexity can't read GitHub wiki
 - Still requires manual copying
 - No easy way to keep Space uploads current
 
 **Chosen approach** wins because:
+
 - ✅ Minimal base context (efficient)
 - ✅ Version controlled (traceable)
 - ✅ Modular (reusable)
@@ -179,6 +195,7 @@ AI-assisted development needs:
 ## Implementation
 
 ### **Phase 1: Structure Created**
+
 - ✅ Created `docs/agentic/` directory structure
 - ✅ Minimal `instructions.md` (40 lines)
 - ✅ Critical files extracted and separated
@@ -186,11 +203,13 @@ AI-assisted development needs:
 - ✅ Operational procedures documented
 
 ### **Phase 2: Perplexity Space Setup** (Pending)
+
 - [ ] Paste `docs/agentic/instructions.md` into Space instructions
 - [ ] Upload all files in `docs/agentic/` and `docs/agentic/adr/`
 - [ ] Add `docs/agentic/perplexity/README.md` as a checklist
 
 ### **Phase 3: Testing** (Pending)
+
 - [ ] First agent thread in Space
 - [ ] Verify file loading works
 - [ ] Test workflow with human checkpoints
