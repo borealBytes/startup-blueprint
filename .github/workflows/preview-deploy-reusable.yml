@@ -51,6 +51,11 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
+      - name: Install dependencies (including wrangler)
+        run: |
+          echo "📦 Installing dependencies..."
+          pnpm install --frozen-lockfile
+
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
@@ -64,6 +69,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy ./dist --project-name=${{ inputs.workspace }} --branch=preview-pr-${{ inputs.pr_number }}
+          packageManager: pnpm
 
       - name: Extract deployment URL
         id: extract_url
