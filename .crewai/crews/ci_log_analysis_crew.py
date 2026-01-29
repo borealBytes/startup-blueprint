@@ -1,7 +1,6 @@
 """CI log analysis crew."""
 
 import logging
-import os
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
