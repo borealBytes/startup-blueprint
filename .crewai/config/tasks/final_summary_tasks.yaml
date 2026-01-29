@@ -85,12 +85,11 @@ synthesize_summary:
 
 
     CRITICAL CONSTRAINTS: - BOTH steps MUST complete - DO NOT return "I will..."
-    - EXECUTE the actions
-    - You MUST iterate through EVERY item in critical/warnings/info arrays -
-    Show ALL findings, not counts - this is NOT a summary - The task is NOT
-    complete until final_summary.md exists - Minimum 1000 characters (if
-    shorter, you skipped findings) - Use actual data from JSON files, not
-    placeholders
+    - EXECUTE the actions - You MUST iterate through EVERY item in
+    critical/warnings/info arrays - Show ALL findings, not counts - this is NOT
+    a summary - The task is NOT complete until final_summary.md exists - Minimum
+    1000 characters (if shorter, you skipped findings) - Use actual data from
+    JSON files, not placeholders
 
   expected_output: >
     "Successfully wrote final_summary.md with N critical issues, M warnings, K
