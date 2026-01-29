@@ -201,8 +201,8 @@ class CodeReviewCrew:
         # - Same model for fallback (has 1M context)
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/google/gemini-2.0-flash-exp:free"
-        fallback_model = "openrouter/google/gemini-2.0-flash-exp:free"
+        default_model = "openrouter/google/gemini-2.0-flash-exp"
+        fallback_model = "openrouter/google/gemini-2.0-flash-exp"
 
         self.model_config = {
             # Primary model for all tasks

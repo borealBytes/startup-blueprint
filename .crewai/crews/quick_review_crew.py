@@ -30,7 +30,7 @@ class QuickReviewCrew:
 
         register_trinity_model()
 
-        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/google/gemini-2.0-flash-exp:free")
+        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/google/gemini-2.0-flash-exp")
 
         # Create LLM instance with function calling
         self.llm = LLM(
