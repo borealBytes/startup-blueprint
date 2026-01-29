@@ -28,8 +28,8 @@ synthesize_summary:
 
     ---
 
-    ### ✅ CI Analysis Status: (use ✅ if passed, ❌ if failed) {status} Summary:
-    {text from ci_summary.json}
+    ### ✅ CI Analysis Status: (use ✅ if passed, ❌ if failed) {status}
+    Summary: {text from ci_summary.json}
 
     <details> <summary><b>🔍 View CI Issues</b></summary>
 
