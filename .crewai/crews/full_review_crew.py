@@ -24,7 +24,13 @@ class FullReviewCrew:
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
 
-        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/arcee-ai/trinity-large-preview:free")
+        # Register Trinity model as function-calling capable
+        # OpenRouter supports it, but LiteLLM doesn't recognize it by default
+        from utils.model_config import register_trinity_model
+
+        register_trinity_model()
+
+        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/google/gemini-2.5-flash-lite")
 
         # Create LLM instance with function calling
         self.llm = LLM(
@@ -104,4 +110,5 @@ class FullReviewCrew:
             ],
             process=Process.sequential,
             verbose=True,
+            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
         )

@@ -32,6 +32,12 @@ class LegalReviewCrew:
         try:
             import litellm
 
+            # Register Trinity model as function-calling capable
+            # OpenRouter supports it, but LiteLLM doesn't recognize it by default
+            from utils.model_config import register_trinity_model
+
+            register_trinity_model()
+
             try:
                 from crew import litellm_failure_callback, litellm_success_callback
 
@@ -44,7 +50,7 @@ class LegalReviewCrew:
             pass
 
         # Use openrouter/ prefix
-        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
+        default_model = "openrouter/google/gemini-2.5-flash-lite"
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
     @agent
@@ -75,4 +81,5 @@ class LegalReviewCrew:
             tasks=[self.review_legal_compliance()],
             process=Process.sequential,
             verbose=True,
+            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
         )
