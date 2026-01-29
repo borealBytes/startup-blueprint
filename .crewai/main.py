@@ -780,61 +780,35 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
 
 
 def generate_cost_breakdown():
-    """Generate markdown table with cost breakdown.
+    """Generate markdown table with cost breakdown grouped by crew.
 
     Returns:
-        str: Markdown formatted cost breakdown table
+        str: Markdown formatted cost breakdown table with crew subtotals
     """
     try:
         tracker = get_tracker()
         summary = tracker.get_summary()
-        calls = tracker.calls
 
         if summary["total_calls"] == 0:
             return "\n---\n\n## 💰 Cost Tracking\n\nNo API calls recorded.\n"
 
-        # Build markdown table
+        # Use tracker's built-in markdown table formatter
+        # It includes crew column, crew subtotals, and grand total
+        table = tracker.format_as_markdown_table()
+
         lines = []
         lines.append("")
         lines.append("---")
         lines.append("")
-        lines.append("## 💰 Cost Breakdown")
+        lines.append("## 💰 Cost Breakdown by Crew")
         lines.append("")
-        lines.append("| Call | Model | Input | Output | Cost | Speed |")
-        lines.append("|------|-------|-------|--------|------|-------|")
-
-        # CRITICAL: Access dataclass attributes with dot notation, not subscripts
-        for i, call in enumerate(calls, 1):
-            model_short = call.model.split("/")[-1]  # Last part of model name
-            input_tokens = f"{call.tokens_in:,}"
-            output_tokens = f"{call.tokens_out:,}"
-            cost = f"${call.cost:.6f}"
-
-            # Calculate speed (tokens/sec)
-            if call.duration_seconds > 0:
-                speed = (call.tokens_in + call.tokens_out) / call.duration_seconds
-                speed_str = f"{speed:.1f} tok/s"
-            else:
-                speed_str = "N/A"
-
-            lines.append(
-                f"| #{i} | {model_short} | {input_tokens} | "
-                f"{output_tokens} | {cost} | {speed_str} |"
-            )
-
-        # Add totals row
-        lines.append(
-            f"| **TOTAL** | **{summary['total_calls']} calls** | "
-            f"**{summary['total_tokens_in']:,}** | "
-            f"**{summary['total_tokens_out']:,}** | "
-            f"**${summary['total_cost']:.6f}** | "
-            f"**{summary['total_duration']:.1f}s** |"
-        )
-
+        lines.append(table)
         lines.append("")
         lines.append(
-            f"**Total Tokens**: {summary['total_tokens']:,} | "
-            f"**Avg Speed**: {summary['total_tokens'] / summary['total_duration']:.1f} tok/s"
+            f"**Summary**: {summary['total_calls']} calls across "
+            f"{len(summary['crew_breakdown'])} crews | "
+            f"Total: {summary['total_tokens']:,} tokens in {summary['total_duration']:.1f}s | "
+            f"Avg: {summary['total_tokens'] / summary['total_duration']:.1f} tok/s"
         )
         lines.append("")
 
@@ -942,6 +916,17 @@ def print_cost_summary():
         logger.info(f"  - Output: {summary['total_tokens_out']:,}")
         logger.info(f"Total Cost: ${summary['total_cost']:.4f}")
         logger.info(f"Total Duration: {summary['total_duration']:.2f}s")
+
+        # Print per-crew breakdown
+        if summary["crew_breakdown"]:
+            logger.info("")
+            logger.info("By Crew:")
+            for crew_name in sorted(summary["crew_breakdown"].keys()):
+                stats = summary["crew_breakdown"][crew_name]
+                logger.info(
+                    f"  • {crew_name}: {stats['calls']} calls, "
+                    f"${stats['cost']:.4f} ({stats['total_tokens']:,} tokens)"
+                )
 
     except Exception as e:
         logger.warning(f"⚠️ Could not generate cost summary: {e}")
