@@ -54,7 +54,7 @@ class RouterCrew:
             logger.debug("LiteLLM cost tracking not available")
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/google/gemini-2.5-flash-lite"
+        default_model = "openrouter/google/gemini-2.0-flash-exp:free"
         fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
 
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
@@ -105,5 +105,4 @@ class RouterCrew:
             tasks=[self.analyze_and_route()],
             process=Process.sequential,
             verbose=True,
-            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
         )

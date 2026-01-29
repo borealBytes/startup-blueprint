@@ -50,7 +50,7 @@ class LegalReviewCrew:
             pass
 
         # Use openrouter/ prefix
-        default_model = "openrouter/google/gemini-2.5-flash-lite"
+        default_model = "openrouter/google/gemini-2.0-flash-exp:free"
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
     @agent
@@ -81,5 +81,4 @@ class LegalReviewCrew:
             tasks=[self.review_legal_compliance()],
             process=Process.sequential,
             verbose=True,
-            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
         )
