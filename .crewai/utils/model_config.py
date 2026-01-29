@@ -26,32 +26,32 @@ class ModelConfig:
 MODEL_REGISTRY = {
     # Mistral Devstral 2512 (high performance, good function calling) - DEFAULT
     "mistral-devstral-2512": ModelConfig(
-        name="openrouter/mistralai/mistral-2512",
+        name="mistralai/devstral-2512",  # Fixed: correct model name + removed openrouter/ prefix
         rpm_limit=60,
         context_window=262144,  # 262.1K context window
     ),
     # Gemini 2.5 Flash Lite (fallback option)
     "gemini-flash-lite": ModelConfig(
-        name="openrouter/google/gemini-2.5-flash-lite",
+        name="google/gemini-2.5-flash-lite",  # Fixed: removed openrouter/ prefix
         rpm_limit=60,
         context_window=1000000,
     ),
     # Gemini 2.0 Flash (original)
     "gemini-flash": ModelConfig(
-        name="openrouter/google/gemini-2.0-flash-001",
+        name="google/gemini-2.0-flash-001",  # Fixed: removed openrouter/ prefix
         rpm_limit=60,
         context_window=1000000,
     ),
     # Free tier variant (20 RPM limit)
     "gemini-flash-free": ModelConfig(
-        name="openrouter/google/gemini-2.0-flash-001:free",
+        name="google/gemini-2.0-flash-001:free",  # Fixed: removed openrouter/ prefix
         rpm_limit=20,
         context_window=1000000,
         is_free_tier=True,
     ),
     # MiMo V2 (1M context, for overflow)
     "mimo-v2": ModelConfig(
-        name="openrouter/xiaomi/mimo-v2",
+        name="xiaomi/mimo-v2",  # Fixed: removed openrouter/ prefix
         rpm_limit=60,
         context_window=1000000,
     ),
@@ -141,6 +141,12 @@ def get_llm(model_key: Optional[str] = None) -> LLM:
         model=config.name,
         api_key=api_key,
         base_url="https://openrouter.ai/api/v1",
+        timeout=120,  # 120 second timeout for slow responses
+        num_retries=3,  # Retry transient failures
+        extra_headers={
+            "HTTP-Referer": "https://github.com/borealBytes/startup-blueprint",
+            "X-Title": "Startup Blueprint CrewAI Review",
+        },
     )
 
 
