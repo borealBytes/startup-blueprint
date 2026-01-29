@@ -473,11 +473,11 @@ def run_final_summary(env_vars, workflows_executed):
         result = summary_crew.crew().kickoff(
             inputs={
                 "pr_number": env_vars["pr_number"],
-                "sha": env_vars["commit_sha"],  # Changed from commit_sha to sha
+                "sha": env_vars["commit_sha"],
                 "repository": env_vars["repository"],
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),  # Changed from timestamp to time
                 "count": workflow_count,
-                "workflows": ", ".join(workflows_executed),
+                "list": ", ".join(workflows_executed),  # Changed from workflows to list
             }
         )
 
