@@ -87,6 +87,34 @@ def get_env_vars():
     return env_vars
 
 
+def get_rate_limit_delay():
+    """Get rate limit delay based on current model.
+
+    Returns:
+        int: Delay in seconds (0 for paid models, 10 for free models)
+    """
+    # Get model from environment (set by model_config.py)
+    model_name = os.getenv("DEFAULT_MODEL", "openrouter/google/gemini-2.0-flash-001")
+
+    # Free tier models that need rate limiting
+    free_tier_models = [
+        "meta-llama/llama-3.1-8b-instruct:free",
+        "meta-llama/llama-3.2-3b-instruct:free",
+        "google/gemini-flash-1.5:free",
+        # Add other free models here
+    ]
+
+    # Check if current model is free tier
+    is_free = any(free_model in model_name for free_model in free_tier_models)
+
+    if is_free:
+        logger.debug(f"🆓 Free tier model detected: {model_name} - using 10s delay")
+        return 10
+    else:
+        logger.debug(f"💳 Paid tier model: {model_name} - no delay needed")
+        return 0
+
+
 def get_workspace_diagnostics():
     """Get current workspace state for debugging.
 
@@ -445,7 +473,7 @@ def run_final_summary(env_vars, workflows_executed):
         result = summary_crew.crew().kickoff(
             inputs={
                 "pr_number": env_vars["pr_number"],
-                "commit_sha": env_vars["commit_sha"],
+                "sha": env_vars["commit_sha"],  # Changed from commit_sha to sha
                 "repository": env_vars["repository"],
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
                 "count": workflow_count,
@@ -967,9 +995,8 @@ def main():
         decision = run_router(env_vars)
         workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
 
-        # Rate limit buffer: OpenRouter free tier is 20 RPM
-        # Add delays between crews to avoid hitting limits
-        RATE_LIMIT_DELAY = 10  # seconds between crews
+        # Rate limit delay: model-specific (0s for paid, 10s for free)
+        rate_limit_delay = get_rate_limit_delay()
 
         # STEP 2: Always run CI analysis (default)
         if "ci-log-analysis" in workflows:
@@ -979,8 +1006,9 @@ def main():
             if not success:
                 logger.warning("⚠️ CI analysis had issues, but continuing...")
             # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
 
         # STEP 3: Always run quick review (default)
         if "quick-review" in workflows:
@@ -990,8 +1018,9 @@ def main():
             if not success:
                 logger.warning("⚠️ Quick review had issues, but continuing...")
             # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
 
         # STEP 4: Conditional - Full review
         if "full-review" in workflows:
@@ -1001,8 +1030,9 @@ def main():
             if not success:
                 logger.warning("⚠️ Full review had issues, but continuing...")
             # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
         else:
             logger.info("⏩ Skipping full review (no crewai:full-review label)")
 
@@ -1014,8 +1044,9 @@ def main():
             if not success:
                 logger.warning("⚠️ Legal review had issues, but continuing...")
             # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
         else:
             logger.info("⏩ Skipping legal review (no crewai:legal label)")
 
