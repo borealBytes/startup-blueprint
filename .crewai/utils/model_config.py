@@ -26,32 +26,32 @@ class ModelConfig:
 MODEL_REGISTRY = {
     # Mistral Devstral 2512 (high performance, good function calling) - DEFAULT
     "mistral-devstral-2512": ModelConfig(
-        name="mistralai/devstral-2512",  # Fixed: correct model name + removed openrouter/ prefix
+        name="openrouter/mistralai/devstral-2512",  # openrouter/ prefix needed for LiteLLM
         rpm_limit=60,
         context_window=262144,  # 262.1K context window
     ),
     # Gemini 2.5 Flash Lite (fallback option)
     "gemini-flash-lite": ModelConfig(
-        name="google/gemini-2.5-flash-lite",  # Fixed: removed openrouter/ prefix
+        name="openrouter/google/gemini-2.5-flash-lite",
         rpm_limit=60,
         context_window=1000000,
     ),
     # Gemini 2.0 Flash (original)
     "gemini-flash": ModelConfig(
-        name="google/gemini-2.0-flash-001",  # Fixed: removed openrouter/ prefix
+        name="openrouter/google/gemini-2.0-flash-001",
         rpm_limit=60,
         context_window=1000000,
     ),
     # Free tier variant (20 RPM limit)
     "gemini-flash-free": ModelConfig(
-        name="google/gemini-2.0-flash-001:free",  # Fixed: removed openrouter/ prefix
+        name="openrouter/google/gemini-2.0-flash-001:free",
         rpm_limit=20,
         context_window=1000000,
         is_free_tier=True,
     ),
     # MiMo V2 (1M context, for overflow)
     "mimo-v2": ModelConfig(
-        name="xiaomi/mimo-v2",  # Fixed: removed openrouter/ prefix
+        name="openrouter/xiaomi/mimo-v2",
         rpm_limit=60,
         context_window=1000000,
     ),
