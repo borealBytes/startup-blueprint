@@ -181,12 +181,6 @@ class CodeReviewCrew:
         # Must be done BEFORE any LiteLLM calls
         import litellm
 
-        from utils.model_config import register_trinity_model
-
-        # Register Trinity model as function-calling capable
-        # OpenRouter supports it, but LiteLLM doesn't recognize it by default
-        register_trinity_model()
-
         # Set callbacks - must be lists
         litellm.success_callback = [litellm_success_callback]
         litellm.failure_callback = [litellm_failure_callback]
@@ -197,12 +191,12 @@ class CodeReviewCrew:
         logger.info("📊 Cost tracking callbacks registered")
 
         # Model strategy:
-        # - Gemini Flash 2.0: Free, fast, reliable function calling
-        # - Same model for fallback (has 1M context)
+        # - Arcee Trinity Large Preview: Free, good quality (default for all tasks)
+        # - Xiaomi Mimo V2: 1M context (fallback for overflow)
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/google/gemini-2.0-flash-exp:free"
-        fallback_model = "openrouter/google/gemini-2.0-flash-exp:free"
+        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
+        fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
 
         self.model_config = {
             # Primary model for all tasks
