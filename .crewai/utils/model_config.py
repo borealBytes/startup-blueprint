@@ -24,11 +24,11 @@ class ModelConfig:
 
 # Available models - crews select from this list
 MODEL_REGISTRY = {
-    # Mistral Devstral 2512 (high performance, good function calling) - DEFAULT
-    "mistral-devstral-2512": ModelConfig(
-        name="openrouter/mistralai/devstral-2512",  # openrouter/ prefix needed for LiteLLM
+    # Gemini 2.0 Flash (DEFAULT - proven reliable function calling)
+    "gemini-flash": ModelConfig(
+        name="openrouter/google/gemini-2.0-flash-001",
         rpm_limit=60,
-        context_window=262144,  # 262.1K context window
+        context_window=1000000,
     ),
     # Gemini 2.5 Flash Lite (fallback option)
     "gemini-flash-lite": ModelConfig(
@@ -36,11 +36,12 @@ MODEL_REGISTRY = {
         rpm_limit=60,
         context_window=1000000,
     ),
-    # Gemini 2.0 Flash (original)
-    "gemini-flash": ModelConfig(
-        name="openrouter/google/gemini-2.0-flash-001",
+    # Mistral Devstral 2512 (has tool calling issues - disabled for now)
+    # Issue: Generates malformed tool names like "TOOLCALLSworkspacetool"
+    "mistral-devstral-2512": ModelConfig(
+        name="openrouter/mistralai/devstral-2512",
         rpm_limit=60,
-        context_window=1000000,
+        context_window=262144,  # 262.1K context window
     ),
     # Free tier variant (20 RPM limit)
     "gemini-flash-free": ModelConfig(
@@ -57,7 +58,7 @@ MODEL_REGISTRY = {
     ),
 }
 
-DEFAULT_MODEL_KEY = "mistral-devstral-2512"
+DEFAULT_MODEL_KEY = "gemini-flash"  # Changed from mistral-devstral-2512
 FALLBACK_MODEL_KEY = "gemini-flash-lite"
 
 
