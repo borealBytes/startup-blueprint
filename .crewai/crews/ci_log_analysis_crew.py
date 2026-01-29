@@ -25,15 +25,7 @@ class CILogAnalysisCrew:
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
 
-        # Register Trinity model as function-calling capable
-        # OpenRouter supports it, but LiteLLM doesn't recognize it by default
-        from utils.model_config import register_trinity_model
-
-        register_trinity_model()
-
-        self.model_name = os.getenv(
-            "MODEL_DEFAULT", "openrouter/google/gemini-2.0-flash-exp:free"
-        )
+        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/arcee-ai/trinity-large-preview:free")
 
         # Create LLM instance with function calling
         self.llm = LLM(

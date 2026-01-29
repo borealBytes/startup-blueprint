@@ -34,12 +34,6 @@ class RouterCrew:
         try:
             import litellm
 
-            # Register Trinity model as function-calling capable
-            # OpenRouter supports it, but LiteLLM doesn't recognize it by default
-            from utils.model_config import register_trinity_model
-
-            register_trinity_model()
-
             # Import callbacks if they exist
             try:
                 from crew import litellm_failure_callback, litellm_success_callback
@@ -54,7 +48,7 @@ class RouterCrew:
             logger.debug("LiteLLM cost tracking not available")
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/google/gemini-2.0-flash-exp:free"
+        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
         fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
 
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
