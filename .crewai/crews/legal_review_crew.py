@@ -50,7 +50,7 @@ class LegalReviewCrew:
             pass
 
         # Use openrouter/ prefix
-        default_model = "openrouter/google/gemini-2.0-flash-exp"
+        default_model = "openrouter/google/gemini-2.5-flash-lite"
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
     @agent

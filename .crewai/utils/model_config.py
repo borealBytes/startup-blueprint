@@ -3,10 +3,10 @@
 import litellm
 
 # Default model - Gemini Flash 2.0 is free and has reliable function calling
-DEFAULT_MODEL = "openrouter/google/gemini-2.0-flash-exp"
+DEFAULT_MODEL = "openrouter/google/gemini-2.5-flash-lite"
 
 # Fallback for large context (1M tokens)
-FALLBACK_MODEL = "openrouter/google/gemini-2.0-flash-exp"
+FALLBACK_MODEL = "openrouter/google/gemini-2.5-flash-lite"
 
 
 def register_models():
@@ -22,7 +22,7 @@ def register_models():
     # LiteLLM should already know about this, but register to be safe
     litellm.register_model(
         {
-            "openrouter/google/gemini-2.0-flash-exp": {
+            "openrouter/google/gemini-2.5-flash-lite": {
                 "supports_function_calling": True,
                 "supports_parallel_function_calling": True,
             }

@@ -54,7 +54,7 @@ class RouterCrew:
             logger.debug("LiteLLM cost tracking not available")
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/google/gemini-2.0-flash-exp"
+        default_model = "openrouter/google/gemini-2.5-flash-lite"
         fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
 
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
