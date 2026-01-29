@@ -32,7 +32,7 @@ class QuickReviewCrew:
             tools=[WorkspaceTool()],
             llm=self.llm,
             function_calling_llm=self.llm,  # Enable function calling
-            max_iter=10,
+            max_iter=15,  # Increased from 10 to allow more tool calls
             verbose=True,
             allow_delegation=False,
         )
@@ -40,13 +40,17 @@ class QuickReviewCrew:
     @task
     def quick_code_review(self) -> Task:
         """Quick code review task."""
-        # Agent writes output directly using WorkspaceTool
-        # No output_file needed - agent calls WorkspaceTool with:
-        #   operation="write", filename="quick_review.json"
+        #CRITICAL: Do NOT use expected_output from config - agent copies it without working
+        # Instead, agent MUST write quick_review.json via WorkspaceTool
+        # Validation happens by checking if file exists, not by matching output text
+        task_config = self.tasks_config["quick_code_review"].copy()
+        # Remove expected_output to prevent agent from copying template
+        task_config.pop("expected_output", None)
+        
         return Task(
-            config=self.tasks_config["quick_code_review"],
+            description=task_config["description"],
             agent=self.quick_reviewer(),
-            # output_file removed - agent writes directly via WorkspaceTool
+            expected_output="Write quick_review.json to workspace. Confirm with: 'Written quick_review.json'",
         )
 
     @crew
