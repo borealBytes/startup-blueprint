@@ -181,6 +181,12 @@ class CodeReviewCrew:
         # Must be done BEFORE any LiteLLM calls
         import litellm
 
+        from utils.model_config import register_trinity_model
+
+        # Register Trinity model as function-calling capable
+        # OpenRouter supports it, but LiteLLM doesn't recognize it by default
+        register_trinity_model()
+
         # Set callbacks - must be lists
         litellm.success_callback = [litellm_success_callback]
         litellm.failure_callback = [litellm_failure_callback]

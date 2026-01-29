@@ -34,6 +34,12 @@ class RouterCrew:
         try:
             import litellm
 
+            # Register Trinity model as function-calling capable
+            # OpenRouter supports it, but LiteLLM doesn't recognize it by default
+            from utils.model_config import register_trinity_model
+
+            register_trinity_model()
+
             # Import callbacks if they exist
             try:
                 from crew import litellm_failure_callback, litellm_success_callback
