@@ -26,7 +26,7 @@ class ModelConfig:
 MODEL_REGISTRY = {
     # Mistral Devstral 2512 (high performance, good function calling) - DEFAULT
     "mistral-devstral-2512": ModelConfig(
-        name="mistralai/mistral-2512",
+        name="openrouter/mistralai/mistral-2512",
         rpm_limit=60,
         context_window=262144,  # 262.1K context window
     ),
