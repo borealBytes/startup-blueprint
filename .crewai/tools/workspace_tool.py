@@ -57,9 +57,7 @@ class WorkspaceTool(BaseTool):
         self.trace_dir.mkdir(exist_ok=True)
         logger.info(f"📁 WorkspaceTool initialized: {self.workspace_dir}")
 
-    def _run(
-        self, operation: str, filename: str, content: Any = None
-    ) -> Any:
+    def _run(self, operation: str, filename: str, content: Any = None) -> Any:
         """Execute workspace operation.
 
         Args:
