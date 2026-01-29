@@ -1,54 +1,42 @@
 quick_code_review:
-  description: >
-    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe
-    what you will do - DO IT.
+  description: |
+    EXECUTE EXACTLY 2 TOOL CALLS IN THIS ORDER:
 
+    TOOL CALL 1 (required):
+    WorkspaceTool(operation="read", filename="diff.json", content="")
+    Extract: files_changed, additions, deletions, pr_number, commit_sha
 
-    STEP 1: Read PR metadata (NOT the full diff)
+    TOOL CALL 2 (required):
+    WorkspaceTool(operation="write", filename="quick_review.json", content={...})
 
-    Use WorkspaceTool(operation="read", filename="diff.json", content="") to get
-    PR stats.
-
-    Extract: - files_changed (how many files) - additions/deletions (lines
-    changed) - pr_number, commit_sha
-
-    Quick sanity checks: - IF >500 lines changed → suggest "crewai:full-review"
-    label - IF >20 files changed → suggest "crewai:full-review" label - IF only
-    test files changed → note as "tests only" - IF only docs changed → note as
-    "docs only"
-
-    DO NOT read diff.txt - it's 44KB and causes token explosion! Quick review =
-    metadata sanity check only. Full review can analyze code if triggered.
-
-
-    STEP 2: Write quick_review.json with findings
-
-    Use WorkspaceTool(operation="write", filename="quick_review.json",
-    content=<json_object>)
-
-    Required JSON structure: {
-      "status": "success|warning",
-      "passed": true|false,
+    Required content for TOOL CALL 2:
+    {
+      "status": "success",
+      "passed": true,
       "summary": "Quick metadata review complete",
       "critical": [],
       "warnings": [],
-      "info": ["Reviewed N files, M lines changed"],
-      "files_reviewed": N,
+      "info": ["Reviewed [N] files, [M] lines changed"],
+      "files_reviewed": [N],
       "total_findings": 0,
-      "suggestions": ["Optional label suggestions"]
+      "suggestions": []
     }
 
-    If PR is large (>500 lines or >20 files), add suggestion: {"title": "Large
-    PR", "description": "Consider adding crewai:full-review label"}
+    Add to suggestions array if:
+    - additions + deletions > 500: {"title": "Large PR", "description": "Consider crewai:full-review label"}
+    - files_changed > 20: {"title": "Many files", "description": "Consider crewai:full-review label"}
 
+    RULES:
+    - Make BOTH tool calls before returning anything
+    - DO NOT explain what you will do
+    - DO NOT return text between tool calls
+    - DO NOT read diff.txt (causes token overflow)
+    - Your final answer is ONLY the verification message below
 
-    CRITICAL CONSTRAINTS: - BOTH steps MUST complete - DO NOT return "I will..."
-    - EXECUTE the actions - DO NOT read diff.txt - use diff.json only - You MUST
-    write quick_review.json file - The task is NOT complete until
-    quick_review.json exists - Keep context small to prevent token explosion
+  expected_output: |
+    Verify both conditions:
+    1. Tool call 1 completed (read diff.json)
+    2. Tool call 2 completed (wrote quick_review.json)
 
-  expected_output: >
-    "Successfully wrote quick_review.json - reviewed metadata for N files, M
-    lines changed."
-
-    The file MUST physically exist in workspace directory.
+    If BOTH true, return: "Quick review complete: [N] files, [M] lines"
+    If either false, return: "ERROR: Tool call [X] failed"
