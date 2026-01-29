@@ -34,18 +34,18 @@ Comprehensive optimization of the CrewAI code review system to make it reliable,
 
 Add specialized reviewers to create a comprehensive "board" that covers all aspects of code review:
 
-| Agent | Role | Status |
-|-------|------|--------|
-| Router | Decides which reviewers need to be involved | Exists (needs work) |
-| Quick Reviewer | Fast quality check for simple PRs | Exists |
-| Code Quality Reviewer | Deep code analysis | Exists |
-| Security & Performance Analyst | Vulnerabilities and bottlenecks | Exists |
-| Architecture & Impact Analyst | Design patterns, related files | Exists |
-| Executive Summary Agent | Final synthesis | Exists |
-| Legal Compliance Reviewer | License, ToS, copyright | Stub exists |
-| **Security Reviewer** | Dedicated deep security review | **To enhance** |
-| **Marketing Reviewer** | User-facing changes, messaging, branding | **To add** |
-| **Board of Directors** | High-level strategic review for major changes | **To add** |
+| Agent                          | Role                                          | Status              |
+| ------------------------------ | --------------------------------------------- | ------------------- |
+| Router                         | Decides which reviewers need to be involved   | Exists (needs work) |
+| Quick Reviewer                 | Fast quality check for simple PRs             | Exists              |
+| Code Quality Reviewer          | Deep code analysis                            | Exists              |
+| Security & Performance Analyst | Vulnerabilities and bottlenecks               | Exists              |
+| Architecture & Impact Analyst  | Design patterns, related files                | Exists              |
+| Executive Summary Agent        | Final synthesis                               | Exists              |
+| Legal Compliance Reviewer      | License, ToS, copyright                       | Stub exists         |
+| **Security Reviewer**          | Dedicated deep security review                | **To enhance**      |
+| **Marketing Reviewer**         | User-facing changes, messaging, branding      | **To add**          |
+| **Board of Directors**         | High-level strategic review for major changes | **To add**          |
 
 ### 4. Smart Routing with PR Tags
 
@@ -83,24 +83,27 @@ Enable CrewAI to learn from previous runs and maintain context.
 
 **Behavior:**
 
-| Phase | Action |
-|-------|--------|
-| **Startup** | Rebuild SQLite from `memory.jsonl` |
-| **During Run** | Append events to `memory.jsonl` |
-| **After Run** | Commit to same branch with `[skip ci]` |
+| Phase          | Action                                 |
+| -------------- | -------------------------------------- |
+| **Startup**    | Rebuild SQLite from `memory.jsonl`     |
+| **During Run** | Append events to `memory.jsonl`        |
+| **After Run**  | Commit to same branch with `[skip ci]` |
 
 **CI Loop Prevention:**
+
 - Commit message includes `[skip ci]`
 - Workflow guard: skip if `actor == github-actions[bot]`
 - Result: Human commits trigger CI, memory commits do not
 
 **What Gets Stored:**
+
 - Executive summaries from each run
 - Issues found and their categories
 - Recurring patterns detected
 - File paths and issue types for indexing
 
 **Query Capabilities:**
+
 - "What did we say about this file last time?"
 - "Have we seen similar security issues before?"
 - "Is this the same error pattern as PR #X?"
@@ -222,8 +225,8 @@ git push origin HEAD
 
 ## Changelog
 
-| Date | Change |
-|------|--------|
-| 2026-01-28 | Initial PR document created |
-| 2026-01-28 | Added memory implementation details (git-based JSONL) |
+| Date       | Change                                                   |
+| ---------- | -------------------------------------------------------- |
+| 2026-01-28 | Initial PR document created                              |
+| 2026-01-28 | Added memory implementation details (git-based JSONL)    |
 | 2026-01-28 | Decided: Enable short-term memory with OpenAI embeddings |
