@@ -1,23 +1,26 @@
 quick_code_review:
   description: >
-    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe what you will do - DO IT.
+    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe
+    what you will do - DO IT.
 
 
     STEP 1: Read diff.txt and identify issues
-    
-    Use WorkspaceTool(operation="read", filename="diff.txt", content="") to get code changes.
-    
-    Analyze for: critical security issues, code quality problems, performance issues, best practice violations.
-    
+
+    Use WorkspaceTool(operation="read", filename="diff.txt", content="") to get
+    code changes.
+
+    Analyze for: critical security issues, code quality problems, performance
+    issues, best practice violations.
+
     Focus ONLY on lines starting with + (new code).
 
 
     STEP 2: Write quick_review.json with findings
-    
-    Use WorkspaceTool(operation="write", filename="quick_review.json", content=<json_object>)
-    
-    Required JSON structure:
-    {
+
+    Use WorkspaceTool(operation="write", filename="quick_review.json",
+    content=<json_object>)
+
+    Required JSON structure: {
       "status": "success|warning|critical",
       "passed": true|false,
       "summary": "Brief text",
@@ -27,19 +30,18 @@ quick_code_review:
       "files_reviewed": N,
       "total_findings": N
     }
-    
-    If no issues: status="success", passed=true, empty arrays.
-    If issues found: categorize by severity (critical/warning/info).
+
+    If no issues: status="success", passed=true, empty arrays. If issues found:
+    categorize by severity (critical/warning/info).
 
 
-    CRITICAL CONSTRAINTS:
-    - BOTH steps MUST complete
-    - DO NOT return text like "I will..." - EXECUTE the actions
-    - DO NOT stop after reading diff.txt
-    - You MUST call WorkspaceTool twice: once to read, once to write
-    - The task is NOT complete until quick_review.json exists in workspace
+    CRITICAL CONSTRAINTS: - BOTH steps MUST complete - DO NOT return text like
+    "I will..." - EXECUTE the actions - DO NOT stop after reading diff.txt - You
+    MUST call WorkspaceTool twice: once to read, once to write - The task is NOT
+    complete until quick_review.json exists in workspace
 
   expected_output: >
-    "Successfully wrote quick_review.json with N findings (C critical, W warnings, I info)."
-    
+    "Successfully wrote quick_review.json with N findings (C critical, W
+    warnings, I info)."
+
     The file MUST physically exist in workspace directory.
