@@ -20,6 +20,14 @@ class ModelConfig:
     supports_function_calling: bool = True
     supports_parallel_tools: bool = True
     is_free_tier: bool = False  # True for :free variants
+    rate_limit_delay: Optional[int] = None  # Seconds to wait between crews (auto-set if None)
+
+    def __post_init__(self):
+        """Auto-populate rate_limit_delay based on is_free_tier if not explicitly set."""
+        if self.rate_limit_delay is None:
+            # Free tier: 10s delay (20 RPM limit needs breathing room)
+            # Paid tier: 0s delay (60+ RPM can handle back-to-back calls)
+            self.rate_limit_delay = 10 if self.is_free_tier else 0
 
 
 # Available models - crews select from this list
@@ -29,12 +37,14 @@ MODEL_REGISTRY = {
         name="openrouter/google/gemini-2.0-flash-001",
         rpm_limit=60,
         context_window=1000000,
+        rate_limit_delay=0,  # Paid tier - no delay needed
     ),
     # Gemini 2.5 Flash Lite (fallback option)
     "gemini-flash-lite": ModelConfig(
         name="openrouter/google/gemini-2.5-flash-lite",
         rpm_limit=60,
         context_window=1000000,
+        rate_limit_delay=0,  # Paid tier - no delay needed
     ),
     # Mistral Devstral 2512 (has tool calling issues - disabled for now)
     # Issue: Generates malformed tool names like "TOOLCALLSworkspacetool"
@@ -42,6 +52,7 @@ MODEL_REGISTRY = {
         name="openrouter/mistralai/devstral-2512",
         rpm_limit=60,
         context_window=262144,  # 262.1K context window
+        rate_limit_delay=0,  # Paid tier - no delay needed
     ),
     # Free tier variant (20 RPM limit)
     "gemini-flash-free": ModelConfig(
@@ -49,12 +60,14 @@ MODEL_REGISTRY = {
         rpm_limit=20,
         context_window=1000000,
         is_free_tier=True,
+        rate_limit_delay=10,  # Free tier - 10s delay between crews
     ),
     # MiMo V2 (1M context, for overflow)
     "mimo-v2": ModelConfig(
         name="openrouter/xiaomi/mimo-v2",
         rpm_limit=60,
         context_window=1000000,
+        rate_limit_delay=0,  # Paid tier - no delay needed
     ),
 }
 
@@ -158,6 +171,16 @@ def get_model_config(model_key: Optional[str] = None) -> ModelConfig:
     if not config:
         raise ValueError(f"Unknown model: {model_key}. Available: {list(MODEL_REGISTRY.keys())}")
     return config
+
+
+def get_rate_limit_delay() -> int:
+    """Get rate limit delay for current model.
+
+    Returns:
+        int: Seconds to wait between crew executions (0 for paid, 10 for free)
+    """
+    config = get_model_config()
+    return config.rate_limit_delay
 
 
 def register_models():
