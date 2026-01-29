@@ -85,7 +85,7 @@ synthesize_summary:
 
 
     CRITICAL CONSTRAINTS: - BOTH steps MUST complete - DO NOT return "I will..."
-    - EXECUTE the actions  
+    - EXECUTE the actions
     - You MUST iterate through EVERY item in critical/warnings/info arrays -
     Show ALL findings, not counts - this is NOT a summary - The task is NOT
     complete until final_summary.md exists - Minimum 1000 characters (if
