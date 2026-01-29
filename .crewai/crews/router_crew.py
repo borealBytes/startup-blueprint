@@ -48,8 +48,7 @@ class RouterCrew:
             logger.debug("LiteLLM cost tracking not available")
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        # Same model strategy as feat/crewai-code-review
-        default_model = "openrouter/xiaomi/mimo-v2-flash"
+        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
         fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
 
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
