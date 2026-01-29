@@ -22,7 +22,7 @@ analyze_pr_and_route:
     STEP 2: Analyze PR and decide workflows
 
     Calculate complexity: - LOW: <5 files, <100 lines - MEDIUM: 5-20 files,
-    100-500 lines  
+    100-500 lines
     - HIGH: >20 files OR >500 lines
 
     Required workflows (always include): ["ci-log-analysis", "quick-review"]
