@@ -197,12 +197,12 @@ class CodeReviewCrew:
         logger.info("📊 Cost tracking callbacks registered")
 
         # Model strategy:
-        # - Arcee Trinity Large Preview: Free, good quality (default for all tasks)
-        # - Xiaomi Mimo V2: 1M context (fallback for overflow)
+        # - Gemini Flash 2.0: Free, fast, reliable function calling
+        # - Same model for fallback (has 1M context)
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
-        fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
+        default_model = "openrouter/google/gemini-2.0-flash-exp:free"
+        fallback_model = "openrouter/google/gemini-2.0-flash-exp:free"
 
         self.model_config = {
             # Primary model for all tasks

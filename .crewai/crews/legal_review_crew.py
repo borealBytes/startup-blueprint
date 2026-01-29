@@ -50,7 +50,7 @@ class LegalReviewCrew:
             pass
 
         # Use openrouter/ prefix
-        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
+        default_model = "openrouter/google/gemini-2.0-flash-exp:free"
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
 
     @agent

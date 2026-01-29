@@ -31,7 +31,7 @@ class FinalSummaryCrew:
         register_trinity_model()
 
         self.model_name = os.getenv(
-            "MODEL_DEFAULT", "openrouter/arcee-ai/trinity-large-preview:free"
+            "MODEL_DEFAULT", "openrouter/google/gemini-2.0-flash-exp:free"
         )
 
         # Create LLM instance with function calling
