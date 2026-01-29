@@ -1,46 +1,47 @@
 analyze_pr_and_route:
   description: >
-    EXECUTE these 3 steps. DO NOT stop early. DO NOT describe what you will do -
-    DO IT.
+    EXECUTE these 3 steps. DO NOT stop early. DO NOT describe what you will do - DO IT.
 
 
     STEP 1: Validate and read input files
-
-    Check files exist: - WorkspaceTool(operation="exists", filename="diff.json",
-    content="") - WorkspaceTool(operation="exists", filename="diff.txt",
-    content="") - WorkspaceTool(operation="exists", filename="commits.json",
-    content="")
-
-    Read files: - WorkspaceTool(operation="read", filename="diff.json",
-    content="") → get pr_number, labels, files_changed, additions, deletions -
-    WorkspaceTool(operation="read", filename="commits.json", content="") → get
-    commit stats - Optionally read diff.txt for patterns (large file, use
-    sparingly)
+    
+    Check files exist:
+    - WorkspaceTool(operation="exists", filename="diff.json", content="")
+    - WorkspaceTool(operation="exists", filename="commits.json", content="")
+    
+    Read files:
+    - WorkspaceTool(operation="read", filename="diff.json", content="") → get pr_number, labels, files_changed, additions, deletions
+    - WorkspaceTool(operation="read", filename="commits.json", content="") → get commit stats
+    
+    DO NOT read diff.txt - it's 44KB and pollutes conversation history!
+    Router only needs metadata, not code details.
 
 
     STEP 2: Analyze PR and decide workflows
-
-    Calculate complexity: - LOW: <5 files, <100 lines - MEDIUM: 5-20 files,
-    100-500 lines  
+    
+    Calculate complexity:
+    - LOW: <5 files, <100 lines
+    - MEDIUM: 5-20 files, 100-500 lines  
     - HIGH: >20 files OR >500 lines
-
+    
     Required workflows (always include): ["ci-log-analysis", "quick-review"]
-
-    Add conditional workflows: - IF "crewai:full-review" label exists → add
-    "full-review" - IF "crewai:legal" label exists → add "legal-review"
-
-    Generate suggestions: - IF complexity HIGH → suggest "crewai:full-review"
-    label - IF legal files (LICENSE*, TERMS*, CONTRIBUTING*) → suggest
-    "crewai:legal" label - IF security files (.env*, *secret*, *key*, auth*) →
-    WARN about security review
+    
+    Add conditional workflows:
+    - IF "crewai:full-review" label exists → add "full-review"
+    - IF "crewai:legal" label exists → add "legal-review"
+    
+    Generate suggestions:
+    - IF complexity HIGH → suggest "crewai:full-review" label
+    - IF legal files (LICENSE*, TERMS*, CONTRIBUTING*) → suggest "crewai:legal" label
+    - IF security files (.env*, *secret*, *key*, auth*) → WARN about security review
 
 
     STEP 3: Write router_decision.json
-
-    Use WorkspaceTool(operation="write", filename="router_decision.json",
-    content=<json_object>)
-
-    Required JSON structure: {
+    
+    Use WorkspaceTool(operation="write", filename="router_decision.json", content=<json_object>)
+    
+    Required JSON structure:
+    {
       "workflows": ["ci-log-analysis", "quick-review"],
       "suggestions": ["text"],
       "metadata": {
@@ -61,12 +62,15 @@ analyze_pr_and_route:
     }
 
 
-    CRITICAL CONSTRAINTS: - ALL 3 steps MUST complete - DO NOT return "I
-    will..." - EXECUTE the actions - You MUST write router_decision.json file -
-    The task is NOT complete until router_decision.json exists - workflows array
-    MUST always include both "ci-log-analysis" and "quick-review"
+    CRITICAL CONSTRAINTS:
+    - ALL 3 steps MUST complete
+    - DO NOT return "I will..." - EXECUTE the actions
+    - DO NOT read diff.txt - metadata only
+    - You MUST write router_decision.json file
+    - The task is NOT complete until router_decision.json exists
+    - workflows array MUST always include both "ci-log-analysis" and "quick-review"
 
   expected_output: >
     "Successfully wrote router_decision.json with N workflows, M suggestions."
-
+    
     The file MUST physically exist in workspace directory.
