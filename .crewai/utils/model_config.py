@@ -24,7 +24,13 @@ class ModelConfig:
 
 # Available models - crews select from this list
 MODEL_REGISTRY = {
-    # Gemini 2.5 Flash Lite (cheap, fast) - DEFAULT
+    # Mistral Devstral 2512 (high performance, good function calling) - DEFAULT
+    "mistral-devstral-2512": ModelConfig(
+        name="mistralai/mistral-2512",
+        rpm_limit=60,
+        context_window=1000000,
+    ),
+    # Gemini 2.5 Flash Lite (fallback option)
     "gemini-flash-lite": ModelConfig(
         name="openrouter/google/gemini-2.5-flash-lite",
         rpm_limit=60,
@@ -51,7 +57,7 @@ MODEL_REGISTRY = {
     ),
 }
 
-DEFAULT_MODEL_KEY = "gemini-flash-lite"
+DEFAULT_MODEL_KEY = "mistral-devstral-2512"
 FALLBACK_MODEL_KEY = "gemini-flash-lite"
 
 
@@ -110,7 +116,7 @@ def get_rate_limiter() -> GlobalRateLimiter:
     return _rate_limiter
 
 
-def get_llm(model_key: str = None) -> LLM:
+def get_llm(model_key: Optional[str] = None) -> LLM:
     """Get a configured LLM instance.
 
     Args:
@@ -138,10 +144,13 @@ def get_llm(model_key: str = None) -> LLM:
     )
 
 
-def get_model_config(model_key: str = None) -> ModelConfig:
+def get_model_config(model_key: Optional[str] = None) -> ModelConfig:
     """Get model configuration without creating LLM instance."""
     model_key = model_key or os.getenv("MODEL_KEY", DEFAULT_MODEL_KEY)
-    return MODEL_REGISTRY.get(model_key)
+    config = MODEL_REGISTRY.get(model_key)
+    if not config:
+        raise ValueError(f"Unknown model: {model_key}. Available: {list(MODEL_REGISTRY.keys())}")
+    return config
 
 
 def register_models():
