@@ -40,13 +40,13 @@ class QuickReviewCrew:
     @task
     def quick_code_review(self) -> Task:
         """Quick code review task."""
-        #CRITICAL: Do NOT use expected_output from config - agent copies it without working
+        # CRITICAL: Do NOT use expected_output from config - agent copies it without working
         # Instead, agent MUST write quick_review.json via WorkspaceTool
         # Validation happens by checking if file exists, not by matching output text
         task_config = self.tasks_config["quick_code_review"].copy()
         # Remove expected_output to prevent agent from copying template
         task_config.pop("expected_output", None)
-        
+
         return Task(
             description=task_config["description"],
             agent=self.quick_reviewer(),
