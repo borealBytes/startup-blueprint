@@ -9,6 +9,12 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# CRITICAL: Register Trinity model BEFORE importing any CrewAI components
+# This must happen before CrewAI checks model capabilities during class decoration
+from utils.model_config import register_trinity_model
+
+register_trinity_model()
+
 from crews.ci_log_analysis_crew import CILogAnalysisCrew
 from crews.final_summary_crew import FinalSummaryCrew
 from crews.full_review_crew import FullReviewCrew
