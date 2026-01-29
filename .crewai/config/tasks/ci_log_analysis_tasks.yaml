@@ -1,23 +1,25 @@
 parse_ci_output:
   description: >
-    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe what you will do - DO IT.
+    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe
+    what you will do - DO IT.
 
 
     STEP 1: Parse CI results and read context
-    
+
     Use CIOutputParserTool(core_ci_result="") to get CI job status/outputs.
-    
-    Use WorkspaceTool(operation="read", filename="diff.json", content="") for file change statistics.
-    
+
+    Use WorkspaceTool(operation="read", filename="diff.json", content="") for
+    file change statistics.
+
     Identify what checks ran: formatting, linting, type-checking, tests, docs.
 
 
     STEP 2: Write ci_summary.json with analysis
-    
-    Use WorkspaceTool(operation="write", filename="ci_summary.json", content=<json_object>)
-    
-    Required JSON structure:
-    {
+
+    Use WorkspaceTool(operation="write", filename="ci_summary.json",
+    content=<json_object>)
+
+    Required JSON structure: {
       "status": "success|warning|failure",
       "passed": true|false,
       "summary": "Brief text",
@@ -26,22 +28,19 @@ parse_ci_output:
       "warnings": [{type, message, count, fix_suggestion}],
       "issue_analysis": {root_cause, fix_applied, recommendation}
     }
-    
-    Categorize by severity:
-    - CRITICAL: build/type/test failures (blocks merge)
-    - WARNING: lint/format issues (should fix)
-    - INFO: docs/suggestions (nice to have)
+
+    Categorize by severity: - CRITICAL: build/type/test failures (blocks merge)
+    - WARNING: lint/format issues (should fix) - INFO: docs/suggestions (nice to
+    have)
 
 
-    CRITICAL CONSTRAINTS:
-    - BOTH steps MUST complete
-    - DO NOT return text like "I will..." - EXECUTE the actions
-    - DO NOT stop after reading CI output
-    - You MUST call WorkspaceTool to write ci_summary.json
-    - The task is NOT complete until ci_summary.json exists in workspace
-    - Use diff.json (not diff.txt) to avoid context overflow
+    CRITICAL CONSTRAINTS: - BOTH steps MUST complete - DO NOT return text like
+    "I will..." - EXECUTE the actions - DO NOT stop after reading CI output -
+    You MUST call WorkspaceTool to write ci_summary.json - The task is NOT
+    complete until ci_summary.json exists in workspace - Use diff.json (not
+    diff.txt) to avoid context overflow
 
   expected_output: >
     "Successfully wrote ci_summary.json with N errors, M warnings."
-    
+
     The file MUST physically exist in workspace directory.
