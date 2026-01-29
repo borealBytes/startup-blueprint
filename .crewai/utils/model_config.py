@@ -13,9 +13,11 @@ def register_trinity_model():
 
     See: https://openrouter.ai/arcee-ai/trinity-large-preview:free
     """
-    litellm.register_model({
-        "openrouter/arcee-ai/trinity-large-preview:free": {
-            "supports_function_calling": True,
-            "supports_parallel_function_calling": True,
+    litellm.register_model(
+        {
+            "openrouter/arcee-ai/trinity-large-preview:free": {
+                "supports_function_calling": True,
+                "supports_parallel_function_calling": True,
+            }
         }
-    })
+    )
