@@ -7,6 +7,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from tools.workspace_tool import WorkspaceTool
+from utils.model_config import get_llm, get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -21,37 +22,11 @@ class LegalReviewCrew:
 
     def __init__(self):
         """Initialize legal review crew."""
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            raise ValueError("OPENROUTER_API_KEY required")
-
-        os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
-        # Register cost tracking callbacks (if available)
-        try:
-            import litellm
-
-            # Register Trinity model as function-calling capable
-            # OpenRouter supports it, but LiteLLM doesn't recognize it by default
-            from utils.model_config import register_trinity_model
-
-            register_trinity_model()
-
-            try:
-                from crew import litellm_failure_callback, litellm_success_callback
-
-                litellm.success_callback = [litellm_success_callback]
-                litellm.failure_callback = [litellm_failure_callback]
-                litellm.set_verbose = True
-            except ImportError:
-                pass
-        except ImportError:
-            pass
-
-        # Use openrouter/ prefix
-        default_model = "openrouter/google/gemini-2.5-flash-lite"
-        self.model_name = os.getenv("MODEL_DEFAULT", default_model)
+        # Get LLM from centralized config
+        self.llm = get_llm()
+        logger.info(f"LegalReview using model: {self.llm.model}")
 
     @agent
     def legal_compliance_reviewer(self) -> Agent:
@@ -60,7 +35,8 @@ class LegalReviewCrew:
             config=self.agents_config["legal_compliance_reviewer"],
             # BaseTool subclasses need instantiation
             tools=[WorkspaceTool()],
-            llm=self.model_name,
+            llm=self.llm,
+            function_calling_llm=self.llm,
             max_iter=3,
             verbose=True,
         )
@@ -81,5 +57,5 @@ class LegalReviewCrew:
             tasks=[self.review_legal_compliance()],
             process=Process.sequential,
             verbose=True,
-            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
+            max_rpm=get_rate_limiter().current_limit,
         )

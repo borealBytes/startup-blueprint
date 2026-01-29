@@ -3,10 +3,11 @@
 import logging
 import os
 
-from crewai import LLM, Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from tools.workspace_tool import WorkspaceTool
+from utils.model_config import get_llm, get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -20,24 +21,9 @@ class FinalSummaryCrew:
 
     def __init__(self):
         """Initialize final summary crew."""
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            raise ValueError("OPENROUTER_API_KEY required")
-
-        # Register Trinity model as function-calling capable
-        # OpenRouter supports it, but LiteLLM doesn't recognize it by default
-        from utils.model_config import register_trinity_model
-
-        register_trinity_model()
-
-        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/google/gemini-2.5-flash-lite")
-
-        # Create LLM instance with function calling
-        self.llm = LLM(
-            model=self.model_name,
-            api_key=api_key,
-            base_url="https://openrouter.ai/api/v1",
-        )
+        # Get LLM from centralized config
+        self.llm = get_llm()
+        logger.info(f"FinalSummary using model: {self.llm.model}")
 
     @agent
     def executive_summary_agent(self) -> Agent:
@@ -70,5 +56,5 @@ class FinalSummaryCrew:
             tasks=[self.synthesize_summary()],
             process=Process.sequential,
             verbose=True,
-            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
+            max_rpm=get_rate_limiter().current_limit,
         )

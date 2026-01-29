@@ -11,9 +11,9 @@ from pathlib import Path
 
 # CRITICAL: Register models BEFORE importing any CrewAI components
 # This must happen before CrewAI checks model capabilities during class decoration
-from utils.model_config import register_trinity_model
+from utils.model_config import register_models
 
-register_trinity_model()
+register_models()
 
 # Configure LiteLLM for rate limit handling
 import litellm

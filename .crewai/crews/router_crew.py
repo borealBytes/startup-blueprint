@@ -3,10 +3,11 @@
 import logging
 import os
 
-from crewai import LLM, Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from tools.workspace_tool import WorkspaceTool
+from utils.model_config import get_llm, get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -21,24 +22,12 @@ class RouterCrew:
 
     def __init__(self):
         """Initialize router crew with config."""
-        # Verify OpenRouter API key
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            raise ValueError("OPENROUTER_API_KEY required")
-
         # Set LiteLLM base URL for OpenRouter
-        os.environ["OPENROUTER_API_KEY"] = api_key
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
         # Register cost tracking callbacks (if available)
         try:
             import litellm
-
-            # Register Trinity model as function-calling capable
-            # OpenRouter supports it, but LiteLLM doesn't recognize it by default
-            from utils.model_config import register_trinity_model
-
-            register_trinity_model()
 
             # Import callbacks if they exist
             try:
@@ -47,29 +36,15 @@ class RouterCrew:
                 litellm.success_callback = [litellm_success_callback]
                 litellm.failure_callback = [litellm_failure_callback]
                 litellm.set_verbose = True
-                logger.info("📊 Cost tracking callbacks registered")
+                logger.info("Cost tracking callbacks registered")
             except ImportError:
                 logger.debug("Cost tracking callbacks not available")
         except ImportError:
             logger.debug("LiteLLM cost tracking not available")
 
-        # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/google/gemini-2.5-flash-lite"
-        fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
-
-        self.model_name = os.getenv("MODEL_DEFAULT", default_model)
-        self.fallback_model = os.getenv("MODEL_FALLBACK", fallback_model)
-
-        logger.info("Router Model Configuration:")
-        logger.info(f"  Default: {self.model_name}")
-        logger.info(f"  Fallback: {self.fallback_model}")
-
-        # Create LLM instance with function calling enabled
-        self.llm = LLM(
-            model=self.model_name,
-            api_key=api_key,
-            base_url="https://openrouter.ai/api/v1",
-        )
+        # Get LLM from centralized config
+        self.llm = get_llm()
+        logger.info(f"Router using model: {self.llm.model}")
 
     @agent
     def router_agent(self) -> Agent:
@@ -105,5 +80,5 @@ class RouterCrew:
             tasks=[self.analyze_and_route()],
             process=Process.sequential,
             verbose=True,
-            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
+            max_rpm=get_rate_limiter().current_limit,
         )
