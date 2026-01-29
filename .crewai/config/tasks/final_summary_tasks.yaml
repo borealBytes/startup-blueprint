@@ -1,157 +1,108 @@
 synthesize_summary:
   description: >
-    YOU MUST synthesize all review outputs into comprehensive GitHub markdown
-    with ALL findings in collapsible HTML <details> sections.
+    EXECUTE these 2 steps. DO NOT stop early. DO NOT describe what you will do - DO IT.
 
-    **CRITICAL**: This is NOT a summary task. You must show EVERY finding with
-    full details. DO NOT abbreviate or skip findings.
 
-    **EXECUTION STEPS** (follow exactly):
+    STEP 1: Read all review outputs
+    
+    Read each file (if exists, skip if missing):
+    - WorkspaceTool(operation="read", filename="ci_summary.json", content="") → extract status, summary, critical_errors, warnings, checks_performed
+    - WorkspaceTool(operation="read", filename="quick_review.json", content="") → extract critical, warnings, info arrays with ALL items
+    - WorkspaceTool(operation="read", filename="full_review.json", content="") → optional, extract high-severity findings
+    - WorkspaceTool(operation="read", filename="router_decision.json", content="") → extract suggestions
 
-    1. **Read CI Summary**:
-       ```
-       WorkspaceTool(operation="read", filename="ci_summary.json", content="")
-       ```
-       - Extract `critical_errors` array (show ALL errors, not count)
-       - Extract `warnings` array (show ALL warnings)
-       - Extract `summary`, `status`, `checks_performed`
-       - If file missing/empty: note "CI analysis not available"
 
-    2. **Read Quick Review** (MOST IMPORTANT):
-       ```
-       WorkspaceTool(operation="read", filename="quick_review.json", content="")
-       ```
-       - Extract arrays: `critical`, `warnings`, `info`
-       - **YOU MUST iterate through EVERY item** in each array
-       - For EACH item extract: `title`, `file`, `line`, `description`,
-    `fix_suggestion`
-       - Count totals but also SHOW each finding
-       - If file missing/empty: note "Quick review not available"
-
-    3. **Read Full Review** (if exists):
-       ```
-       WorkspaceTool(operation="read", filename="full_review.json", content="")
-       ```
-       - Extract high/critical severity findings only
-       - If missing: note "Did not run"
-
-    4. **Read Router Decision**:
-       ```
-       WorkspaceTool(operation="read", filename="router_decision.json",
-    content="")
-       ```
-       - Extract `suggestions` array
-
-    5. **Write Complete Markdown**:
-       ```
-       WorkspaceTool(operation="write", filename="final_summary.md",
-    content="<markdown_here>")
-       ```
-
-    **OUTPUT FORMAT REQUIREMENTS**:
-
-    Use this EXACT structure with actual data from the JSON files:
-
-    ```markdown ## ⚠️ Review Summary
-
-    Review completed for PR with multiple workflows executed.
-
-    **Commit**: Use actual commit SHA from data **Repository**: Use actual
-    repository name **Workflows**: List actual workflows that ran **Timestamp**:
-    Use actual timestamp
-
+    STEP 2: Write final_summary.md with ALL findings
+    
+    Use WorkspaceTool(operation="write", filename="final_summary.md", content=<markdown>)
+    
+    Required markdown structure:
+    
+    ## ⚠️ Review Summary
+    Review completed for PR #{pr_number}
+    Commit: {sha} | Repository: {owner/repo} | Workflows: {list} | Timestamp: {time}
+    
     ---
-
-    ### ✅ CI Analysis **Status**: Use actual status emoji and text **Summary**:
-    Use actual summary text from CI data
-
-    <details> <summary><b>🔍 View CI Issues</b></summary>
-
-    **Critical Errors**: 1. **Error Type**: Error message here
-       - 💡 **Fix**: Fix suggestion here
-
-    **Warnings**: 1. Warning message here
-
+    
+    ### ✅ CI Analysis
+    Status: {emoji} {status}
+    Summary: {text from ci_summary.json}
+    
+    <details>
+    <summary><b>🔍 View CI Issues</b></summary>
+    
+    **Critical Errors**:
+    - List EACH error from critical_errors array with file, line, message, fix
+    
+    **Warnings**:
+    - List EACH warning from warnings array
+    
     </details>
-
+    
     ---
-
-    ### ⚡ Quick Review **Status**: Use actual status from JSON **Summary**: Use
-    actual summary text from JSON
-
-    **Findings**: - 🔴 COUNT critical issue(s) - use actual count - 🟡 COUNT
-    warning(s) - use actual count - 🔵 COUNT suggestion(s) - use actual count
-
-    <details open> <summary><b>🔴 Critical Issues (COUNT)</b></summary>
-
-    - 🔴 **Issue Title Here** `file/path.py:123`
-      - Issue description here
-      - 💡 **Fix**: Fix suggestion here
-
-    - 🔴 **Next Issue Title**
-      - Description
-      - 💡 **Fix**: Fix suggestion
-
-    (Continue for ALL critical issues)
-
+    
+    ### ⚡ Quick Review
+    Status: {status from quick_review.json}
+    Summary: {summary text}
+    Findings: {N} critical, {M} warnings, {K} suggestions
+    
+    <details open>
+    <summary><b>🔴 Critical Issues ({count})</b></summary>
+    
+    Iterate through critical array:
+    - 🔴 **{title}** `{file}:{line}`
+      - {description}
+      - 💡 **Fix**: {fix_suggestion}
+    
     </details>
-
-    <details> <summary><b>🟡 Warnings (COUNT)</b></summary>
-
-    - 🟡 **Warning Title** `file/path.py:45`
-      - Warning description
-      - 💡 **Fix**: Fix suggestion
-
-    (Continue for ALL warnings)
-
+    
+    <details>
+    <summary><b>🟡 Warnings ({count})</b></summary>
+    
+    Iterate through warnings array:
+    - 🟡 **{title}** `{file}:{line}`
+      - {description}
+      - 💡 **Fix**: {fix_suggestion}
+    
     </details>
-
-    <details> <summary><b>🔵 Suggestions (COUNT)</b></summary>
-
-    - 🔵 **Suggestion Title** `file/path.py:67`
-      - Suggestion description
-      - 💡 **Fix**: Fix suggestion
-
-    (Continue for ALL suggestions)
-
+    
+    <details>
+    <summary><b>🔵 Suggestions ({count})</b></summary>
+    
+    Iterate through info array:
+    - 🔵 **{title}** `{file}:{line}`
+      - {description}
+      - 💡 **Fix**: {fix_suggestion}
+    
     </details>
-
+    
     ---
-
-    ### 🔍 Full Technical Review Status: Show "Completed" or "Did not run"
-
-    (If ran, show critical findings with same format)
-
+    
+    ### 🔍 Full Technical Review
+    Status: {Completed or Did not run}
+    
+    (If ran, show critical findings)
+    
     ---
-
+    
     ### 💡 Router Suggestions
-
-    - Actual suggestion 1 from router - Actual suggestion 2 from router
-
+    - List suggestions from router_decision.json
+    
     ---
+    
+    *🤖 Generated by CrewAI Router System | ⏱️ {timestamp}*
 
-    *🤖 Generated by CrewAI Router System | ⏱️ Use actual timestamp* ```
 
-    **VALIDATION BEFORE WRITING**: ✓ Counted `critical` array length from
-    quick_review.json ✓ Counted `warnings` array length ✓ Counted `info` array
-    length ✓ Iterated through EACH item in EACH array ✓ Formatted each finding
-    with title, file:line, description, fix ✓ Used `<details open>` for critical
-    (expanded) ✓ Used `<details>` for warnings/suggestions (collapsed) ✓
-    Replaced ALL placeholders with actual data from JSON files ✓ Final markdown
-    is 1500+ characters (comprehensive)
-
-    **COMMON MISTAKES TO AVOID**: ❌ Writing "5 critical issues found" without
-    listing them ❌ Using placeholders like "show all critical issues" instead
-    of actual list ❌ Summarizing findings instead of showing each one ❌
-    Forgetting to call WorkspaceTool("write", "final_summary.md", ...) ❌
-    Writing markdown less than 1000 characters (means you skipped findings)
-
-    **REMEMBER**: Your job is to format and display data, not summarize it. Read
-    the JSON files and present EVERY finding in proper markdown format.
+    CRITICAL CONSTRAINTS:
+    - BOTH steps MUST complete
+    - DO NOT return "I will..." - EXECUTE the actions  
+    - You MUST iterate through EVERY item in critical/warnings/info arrays
+    - Show ALL findings, not counts - this is NOT a summary
+    - The task is NOT complete until final_summary.md exists
+    - Minimum 1000 characters (if shorter, you skipped findings)
+    - Use actual data from JSON files, not placeholders
 
   expected_output: >
-    Comprehensive GitHub-flavored markdown file saved as final_summary.md with
-    minimum 1500 characters. Must contain ALL findings from quick_review.json
-    displayed in collapsible <details> sections with title, file path, line
-    number, description, and fix suggestion for EACH finding. Critical issues
-    expanded by default, warnings/suggestions collapsed.
+    "Successfully wrote final_summary.md with N critical issues, M warnings, K suggestions."
+    
+    File MUST exist with comprehensive markdown showing ALL findings.
