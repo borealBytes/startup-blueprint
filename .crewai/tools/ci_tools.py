@@ -161,7 +161,10 @@ class SearchLogInput(BaseModel):
 
     folder_name: str = Field(description="The folder name from the job index (e.g., 'core-ci')")
     pattern: str = Field(
-        description="Search pattern (regex supported). Good patterns: 'error', 'failed', 'exception'"
+        description=(
+            "Search pattern (regex supported). "
+            "Good patterns: 'error', 'failed', 'exception'"
+        )
     )
     context_lines: int = Field(
         default=3,
