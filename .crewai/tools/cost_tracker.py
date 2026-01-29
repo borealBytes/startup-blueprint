@@ -4,9 +4,9 @@ import atexit
 import logging
 import os
 import time
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional
-from collections import defaultdict
 
 import requests
 
@@ -156,15 +156,17 @@ class CostTracker:
 
     def get_crew_summary(self) -> Dict[str, Dict]:
         """Get cost summary grouped by crew."""
-        crew_stats = defaultdict(lambda: {
-            "calls": 0,
-            "tokens_in": 0,
-            "tokens_out": 0,
-            "total_tokens": 0,
-            "cost": 0.0,
-            "duration": 0.0,
-        })
-        
+        crew_stats = defaultdict(
+            lambda: {
+                "calls": 0,
+                "tokens_in": 0,
+                "tokens_out": 0,
+                "total_tokens": 0,
+                "cost": 0.0,
+                "duration": 0.0,
+            }
+        )
+
         for call in self.calls:
             stats = crew_stats[call.crew_name]
             stats["calls"] += 1
@@ -173,7 +175,7 @@ class CostTracker:
             stats["total_tokens"] += call.total_tokens
             stats["cost"] += call.cost
             stats["duration"] += call.duration_seconds
-        
+
         return dict(crew_stats)
 
     def enrich_from_openrouter(self):
@@ -299,7 +301,7 @@ class CostTracker:
         crew_summary = self.get_crew_summary()
         current_crew = None
         crew_start_call = 1
-        
+
         for i, call in enumerate(self.calls):
             # Add crew subtotal before switching crews
             if current_crew and call.crew_name != current_crew:
@@ -310,10 +312,10 @@ class CostTracker:
                     f"| **${stats['cost']:.6f}** | - |"
                 )
                 crew_start_call = call.call_number
-            
+
             current_crew = call.crew_name
             lines.append(str(call))
-        
+
         # Add final crew subtotal
         if current_crew:
             stats = crew_summary[current_crew]
