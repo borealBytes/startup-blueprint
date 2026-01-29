@@ -28,8 +28,8 @@ synthesize_summary:
 
     ---
 
-    ### ✅ CI Analysis Status: (use ✅ if passed, ❌ if failed) {status}
-    Summary: {text from ci_summary.json}
+    ### ✅ CI Analysis Status: (use ✅ if passed, ❌ if failed) [extract from
+    ci_summary.json] Summary: [text from ci_summary.json]
 
     <details> <summary><b>🔍 View CI Issues</b></summary>
 
@@ -42,36 +42,36 @@ synthesize_summary:
 
     ---
 
-    ### ⚡ Quick Review Status: {status from quick_review.json} Summary:
-    {summary text} Findings: {N} critical, {M} warnings, {K} suggestions
+    ### ⚡ Quick Review Status: [extract from quick_review.json] Summary:
+    [summary text] Findings: [N] critical, [M] warnings, [K] suggestions
 
-    <details open> <summary><b>🔴 Critical Issues ({count})</b></summary>
+    <details open> <summary><b>🔴 Critical Issues ([count])</b></summary>
 
-    Iterate through critical array: - 🔴 **{title}** `{file}:{line}`
-      - {description}
-      - 💡 **Fix**: {fix_suggestion}
-
-    </details>
-
-    <details> <summary><b>🟡 Warnings ({count})</b></summary>
-
-    Iterate through warnings array: - 🟡 **{title}** `{file}:{line}`
-      - {description}
-      - 💡 **Fix**: {fix_suggestion}
+    Iterate through critical array: - 🔴 **[title]** `[file]:[line]`
+      - [description]
+      - 💡 **Fix**: [fix_suggestion]
 
     </details>
 
-    <details> <summary><b>🔵 Suggestions ({count})</b></summary>
+    <details> <summary><b>🟡 Warnings ([count])</b></summary>
 
-    Iterate through info array: - 🔵 **{title}** `{file}:{line}`
-      - {description}
-      - 💡 **Fix**: {fix_suggestion}
+    Iterate through warnings array: - 🟡 **[title]** `[file]:[line]`
+      - [description]
+      - 💡 **Fix**: [fix_suggestion]
+
+    </details>
+
+    <details> <summary><b>🔵 Suggestions ([count])</b></summary>
+
+    Iterate through info array: - 🔵 **[title]** `[file]:[line]`
+      - [description]
+      - 💡 **Fix**: [fix_suggestion]
 
     </details>
 
     ---
 
-    ### 🔍 Full Technical Review Status: {Completed or Did not run}
+    ### 🔍 Full Technical Review Status: [Completed or Did not run]
 
     (If ran, show critical findings)
 
