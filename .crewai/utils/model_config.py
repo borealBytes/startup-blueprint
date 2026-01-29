@@ -28,7 +28,7 @@ MODEL_REGISTRY = {
     "mistral-devstral-2512": ModelConfig(
         name="mistralai/mistral-2512",
         rpm_limit=60,
-        context_window=1000000,
+        context_window=262144,  # 262.1K context window
     ),
     # Gemini 2.5 Flash Lite (fallback option)
     "gemini-flash-lite": ModelConfig(
