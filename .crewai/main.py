@@ -11,7 +11,7 @@ from pathlib import Path
 
 # CRITICAL: Register models BEFORE importing any CrewAI components
 # This must happen before CrewAI checks model capabilities during class decoration
-from utils.model_config import register_models
+from utils.model_config import get_rate_limit_delay, register_models
 
 register_models()
 
@@ -85,34 +85,6 @@ def get_env_vars():
     logger.info(f"🎯 Core CI Result: {env_vars['core_ci_result']}")
 
     return env_vars
-
-
-def get_rate_limit_delay():
-    """Get rate limit delay based on current model.
-
-    Returns:
-        int: Delay in seconds (0 for paid models, 10 for free models)
-    """
-    # Get model from environment (set by model_config.py)
-    model_name = os.getenv("DEFAULT_MODEL", "openrouter/google/gemini-2.0-flash-001")
-
-    # Free tier models that need rate limiting
-    free_tier_models = [
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "meta-llama/llama-3.2-3b-instruct:free",
-        "google/gemini-flash-1.5:free",
-        # Add other free models here
-    ]
-
-    # Check if current model is free tier
-    is_free = any(free_model in model_name for free_model in free_tier_models)
-
-    if is_free:
-        logger.debug(f"🆓 Free tier model detected: {model_name} - using 10s delay")
-        return 10
-    else:
-        logger.debug(f"💳 Paid tier model: {model_name} - no delay needed")
-        return 0
 
 
 def get_workspace_diagnostics():
@@ -997,7 +969,7 @@ def main():
         decision = run_router(env_vars)
         workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
 
-        # Rate limit delay: model-specific (0s for paid, 10s for free)
+        # Rate limit delay: centralized in MODEL_REGISTRY (0s for paid, 10s for free)
         rate_limit_delay = get_rate_limit_delay()
 
         # STEP 2: Always run CI analysis (default)
