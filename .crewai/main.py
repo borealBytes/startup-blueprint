@@ -9,19 +9,11 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-# CRITICAL: Register models BEFORE importing any CrewAI components
+# CRITICAL: Register Trinity model BEFORE importing any CrewAI components
 # This must happen before CrewAI checks model capabilities during class decoration
 from utils.model_config import register_trinity_model
 
 register_trinity_model()
-
-# Configure LiteLLM for rate limit handling
-import litellm
-
-# Enable retries for rate limit errors (429)
-# OpenRouter free tier: 20 RPM limit
-litellm.num_retries = 3  # Retry up to 3 times
-litellm.request_timeout = 120  # 2 minute timeout per request
 
 from crews.ci_log_analysis_crew import CILogAnalysisCrew
 from crews.final_summary_crew import FinalSummaryCrew
@@ -967,10 +959,6 @@ def main():
         decision = run_router(env_vars)
         workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
 
-        # Rate limit buffer: OpenRouter free tier is 20 RPM
-        # Add delays between crews to avoid hitting limits
-        RATE_LIMIT_DELAY = 10  # seconds between crews
-
         # STEP 2: Always run CI analysis (default)
         if "ci-log-analysis" in workflows:
             success = run_ci_analysis(env_vars)
@@ -978,9 +966,6 @@ def main():
             workflow_success["ci-log-analysis"] = success
             if not success:
                 logger.warning("⚠️ CI analysis had issues, but continuing...")
-            # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
 
         # STEP 3: Always run quick review (default)
         if "quick-review" in workflows:
@@ -989,9 +974,6 @@ def main():
             workflow_success["quick-review"] = success
             if not success:
                 logger.warning("⚠️ Quick review had issues, but continuing...")
-            # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
 
         # STEP 4: Conditional - Full review
         if "full-review" in workflows:
@@ -1000,9 +982,6 @@ def main():
             workflow_success["full-review"] = success
             if not success:
                 logger.warning("⚠️ Full review had issues, but continuing...")
-            # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
         else:
             logger.info("⏩ Skipping full review (no crewai:full-review label)")
 
@@ -1013,9 +992,6 @@ def main():
             workflow_success["legal-review"] = success
             if not success:
                 logger.warning("⚠️ Legal review had issues, but continuing...")
-            # Rate limit buffer
-            logger.info(f"⏳ Waiting {RATE_LIMIT_DELAY}s for rate limit buffer...")
-            time.sleep(RATE_LIMIT_DELAY)
         else:
             logger.info("⏩ Skipping legal review (no crewai:legal label)")
 
