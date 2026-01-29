@@ -151,6 +151,13 @@ jobs:
           fi
           echo "✅ All credentials validated successfully"
 
+      - name: Capture job output for CrewAI
+        if: always()
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'validate-credentials'
+          job-conclusion: ${{ job.status }}
+
   check-preview-label-conflicts:
     name: Check Preview Label Conflicts
     runs-on: ubuntu-latest

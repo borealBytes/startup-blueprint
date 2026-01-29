@@ -956,3 +956,10 @@ jobs:
             INITIAL_SHA="${{ steps.initial_sha.outputs.sha }}"
             echo "**Original Commit SHA:** \`$INITIAL_SHA\`" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Capture job output for CrewAI
+        if: always()
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'core-ci'
+          job-conclusion: ${{ job.status }}

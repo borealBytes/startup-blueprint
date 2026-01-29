@@ -173,6 +173,63 @@ jobs:
           echo "  - diff.json: metadata"
           echo "  - Stats: $FILES_CHANGED files, +$ADDITIONS/-$DELETIONS"
 
+      - name: Download CI job outputs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ci-job-output-*
+          path: .crewai/ci-artifacts/
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Organize CI results in workspace
+        run: |
+          set -e
+
+          echo "::group::Organizing CI job data"
+          mkdir -p workspace/ci_results
+
+          # Check if artifacts were downloaded
+          if [ ! -d "ci-artifacts" ]; then
+            echo "No CI artifacts found - jobs may not have uploaded data"
+            echo '{"run_id": ${{ github.run_id }}, "run_number": ${{ github.run_number }}, "jobs": []}' > workspace/ci_results/_job_index.json
+            echo "::endgroup::"
+            exit 0
+          fi
+
+          # Move job folders to workspace
+          if [ -d "ci-artifacts" ]; then
+            # Find all job folders and move them
+            for job_folder in ci-artifacts/*/; do
+              if [ -d "$job_folder" ]; then
+                JOB_NAME=$(basename "$job_folder")
+                mv "$job_folder" "workspace/ci_results/$JOB_NAME" 2>/dev/null || true
+                echo "Moved $JOB_NAME to workspace"
+              fi
+            done
+          fi
+
+          # Build job index from metadata files
+          echo '{"run_id": ${{ github.run_id }}, "run_number": ${{ github.run_number }}, "jobs": []}' > workspace/ci_results/_job_index.json
+
+          for metadata in workspace/ci_results/*/metadata.json; do
+            if [ -f "$metadata" ]; then
+              # Read metadata and append to jobs array
+              JOB_DATA=$(cat "$metadata")
+              jq --argjson job "$JOB_DATA" '.jobs += [$job]' workspace/ci_results/_job_index.json > /tmp/index_new.json
+              mv /tmp/index_new.json workspace/ci_results/_job_index.json
+              echo "Added $(echo "$JOB_DATA" | jq -r '.job_name') to index"
+            fi
+          done
+
+          JOB_COUNT=$(jq '.jobs | length' workspace/ci_results/_job_index.json)
+          echo "Organized $JOB_COUNT jobs for analysis"
+
+          # Show structure
+          echo ""
+          echo "CI Results Structure:"
+          ls -la workspace/ci_results/ 2>/dev/null || echo "No results directory"
+          echo "::endgroup::"
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:

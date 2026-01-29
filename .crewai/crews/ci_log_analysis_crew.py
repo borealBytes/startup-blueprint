@@ -1,4 +1,4 @@
-"""CI log analysis crew."""
+"""CI log analysis crew with enhanced log intelligence."""
 
 import logging
 
@@ -6,6 +6,15 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from tools.ci_output_parser_tool import CIOutputParserTool
+from tools.ci_tools import (
+    check_log_size,
+    get_log_stats,
+    list_ci_jobs,
+    read_full_log,
+    read_job_index,
+    read_job_summary,
+    search_log,
+)
 from tools.workspace_tool import WorkspaceTool
 from utils.model_config import get_llm, get_rate_limiter
 
@@ -14,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class CILogAnalysisCrew:
-    """CI log analysis crew."""
+    """CI log analysis crew with enhanced log intelligence."""
 
     agents_config = "../config/agents.yaml"
     tasks_config = "../config/tasks/ci_log_analysis_tasks.yaml"
@@ -27,16 +36,25 @@ class CILogAnalysisCrew:
 
     @agent
     def ci_analyst(self) -> Agent:
-        """Create CI analyst agent."""
+        """Create CI analyst agent with enhanced log tools."""
         return Agent(
             config=self.agents_config["ci_analyst"],
             tools=[
+                # Enhanced CI tools for intelligent log handling
+                read_job_index,
+                read_job_summary,
+                check_log_size,
+                search_log,
+                read_full_log,
+                get_log_stats,
+                list_ci_jobs,
+                # Legacy tools
                 CIOutputParserTool(),
                 WorkspaceTool(),
             ],
             llm=self.llm,
             function_calling_llm=self.llm,  # Enable function calling
-            max_iter=10,
+            max_iter=15,  # Increased for more comprehensive analysis
             verbose=True,
             allow_delegation=False,
         )

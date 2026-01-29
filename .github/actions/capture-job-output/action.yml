@@ -1,0 +1,82 @@
+name: 'Capture Job Output'
+description: 'Captures job summary and logs for CrewAI analysis'
+inputs:
+  job-name:
+    description: 'Name of the job (used for folder structure)'
+    required: true
+  job-conclusion:
+    description: 'Job conclusion (success, failure, cancelled)'
+    required: true
+    default: 'success'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Capture job summary and logs
+      shell: bash
+      run: |
+        set -e
+
+        JOB_NAME="${{ inputs.job-name }}"
+        JOB_FOLDER=$(echo "$JOB_NAME" | tr '[:upper:]' '[:lower:]' | tr ' /' '-')
+        OUTPUT_DIR=".crewai-job-output/$JOB_FOLDER"
+
+        echo "::group::Capturing output for job: $JOB_NAME"
+        mkdir -p "$OUTPUT_DIR"
+
+        # 1. Copy GitHub step summary (if exists)
+        if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+          cp "$GITHUB_STEP_SUMMARY" "$OUTPUT_DIR/summary.md"
+          SUMMARY_LINES=$(wc -l < "$OUTPUT_DIR/summary.md" | tr -d ' ')
+          echo "  Copied step summary ($SUMMARY_LINES lines)"
+        else
+          cat > "$OUTPUT_DIR/summary.md" << EOF
+        # $JOB_NAME
+
+        No step summary available.
+        EOF
+          echo "  No step summary found - created placeholder"
+        fi
+
+        # 2. Copy captured log (if exists - jobs redirect to this)
+        if [ -f ".crewai-job-output/current-job.log" ]; then
+          mv ".crewai-job-output/current-job.log" "$OUTPUT_DIR/log.txt"
+          LOG_SIZE=$(wc -c < "$OUTPUT_DIR/log.txt" | tr -d ' ')
+          echo "  Captured log ($LOG_SIZE bytes)"
+        else
+          echo "[Log not captured - check job configuration]" > "$OUTPUT_DIR/log.txt"
+          echo "  No log file found - created placeholder"
+        fi
+
+        # 3. Get log size for metadata
+        LOG_SIZE_BYTES=$(stat -c%s "$OUTPUT_DIR/log.txt" 2>/dev/null || stat -f%z "$OUTPUT_DIR/log.txt" 2>/dev/null || echo "0")
+
+        # 4. Create metadata JSON
+        cat > "$OUTPUT_DIR/metadata.json" << EOF
+        {
+          "job_name": "$JOB_NAME",
+          "job_folder": "$JOB_FOLDER",
+          "conclusion": "${{ inputs.job-conclusion }}",
+          "workflow": "${{ github.workflow }}",
+          "run_id": "${{ github.run_id }}",
+          "run_number": "${{ github.run_number }}",
+          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+          "summary_exists": true,
+          "log_exists": true,
+          "log_size_bytes": $LOG_SIZE_BYTES
+        }
+        EOF
+
+        echo "  Created metadata"
+        echo ""
+        echo "Output captured to: $OUTPUT_DIR"
+        ls -lh "$OUTPUT_DIR"
+        echo "::endgroup::"
+
+    - name: Upload job output artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ci-job-output-${{ inputs.job-name }}
+        path: .crewai-job-output/
+        retention-days: 7
+        if-no-files-found: warn

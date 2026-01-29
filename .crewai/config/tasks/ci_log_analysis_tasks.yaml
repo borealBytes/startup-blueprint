@@ -1,20 +1,48 @@
 parse_ci_output:
   description: >
-    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe
-    what you will do - DO IT.
+    ANALYZE CI/CD PIPELINE RESULTS INTELLIGENTLY AND EFFICIENTLY.
+
+    MANDATORY WORKFLOW - Execute ALL steps in order:
 
 
-    STEP 1: Parse CI results and read context
+    STEP 1: Read Job Index
 
-    Use CIOutputParserTool(core_ci_result="") to get CI job status/outputs.
-
-    Use WorkspaceTool(operation="read", filename="diff.json", content="") for
-    file change statistics.
-
-    Identify what checks ran: formatting, linting, type-checking, tests, docs.
+    Call read_job_index() to see ALL jobs that ran in this pipeline.
+    This shows job names, pass/fail status, and log sizes.
 
 
-    STEP 2: Write ci_summary.json with analysis
+    STEP 2: Read ALL Job Summaries
+
+    For EVERY job listed, call read_job_summary(folder_name) where folder_name
+    is the job folder from the index (e.g., "core-ci", "test-crewai").
+    Summaries are small and tell you WHAT failed. Never skip summaries.
+
+
+    STEP 3: Smart Log Analysis (only for jobs with issues)
+
+    For jobs that FAILED or have warnings:
+
+    a. Call check_log_size(folder_name) FIRST
+    b. If log < 50KB: safe to use read_full_log(folder_name)
+    c. If log 50-200KB: use get_log_stats(folder_name) to decide
+    d. If log > 200KB: MUST use search_log(folder_name, pattern) ONLY
+
+    Effective search patterns for large logs:
+    - "error" - finds error messages
+    - "FAILED" - finds test failures
+    - "exception" - finds stack traces
+    - specific test names from summary
+    - specific file names that failed
+
+
+    STEP 4: Also read legacy CI data
+
+    Use CIOutputParserTool(core_ci_result="") to get core CI job status.
+    Use WorkspaceTool(operation="read", filename="diff.json", content="")
+    for file change statistics.
+
+
+    STEP 5: Write ci_summary.json with comprehensive analysis
 
     Use WorkspaceTool(operation="write", filename="ci_summary.json",
     content=<json_object>)
@@ -22,25 +50,33 @@ parse_ci_output:
     Required JSON structure: {
       "status": "success|warning|failure",
       "passed": true|false,
-      "summary": "Brief text",
+      "summary": "Brief pipeline summary",
+      "jobs_analyzed": ["job-name", ...],
       "checks_performed": ["check-name", ...],
-      "critical_errors": [{type, file, line, message, fix_suggestion}],
-      "warnings": [{type, message, count, fix_suggestion}],
-      "issue_analysis": {root_cause, fix_applied, recommendation}
+      "critical_errors": [{type, file, line, message, fix_suggestion, job}],
+      "warnings": [{type, message, count, fix_suggestion, job}],
+      "issue_analysis": {root_cause, fix_applied, recommendation},
+      "merge_status": "APPROVE|REQUEST_CHANGES|NEEDS_DISCUSSION",
+      "merge_rationale": "Why this recommendation"
     }
 
-    Categorize by severity: - CRITICAL: build/type/test failures (blocks merge)
-    - WARNING: lint/format issues (should fix) - INFO: docs/suggestions (nice to
-    have)
+    Categorize by severity:
+    - CRITICAL: build/type/test failures (blocks merge)
+    - WARNING: lint/format issues (should fix)
+    - INFO: docs/suggestions (nice to have)
 
 
-    CRITICAL CONSTRAINTS: - BOTH steps MUST complete - DO NOT return text like
-    "I will..." - EXECUTE the actions - DO NOT stop after reading CI output -
-    You MUST call WorkspaceTool to write ci_summary.json - The task is NOT
-    complete until ci_summary.json exists in workspace - Use diff.json (not
-    diff.txt) to avoid context overflow
+    CRITICAL CONSTRAINTS:
+    - ALL steps MUST complete
+    - DO NOT return text like "I will..." - EXECUTE the actions
+    - DO NOT read logs > 200KB without checking size first
+    - Always read summaries before logs
+    - Use search/grep for targeted investigation
+    - Focus on actionable feedback
+    - You MUST call WorkspaceTool to write ci_summary.json
+    - The task is NOT complete until ci_summary.json exists
 
   expected_output: >
-    "Successfully wrote ci_summary.json with N errors, M warnings."
+    "Successfully analyzed N jobs and wrote ci_summary.json with findings."
 
     The file MUST physically exist in workspace directory.

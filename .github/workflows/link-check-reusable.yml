@@ -122,3 +122,10 @@ jobs:
           echo "## 🔗 Documentation Link Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "⏭️ **Skipped** - No documentation files changed" >> $GITHUB_STEP_SUMMARY
+
+      - name: Capture job output for CrewAI
+        if: always()
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'test-docs-links'
+          job-conclusion: ${{ job.status }}
