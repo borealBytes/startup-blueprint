@@ -122,6 +122,10 @@ def run_router(env_vars):
     logger.info("🔀 STEP 1: Router - Analyzing PR and deciding workflows")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("analyze_pr_and_route")
+
     try:
         router = RouterCrew()
         result = router.crew().kickoff(
@@ -193,6 +197,10 @@ def run_ci_analysis(env_vars):
     logger.info("📊 STEP 2: CI Log Analysis - Parsing core-ci results")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("parse_ci_output")
+
     try:
         ci_crew = CILogAnalysisCrew()
         result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
@@ -263,6 +271,10 @@ def run_quick_review():
     logger.info("=" * 60)
     logger.info("⚡ STEP 3: Quick Review - Fast code quality check")
     logger.info("=" * 60)
+
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("quick_code_review")
 
     try:
         quick_crew = QuickReviewCrew()
@@ -352,6 +364,10 @@ def run_full_review(env_vars):
     logger.info("🔍 STEP 4: Full Technical Review - Deep analysis")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("full_technical_review")
+
     try:
         full_crew = FullReviewCrew()
         result = full_crew.crew().kickoff(
@@ -408,6 +424,10 @@ def run_legal_review():
     logger.info("⚖️ STEP 5: Legal Review - Compliance check (STUB)")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("legal_compliance_check")
+
     try:
         legal_crew = LegalReviewCrew()
         result = legal_crew.kickoff()  # Uses stub implementation
@@ -436,6 +456,10 @@ def run_final_summary(env_vars, workflows_executed):
     logger.info("=" * 60)
     logger.info("📋 STEP 6: Final Summary - Synthesizing all reviews")
     logger.info("=" * 60)
+
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("synthesize_final_summary")
 
     try:
         # Count the number of reviews/workflows that were executed
