@@ -1,42 +1,58 @@
 quick_code_review:
   description: |
-    EXECUTE EXACTLY 2 TOOL CALLS IN THIS ORDER:
+    YOU MUST EXECUTE THESE 2 TOOL CALLS. DO NOT SKIP.
 
-    TOOL CALL 1 (required):
-    WorkspaceTool(operation="read", filename="diff.json", content="")
-    Extract: files_changed, additions, deletions, pr_number, commit_sha
+    STEP 1 - MANDATORY TOOL CALL:
+    Call WorkspaceTool with:
+    - operation: "read"
+    - filename: "diff.json"
+    - content: ""
 
-    TOOL CALL 2 (required):
-    WorkspaceTool(operation="write", filename="quick_review.json", content={...})
+    Extract these EXACT values:
+    - files_changed (integer)
+    - additions (integer)
+    - deletions (integer)
+    - pr_number (integer)
+    - commit_sha (string)
 
-    Required content for TOOL CALL 2:
+    STEP 2 - MANDATORY TOOL CALL:
+    Call WorkspaceTool with:
+    - operation: "write"
+    - filename: "quick_review.json"
+    - content: (JSON object below)
+
+    JSON structure for content parameter:
     {
       "status": "success",
       "passed": true,
       "summary": "Quick metadata review complete",
       "critical": [],
       "warnings": [],
-      "info": ["Reviewed [N] files, [M] lines changed"],
-      "files_reviewed": [N],
+      "info": ["Reviewed {files_changed} files, {total_lines} lines changed"],
+      "files_reviewed": {files_changed},
       "total_findings": 0,
       "suggestions": []
     }
 
-    Add to suggestions array if:
+    Where:
+    - {files_changed} = value from Step 1
+    - {total_lines} = additions + deletions from Step 1
+
+    Add to suggestions if:
     - additions + deletions > 500: {"title": "Large PR", "description": "Consider crewai:full-review label"}
     - files_changed > 20: {"title": "Many files", "description": "Consider crewai:full-review label"}
 
-    RULES:
-    - Make BOTH tool calls before returning anything
-    - DO NOT explain what you will do
-    - DO NOT return text between tool calls
-    - DO NOT read diff.txt (causes token overflow)
-    - Your final answer is ONLY the verification message below
+    CRITICAL:
+    - You CANNOT complete this task without calling both tools
+    - Your response MUST include actual values from diff.json
+    - DO NOT make up numbers
+    - DO NOT skip tool calls
 
   expected_output: |
-    Verify both conditions:
-    1. Tool call 1 completed (read diff.json)
-    2. Tool call 2 completed (wrote quick_review.json)
+    You MUST return this EXACT format with REAL data from diff.json:
 
-    If BOTH true, return: "Quick review complete: [N] files, [M] lines"
-    If either false, return: "ERROR: Tool call [X] failed"
+    "Quick review complete: {files_changed} files, {additions}+{deletions} lines"
+
+    Where {files_changed}, {additions}, {deletions} are the ACTUAL values you read from diff.json in Step 1.
+
+    DO NOT return generic text. Use the real numbers from your tool call.
