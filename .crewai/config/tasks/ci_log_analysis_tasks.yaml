@@ -7,39 +7,36 @@ parse_ci_output:
 
     STEP 1: Read Job Index
 
-    Call read_job_index() to see ALL jobs that ran in this pipeline.
-    This shows job names, pass/fail status, and log sizes.
+    Call read_job_index() to see ALL jobs that ran in this pipeline. This shows
+    job names, pass/fail status, and log sizes.
 
 
     STEP 2: Read ALL Job Summaries
 
     For EVERY job listed, call read_job_summary(folder_name) where folder_name
-    is the job folder from the index (e.g., "core-ci", "test-crewai").
-    Summaries are small and tell you WHAT failed. Never skip summaries.
+    is the job folder from the index (e.g., "core-ci", "test-crewai"). Summaries
+    are small and tell you WHAT failed. Never skip summaries.
 
 
     STEP 3: Smart Log Analysis (only for jobs with issues)
 
     For jobs that FAILED or have warnings:
 
-    a. Call check_log_size(folder_name) FIRST
-    b. If log < 50KB: safe to use read_full_log(folder_name)
-    c. If log 50-200KB: use get_log_stats(folder_name) to decide
-    d. If log > 200KB: MUST use search_log(folder_name, pattern) ONLY
+    a. Call check_log_size(folder_name) FIRST b. If log < 50KB: safe to use
+    read_full_log(folder_name) c. If log 50-200KB: use
+    get_log_stats(folder_name) to decide d. If log > 200KB: MUST use
+    search_log(folder_name, pattern) ONLY
 
-    Effective search patterns for large logs:
-    - "error" - finds error messages
-    - "FAILED" - finds test failures
-    - "exception" - finds stack traces
-    - specific test names from summary
-    - specific file names that failed
+    Effective search patterns for large logs: - "error" - finds error messages -
+    "FAILED" - finds test failures - "exception" - finds stack traces - specific
+    test names from summary - specific file names that failed
 
 
     STEP 4: Also read legacy CI data
 
-    Use CIOutputParserTool(core_ci_result="") to get core CI job status.
-    Use WorkspaceTool(operation="read", filename="diff.json", content="")
-    for file change statistics.
+    Use CIOutputParserTool(core_ci_result="") to get core CI job status. Use
+    WorkspaceTool(operation="read", filename="diff.json", content="") for file
+    change statistics.
 
 
     STEP 5: Write ci_summary.json with comprehensive analysis
@@ -60,21 +57,17 @@ parse_ci_output:
       "merge_rationale": "Why this recommendation"
     }
 
-    Categorize by severity:
-    - CRITICAL: build/type/test failures (blocks merge)
-    - WARNING: lint/format issues (should fix)
-    - INFO: docs/suggestions (nice to have)
+    Categorize by severity: - CRITICAL: build/type/test failures (blocks merge)
+    - WARNING: lint/format issues (should fix) - INFO: docs/suggestions (nice to
+    have)
 
 
-    CRITICAL CONSTRAINTS:
-    - ALL steps MUST complete
-    - DO NOT return text like "I will..." - EXECUTE the actions
-    - DO NOT read logs > 200KB without checking size first
-    - Always read summaries before logs
-    - Use search/grep for targeted investigation
-    - Focus on actionable feedback
-    - You MUST call WorkspaceTool to write ci_summary.json
-    - The task is NOT complete until ci_summary.json exists
+    CRITICAL CONSTRAINTS: - ALL steps MUST complete - DO NOT return text like "I
+    will..." - EXECUTE the actions - DO NOT read logs > 200KB without checking
+    size first - Always read summaries before logs - Use search/grep for
+    targeted investigation - Focus on actionable feedback - You MUST call
+    WorkspaceTool to write ci_summary.json - The task is NOT complete until
+    ci_summary.json exists
 
   expected_output: >
     "Successfully analyzed N jobs and wrote ci_summary.json with findings."

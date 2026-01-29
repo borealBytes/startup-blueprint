@@ -123,8 +123,7 @@ class CheckLogSizeTool(BaseTool):
         elif size_kb < MEDIUM_LOG_THRESHOLD:
             result += "**Recommendation:** READ WITH CAUTION\n"
             result += (
-                "Consider reading the summary first, then use Search Log "
-                "to find specific errors."
+                "Consider reading the summary first, then use Search Log to find specific errors."
             )
         else:
             result += "**Recommendation:** DO NOT READ FULLY\n"
@@ -160,9 +159,7 @@ class ReadJobSummaryTool(BaseTool):
 class SearchLogInput(BaseModel):
     """Input schema for SearchLogTool."""
 
-    folder_name: str = Field(
-        description="The folder name from the job index (e.g., 'core-ci')"
-    )
+    folder_name: str = Field(description="The folder name from the job index (e.g., 'core-ci')")
     pattern: str = Field(
         description="Search pattern (regex supported). Good patterns: 'error', 'failed', 'exception'"
     )
@@ -244,9 +241,7 @@ class SearchLogTool(BaseTool):
 class ReadFullLogInput(BaseModel):
     """Input schema for ReadFullLogTool."""
 
-    folder_name: str = Field(
-        description="The folder name from the job index (e.g., 'core-ci')"
-    )
+    folder_name: str = Field(description="The folder name from the job index (e.g., 'core-ci')")
     max_lines: Optional[int] = Field(
         default=None,
         description="Optional limit on number of lines to return (for safety)",
@@ -366,7 +361,7 @@ class GetLogStatsTool(BaseTool):
 
         if error_count > 0 or failed_count > 0 or exception_count > 0:
             result += "**Recommendation:** This log contains errors/failures. "
-            result += f"Use Search Log tool with pattern 'error' to investigate.\n"
+            result += "Use Search Log tool with pattern 'error' to investigate.\n"
         elif warning_count > 0:
             result += "**Recommendation:** Log has warnings but may have passed. "
             result += "Check summary first.\n"
@@ -416,9 +411,7 @@ class ListCIJobsTool(BaseTool):
                         }
                     )
                 else:
-                    jobs.append(
-                        {"folder": item.name, "name": item.name, "conclusion": "unknown"}
-                    )
+                    jobs.append({"folder": item.name, "name": item.name, "conclusion": "unknown"})
 
         if not jobs:
             return "No CI job folders found."
