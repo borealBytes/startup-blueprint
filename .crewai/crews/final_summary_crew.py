@@ -70,4 +70,5 @@ class FinalSummaryCrew:
             tasks=[self.synthesize_summary()],
             process=Process.sequential,
             verbose=True,
+            max_rpm=10,  # Rate limit: OpenRouter free tier allows 20 RPM, use 10 to be safe
         )
