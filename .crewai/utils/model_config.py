@@ -32,7 +32,14 @@ class ModelConfig:
 
 # Available models - crews select from this list
 MODEL_REGISTRY = {
-    # Gemini 2.0 Flash (DEFAULT - proven reliable function calling)
+    # MiMo V2 Flash (NEW DEFAULT - testing for reliable function calling)
+    "mimo-v2-flash": ModelConfig(
+        name="openrouter/xiaomi/mimo-v2-flash",
+        rpm_limit=60,
+        context_window=1000000,
+        rate_limit_delay=0,  # Paid tier - no delay needed
+    ),
+    # Gemini 2.0 Flash (fallback - has intermittent MALFORMED_FUNCTION_CALL issues)
     "gemini-flash": ModelConfig(
         name="openrouter/google/gemini-2.0-flash-001",
         rpm_limit=60,
@@ -54,7 +61,7 @@ MODEL_REGISTRY = {
         context_window=262144,  # 262.1K context window
         rate_limit_delay=0,  # Paid tier - no delay needed
     ),
-    # Free tier variant (20 RPM limit)
+    # Free tier variant (20 RPM limit) - NOT RECOMMENDED due to reliability issues
     "gemini-flash-free": ModelConfig(
         name="openrouter/google/gemini-2.0-flash-001:free",
         rpm_limit=20,
@@ -69,10 +76,17 @@ MODEL_REGISTRY = {
         context_window=1000000,
         rate_limit_delay=0,  # Paid tier - no delay needed
     ),
+    # GPT-4o Mini (expensive but very reliable)
+    "gpt-4o-mini": ModelConfig(
+        name="openrouter/openai/gpt-4o-mini",
+        rpm_limit=60,
+        context_window=128000,
+        rate_limit_delay=0,  # Paid tier - no delay needed
+    ),
 }
 
-DEFAULT_MODEL_KEY = "gemini-flash"  # Changed from mistral-devstral-2512
-FALLBACK_MODEL_KEY = "gemini-flash-lite"
+DEFAULT_MODEL_KEY = "mimo-v2-flash"  # Changed to MiMo V2 Flash for testing
+FALLBACK_MODEL_KEY = "gemini-flash"  # Gemini as fallback
 
 
 class GlobalRateLimiter:
