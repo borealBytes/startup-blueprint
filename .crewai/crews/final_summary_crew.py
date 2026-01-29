@@ -24,7 +24,7 @@ class FinalSummaryCrew:
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY required")
 
-        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/xiaomi/mimo-v2-flash")
+        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/arcee-ai/trinity-large-preview:free")
 
         # Create LLM instance with function calling
         self.llm = LLM(
