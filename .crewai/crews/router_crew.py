@@ -48,7 +48,7 @@ class RouterCrew:
             logger.debug("LiteLLM cost tracking not available")
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
+        default_model = "openrouter/arcee-ai/trinity-large-preview"
         fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
 
         self.model_name = os.getenv("MODEL_DEFAULT", default_model)
