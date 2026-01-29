@@ -190,12 +190,12 @@ class CodeReviewCrew:
 
         logger.info("📊 Cost tracking callbacks registered")
 
-        # Simplified model strategy using Xiaomi Mimo V2 family:
-        # - Mimo V2 Flash: Fast, efficient, 128k context (default for all tasks)
-        # - Mimo V2: Full model with 1M context (fallback for overflow)
+        # Updated model strategy using Arcee Trinity Large Preview
+        # - arcee-ai/trinity-large-preview:free: High quality, free on OpenRouter
+        # - Fallback: Same model (no need for fallback with 1M context)
 
         # Use 'openrouter/' prefix to force routing through LiteLLM
-        default_model = "openrouter/xiaomi/mimo-v2-flash"
+        default_model = "openrouter/arcee-ai/trinity-large-preview:free"
         fallback_model = "openrouter/xiaomi/mimo-v2"  # 1M context for overflow
 
         self.model_config = {
