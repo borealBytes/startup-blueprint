@@ -1,47 +1,58 @@
 quick_code_review:
   description: >
-    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe
-    what you will do - DO IT.
+    EXECUTE these 2 mandatory steps. DO NOT stop after step 1. DO NOT describe what you will do - DO IT.
 
 
-    STEP 1: Read diff.txt and identify issues
-
-    Use WorkspaceTool(operation="read", filename="diff.txt", content="") to get
-    code changes.
-
-    Analyze for: critical security issues, code quality problems, performance
-    issues, best practice violations.
-
-    Focus ONLY on lines starting with + (new code).
+    STEP 1: Read PR metadata (NOT the full diff)
+    
+    Use WorkspaceTool(operation="read", filename="diff.json", content="") to get PR stats.
+    
+    Extract:
+    - files_changed (how many files)
+    - additions/deletions (lines changed)
+    - pr_number, commit_sha
+    
+    Quick sanity checks:
+    - IF >500 lines changed → suggest "crewai:full-review" label
+    - IF >20 files changed → suggest "crewai:full-review" label
+    - IF only test files changed → note as "tests only"
+    - IF only docs changed → note as "docs only"
+    
+    DO NOT read diff.txt - it's 44KB and causes token explosion!
+    Quick review = metadata sanity check only.
+    Full review can analyze code if triggered.
 
 
     STEP 2: Write quick_review.json with findings
-
-    Use WorkspaceTool(operation="write", filename="quick_review.json",
-    content=<json_object>)
-
-    Required JSON structure: {
-      "status": "success|warning|critical",
+    
+    Use WorkspaceTool(operation="write", filename="quick_review.json", content=<json_object>)
+    
+    Required JSON structure:
+    {
+      "status": "success|warning",
       "passed": true|false,
-      "summary": "Brief text",
-      "critical": [{title, file, line, description, fix_suggestion}],
+      "summary": "Quick metadata review complete",
+      "critical": [],
       "warnings": [],
-      "info": [],
+      "info": ["Reviewed N files, M lines changed"],
       "files_reviewed": N,
-      "total_findings": N
+      "total_findings": 0,
+      "suggestions": ["Optional label suggestions"]
     }
+    
+    If PR is large (>500 lines or >20 files), add suggestion:
+    {"title": "Large PR", "description": "Consider adding crewai:full-review label"}
 
-    If no issues: status="success", passed=true, empty arrays. If issues found:
-    categorize by severity (critical/warning/info).
 
-
-    CRITICAL CONSTRAINTS: - BOTH steps MUST complete - DO NOT return text like
-    "I will..." - EXECUTE the actions - DO NOT stop after reading diff.txt - You
-    MUST call WorkspaceTool twice: once to read, once to write - The task is NOT
-    complete until quick_review.json exists in workspace
+    CRITICAL CONSTRAINTS:
+    - BOTH steps MUST complete
+    - DO NOT return "I will..." - EXECUTE the actions
+    - DO NOT read diff.txt - use diff.json only
+    - You MUST write quick_review.json file
+    - The task is NOT complete until quick_review.json exists
+    - Keep context small to prevent token explosion
 
   expected_output: >
-    "Successfully wrote quick_review.json with N findings (C critical, W
-    warnings, I info)."
-
+    "Successfully wrote quick_review.json - reviewed metadata for N files, M lines changed."
+    
     The file MUST physically exist in workspace directory.
