@@ -12,6 +12,9 @@ inputs:
     description: 'Mode: "start" to initialize capture, "finish" to finalize'
     required: true
     default: 'finish'
+  summary-file:
+    description: 'Path to a file containing the job summary (optional). If provided, this file is used instead of GITHUB_STEP_SUMMARY.'
+    required: false
 
 runs:
   using: 'composite'
@@ -74,10 +77,28 @@ runs:
           echo "  ⚠️ No log file found"
         fi
 
-        # Copy GitHub step summary (if exists)
-        if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
-          cp "$GITHUB_STEP_SUMMARY" "$OUTPUT_DIR/summary.md"
-          echo "  ✅ Copied step summary ($(wc -l < "$OUTPUT_DIR/summary.md") lines)"
+        # Capture summary
+        SUMMARY_SOURCE=""
+        if [ -n "${{ inputs.summary-file }}" ] && [ -f "${{ inputs.summary-file }}" ]; then
+          echo "  ℹ️  Using provided summary file: ${{ inputs.summary-file }}"
+          SUMMARY_SOURCE="${{ inputs.summary-file }}"
+        elif [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+          SUMMARY_SOURCE="$GITHUB_STEP_SUMMARY"
+        fi
+
+        if [ -n "$SUMMARY_SOURCE" ]; then
+          cp "$SUMMARY_SOURCE" "$OUTPUT_DIR/summary.md"
+          
+          # Check if empty (composite action limitation work-around detection)
+          SUMMARY_SIZE=$(wc -c < "$OUTPUT_DIR/summary.md")
+          if [ "$SUMMARY_SIZE" -eq 0 ] && [ -z "${{ inputs.summary-file }}" ]; then
+             echo "  ⚠️ Warning: GITHUB_STEP_SUMMARY was empty (common in composite actions)."
+             echo "# $JOB_NAME" > "$OUTPUT_DIR/summary.md"
+             echo "" >> "$OUTPUT_DIR/summary.md"
+             echo "Summary could not be captured automatically from GITHUB_STEP_SUMMARY." >> "$OUTPUT_DIR/summary.md"
+          else
+             echo "  ✅ Copied step summary ($(wc -l < "$OUTPUT_DIR/summary.md") lines)"
+          fi
         else
           echo "# $JOB_NAME" > "$OUTPUT_DIR/summary.md"
           echo "" >> "$OUTPUT_DIR/summary.md"
