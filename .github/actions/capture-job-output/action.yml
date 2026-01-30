@@ -13,7 +13,9 @@ inputs:
     required: true
     default: 'finish'
   summary-file:
-    description: 'Path to a file containing the job summary (optional). If provided, this file is used instead of GITHUB_STEP_SUMMARY.'
+    description:
+      'Path to a file containing the job summary (optional). If provided, this
+      file is used instead of GITHUB_STEP_SUMMARY.'
     required: false
 
 runs:
