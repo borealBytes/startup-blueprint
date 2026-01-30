@@ -25,15 +25,21 @@ runs:
         mkdir -p "$OUTPUT_DIR"
 
         # 1. Copy GitHub step summary (if exists)
-        if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+        echo "  Debug: GITHUB_STEP_SUMMARY=$GITHUB_STEP_SUMMARY"
+        if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+          echo "  Debug: Step summary file size: $(wc -c < "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo 'N/A') bytes"
+          echo "  Debug: Step summary file exists: $([ -f "$GITHUB_STEP_SUMMARY" ] && echo 'yes' || echo 'no')"
+        fi
+        if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
           cp "$GITHUB_STEP_SUMMARY" "$OUTPUT_DIR/summary.md"
           SUMMARY_LINES=$(wc -l < "$OUTPUT_DIR/summary.md" | tr -d ' ')
-          echo "  Copied step summary ($SUMMARY_LINES lines)"
+          SUMMARY_BYTES=$(wc -c < "$OUTPUT_DIR/summary.md" | tr -d ' ')
+          echo "  Copied step summary ($SUMMARY_LINES lines, $SUMMARY_BYTES bytes)"
         else
-          echo "# Job Output" > "$OUTPUT_DIR/summary.md"
+          echo "# Job: $JOB_NAME" > "$OUTPUT_DIR/summary.md"
           echo "" >> "$OUTPUT_DIR/summary.md"
-          echo "No step summary available." >> "$OUTPUT_DIR/summary.md"
-          echo "  No step summary found - created placeholder"
+          echo "No step summary content available." >> "$OUTPUT_DIR/summary.md"
+          echo "  No step summary content found - created placeholder"
         fi
 
         # 2. Copy captured log (if exists - jobs redirect to this)
@@ -46,8 +52,19 @@ runs:
           echo "  No log file found - created placeholder"
         fi
 
-        # 3. Get log size for metadata
+        # 3. Get file sizes for metadata
         LOG_SIZE_BYTES=$(stat -c%s "$OUTPUT_DIR/log.txt" 2>/dev/null || stat -f%z "$OUTPUT_DIR/log.txt" 2>/dev/null || echo "0")
+        SUMMARY_SIZE_BYTES=$(stat -c%s "$OUTPUT_DIR/summary.md" 2>/dev/null || stat -f%z "$OUTPUT_DIR/summary.md" 2>/dev/null || echo "0")
+
+        # Check if files have real content (not just placeholders)
+        HAS_REAL_LOG="false"
+        HAS_REAL_SUMMARY="false"
+        if [ "$LOG_SIZE_BYTES" -gt 50 ]; then
+          HAS_REAL_LOG="true"
+        fi
+        if [ "$SUMMARY_SIZE_BYTES" -gt 50 ]; then
+          HAS_REAL_SUMMARY="true"
+        fi
 
         # 4. Create metadata JSON
         printf '%s\n' \
@@ -59,8 +76,9 @@ runs:
           "  \"run_id\": \"${{ github.run_id }}\"," \
           "  \"run_number\": \"${{ github.run_number }}\"," \
           "  \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"," \
-          '  "summary_exists": true,' \
-          '  "log_exists": true,' \
+          "  \"summary_has_content\": $HAS_REAL_SUMMARY," \
+          "  \"summary_size_bytes\": $SUMMARY_SIZE_BYTES," \
+          "  \"log_has_content\": $HAS_REAL_LOG," \
           "  \"log_size_bytes\": $LOG_SIZE_BYTES" \
           '}' > "$OUTPUT_DIR/metadata.json"
 
