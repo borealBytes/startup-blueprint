@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  # ============================================================================
+  # PHASE 1: Core CI - Quality Gates
+  # ============================================================================
+
+  core-ci:
+    name: Core CI
+    uses: ./.github/workflows/format-lint-reusable.yml
+    secrets: inherit
+
+  # ============================================================================
+  # PHASE 2: Tests & Builds - Run in parallel when relevant files change
+  # ============================================================================
+
+  test-docs-links:
+    name: Test Docs Links
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/link-check-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
+  test-crewai:
+    name: Test CrewAI
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+    uses: ./.github/workflows/test-crewai-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
+  # Future workspace tests can be added here:
+  # test-website:
+  #   name: Test Website
+  #   needs: [core-ci]
+  #   if: |
+  #     always() &&
+  #     (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure')
+  #   uses: ./.github/workflows/website-test-build-reusable.yml
+  #   with:
+  #     commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+  #   secrets: inherit
+
+  # ============================================================================
+  # PHASE 3: Deployments - Environment-aware deployments
+  # ============================================================================
+
+  # Future: Preview and production deployments
+  # deploy-preview:
+  #   name: Deploy to Preview
+  #   needs: [test-website]
+  #   if: |
+  #     needs.test-website.result == 'success' &&
+  #     github.event_name == 'pull_request' &&
+  #     contains(github.event.pull_request.labels.*.name, 'deploy:preview')
+  #   uses: ./.github/workflows/preview-deploy-reusable.yml
+  #   with:
+  #     workspace: website
+  #     build_artifact: website-build
+  #   secrets: inherit
+  #   environment:
+  #     name: preview
+  #     url: https://preview.startup-blueprint.dev
+
+  # deploy-production:
+  #   name: Deploy to Production
+  #   needs: [test-website]
+  #   if: |
+  #     needs.test-website.result == 'success' &&
+  #     github.ref == 'refs/heads/main' &&
+  #     github.event_name == 'push'
+  #   uses: ./.github/workflows/production-deploy-reusable.yml
+  #   with:
+  #     workspace: website
+  #     build_artifact: website-build
+  #   secrets: inherit
+  #   environment:
+  #     name: production
+  #     url: https://startup-blueprint.dev
+
+  # ============================================================================
+  # PHASE 4: AI Agents - Code review and analysis
+  # ============================================================================
+
+  crewai-review:
+    name: CrewAI Code Review
+    needs: [core-ci, test-docs-links, test-crewai]
+    if: |
+      always() &&
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'renovate[bot]' &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      (needs.test-docs-links.result == 'success' || needs.test-docs-links.result == 'failure' || needs.test-docs-links.result == 'skipped') &&
+      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped')
+    uses: ./.github/workflows/crewai-review-reusable.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+      commit_sha: ${{ github.event.pull_request.head.sha }}
+      core_ci_result: ${{ needs.core-ci.result }}
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
