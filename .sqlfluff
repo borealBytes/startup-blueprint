@@ -1,0 +1,63 @@
+# SQLFluff Configuration
+# Supports PostgreSQL and DuckDB SQL dialects
+
+[sqlfluff]
+# Primary dialect - change to 'duckdb' if needed
+dialect = postgres
+
+# Template engine (raw = plain SQL, no templating)
+templater = raw
+
+# Exclude common directories
+exclude_rules = None
+
+# Max line length (relaxed for complex queries)
+max_line_length = 200
+
+[sqlfluff:indentation]
+# Use spaces for indentation
+indent_unit = space
+tab_space_size = 2
+
+# Indentation for specific constructs
+template_blocks_indent = True
+
+[sqlfluff:layout:type:comma]
+# Trailing commas in SELECT, etc.
+line_position = trailing
+
+[sqlfluff:rules:capitalisation.keywords]
+# SQL keywords in UPPERCASE (SELECT, FROM, WHERE)
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+# Table/column names in lowercase
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+# SQL functions in UPPERCASE (COUNT, SUM, AVG)
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.literals]
+# String literals unchanged
+capitalisation_policy = consistent
+
+[sqlfluff:rules:capitalisation.types]
+# Data types in UPPERCASE (INTEGER, VARCHAR)
+capitalisation_policy = upper
+
+[sqlfluff:rules:aliasing.table]
+# Require aliases for tables in multi-table queries
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+# Prefer explicit column aliases
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.length]
+# Minimum alias length
+min_alias_length = 3
+
+[sqlfluff:rules:ambiguous.column_references]
+# Require table prefixes for columns in joins
+group_by_and_order_by_style = consistent
