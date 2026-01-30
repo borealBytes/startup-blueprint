@@ -517,6 +517,7 @@ Compare current run to previous runs:
 ### "Can't find action.yml" Error
 
 **Symptom:**
+
 ```
 Can't find 'action.yml', 'action.yaml' or 'Dockerfile' under
 '/home/runner/work/.../capture-job-output'.
@@ -532,8 +533,8 @@ Did you forget to run actions/checkout before running your local action?
 steps:
   - name: Checkout
     uses: actions/checkout@v4
-  
-  - name: Initialize capture  # AFTER checkout
+
+  - name: Initialize capture # AFTER checkout
     uses: ./.github/actions/capture-job-output
 ```
 
