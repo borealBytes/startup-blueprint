@@ -11,6 +11,8 @@ This document describes the complete CI log capture system that enables CrewAI a
 ```
 CI Job Starts
     ↓
+[Checkout] - Get repository code (required for local action)
+    ↓
 [Initialize Capture] - Create log file
     ↓
 [Job Steps] - All output → tee to log file
@@ -74,25 +76,34 @@ CI Job Starts
 
 ### 2. Job Pattern (All CI Jobs)
 
+**⚠️ CRITICAL: Checkout MUST come before initialize!**
+
+Local actions (like `capture-job-output`) require the repository code to exist. GitHub Actions can't find `.github/actions/capture-job-output/action.yml` until after checkout.
+
 Every CI job follows this structure:
 
 ```yaml
 steps:
-  # ALWAYS FIRST
+  # STEP 1: Checkout FIRST (required for local actions)
+  - name: Checkout
+    uses: actions/checkout@v4
+
+  # STEP 2: Initialize capture (AFTER checkout)
   - name: Initialize job capture
     uses: ./.github/actions/capture-job-output
     with:
       job-name: 'your-job-name'
       mode: 'start'
 
-  # Checkout
-  - name: Checkout
-    uses: actions/checkout@v4
-
+  # STEP 3: Log that checkout happened
   - name: Log checkout
-    run: echo "✅ Checkout complete" | tee -a .crewai-job-output/current-job.log
+    run: |
+      echo "✅ Checkout complete" | tee -a .crewai-job-output/current-job.log
+      echo "  Repository: ${{ github.repository }}" | tee -a .crewai-job-output/current-job.log
+      echo "  Ref: ${{ github.sha }}" | tee -a .crewai-job-output/current-job.log
+      echo "" | tee -a .crewai-job-output/current-job.log
 
-  # Setup with logging
+  # STEP 4: Setup with logging
   - name: Setup [tool]
     uses: actions/setup-[tool]@vX
 
@@ -100,8 +111,9 @@ steps:
     run: |
       echo "✅ Setup complete" | tee -a .crewai-job-output/current-job.log
       [tool] --version | tee -a .crewai-job-output/current-job.log
+      echo "" | tee -a .crewai-job-output/current-job.log
 
-  # Main work with full logging
+  # STEP 5: Main work with full logging
   - name: Run [task]
     run: |
       echo "🚀 Running..." | tee -a .crewai-job-output/current-job.log
@@ -123,10 +135,11 @@ steps:
 
 **Key Steps:**
 
-1. **Initialize capture** - CrewAI job captures its own execution
-2. **Checkout & prepare PR data** - With logging
-3. **Download artifacts** - All `ci-job-output-*` artifacts
-4. **Organize workspace:**
+1. **Checkout first** - Get repository code
+2. **Initialize capture** - CrewAI job captures its own execution
+3. **Prepare PR data** - With logging
+4. **Download artifacts** - All `ci-job-output-*` artifacts
+5. **Organize workspace:**
 
    ```
    workspace/
@@ -144,9 +157,9 @@ steps:
        └── test-build-website/
    ```
 
-5. **Install dependencies** - With logging
-6. **Run CrewAI** - Full output captured
-7. **Finalize capture** - Upload CrewAI's own log
+6. **Install dependencies** - With logging
+7. **Run CrewAI** - Full output captured
+8. **Finalize capture** - Upload CrewAI's own log
 
 ### 4. Intelligent CI Tools
 
@@ -306,6 +319,7 @@ for failed_job in failed_jobs:
    - Full log capture from start to finish
    - Logs setup, dependencies, validation output
    - Uploads artifact
+   - **FIXED:** Checkout before initialize
 
 3. **CI Tools** (`.crewai/tools/ci_tools.py`)
    - All 6 tools implemented
@@ -318,6 +332,7 @@ for failed_job in failed_jobs:
    - Organizes into workspace structure
    - Builds job index
    - Captures its own execution
+   - **FIXED:** Checkout before initialize
 
 ### 🚧 Remaining Work
 
@@ -499,6 +514,29 @@ Compare current run to previous runs:
 
 ## Troubleshooting
 
+### "Can't find action.yml" Error
+
+**Symptom:**
+```
+Can't find 'action.yml', 'action.yaml' or 'Dockerfile' under
+'/home/runner/work/.../capture-job-output'.
+Did you forget to run actions/checkout before running your local action?
+```
+
+**Cause:** Trying to use local action BEFORE checkout
+
+**Fix:** ALWAYS checkout first:
+
+```yaml
+# ✅ CORRECT ORDER
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
+  
+  - name: Initialize capture  # AFTER checkout
+    uses: ./.github/actions/capture-job-output
+```
+
 ### Artifacts Not Found
 
 **Symptom:** `No CI artifacts found - jobs may not have uploaded data`
@@ -540,7 +578,9 @@ Compare current run to previous runs:
   uses: actions/setup-node@v4
 
 - name: Log setup # ADD THIS
-  run: echo "✅ Node setup" | tee -a .crewai-job-output/current-job.log
+  run: |
+    echo "✅ Node setup" | tee -a .crewai-job-output/current-job.log
+    node --version | tee -a .crewai-job-output/current-job.log
 ```
 
 ## Summary
