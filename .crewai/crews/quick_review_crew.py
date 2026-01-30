@@ -5,7 +5,6 @@ import logging
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-from models.quick_review_models import CodeIssues, DiffContext, QuickReview
 from tools.workspace_tool import WorkspaceTool
 from utils.model_config import get_llm, get_rate_limiter
 
@@ -70,7 +69,6 @@ class QuickReviewCrew:
             config=self.tasks_config["parse_and_contextualize"],
             agent=self.diff_intelligence_specialist(),
             output_file="diff_context.json",
-            output_pydantic=DiffContext,
         )
 
     @task
@@ -80,7 +78,6 @@ class QuickReviewCrew:
             config=self.tasks_config["detect_code_issues"],
             agent=self.code_quality_investigator(),
             output_file="code_issues.json",
-            output_pydantic=CodeIssues,
         )
 
     @task
@@ -90,7 +87,6 @@ class QuickReviewCrew:
             config=self.tasks_config["synthesize_report"],
             agent=self.review_synthesizer(),
             output_file="quick_review.json",
-            output_pydantic=QuickReview,
         )
 
     @crew
