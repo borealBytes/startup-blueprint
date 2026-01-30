@@ -17,10 +17,12 @@
 ## ✅ Phase 1: Core Components (100% Complete)
 
 ### 1.1 Composite Action
+
 **File:** `.github/actions/capture-job-output/action.yml`  
 **Status:** ✅ Complete
 
 **Features:**
+
 - ✅ Two modes: `start` and `finish`
 - ✅ Captures stdout/stderr to log file
 - ✅ Packages log + summary + metadata
@@ -32,10 +34,12 @@
 ---
 
 ### 1.2 Intelligent CI Tools
+
 **File:** `.crewai/tools/ci_tools.py`  
 **Status:** ✅ Complete
 
 **Tools Created:**
+
 - ✅ `read_job_index()` - Overview of all jobs
 - ✅ `check_log_size()` - Size check before reading
 - ✅ `read_job_summary()` - GitHub step summaries
@@ -44,6 +48,7 @@
 - ✅ `get_log_stats()` - Quick error/warning counts
 
 **Size Thresholds:**
+
 - < 50KB: Safe to read fully
 - 50-200KB: Read with caution
 - \> 200KB: MUST use search/grep
@@ -53,10 +58,12 @@
 ---
 
 ### 1.3 CrewAI Workflow Updates
+
 **File:** `.github/workflows/crewai-review-reusable.yml`  
 **Status:** ✅ Complete
 
 **Updates:**
+
 - ✅ Initialize capture at job start
 - ✅ Download all `ci-job-output-*` artifacts
 - ✅ Organize into `workspace/ci_results/`
@@ -69,10 +76,12 @@
 ---
 
 ### 1.4 Documentation
+
 **File:** `docs/ci-log-capture-implementation.md`  
 **Status:** ✅ Complete
 
 **Sections:**
+
 - ✅ Architecture overview
 - ✅ Component descriptions
 - ✅ Workflow guide for agents
@@ -87,10 +96,12 @@
 ## 🚧 Phase 2: Update CI Jobs (25% Complete)
 
 ### 2.1 Credential Validation
+
 **File:** `.github/workflows/validate-environment-reusable.yml`  
 **Status:** ✅ Complete
 
 **Pattern Applied:**
+
 - ✅ Initialize capture (first step)
 - ✅ Log checkout
 - ✅ Log dependency installation
@@ -101,10 +112,12 @@
 ---
 
 ### 2.2 Core CI (Format/Lint)
+
 **File:** `.github/workflows/format-lint-reusable.yml` or `.github/workflows/jobs/core-ci.yml`  
 **Status:** ⚠️ To Do
 
 **Needs:**
+
 1. Add initialize capture step
 2. Add logging after checkout/setup
 3. Capture format/lint output
@@ -115,10 +128,12 @@
 ---
 
 ### 2.3 Test CrewAI
+
 **File:** `.github/workflows/test-crewai-reusable.yml`  
 **Status:** ⚠️ To Do
 
 **Needs:**
+
 1. Add initialize capture step
 2. Add logging after setup
 3. Capture test output (pytest)
@@ -129,10 +144,12 @@
 ---
 
 ### 2.4 Test & Build Website
+
 **File:** `.github/workflows/website-test-build-reusable.yml`  
 **Status:** ⚠️ To Do
 
 **Needs:**
+
 1. Add initialize capture step
 2. Add logging after setup
 3. Capture build output
@@ -145,14 +162,17 @@
 ## 🤖 Phase 3: Update CrewAI Crews (0% Complete)
 
 ### 3.1 CI Analysis Crew
+
 **File:** `.crewai/crews/ci_analysis.py`  
 **Status:** ⚠️ To Do
 
 **Current State:**
+
 - Tools exist in `ci_tools.py`
 - Crew needs to be updated to use them
 
 **Needs:**
+
 1. Import new CI tools
 2. Update agent backstory with smart workflow
 3. Update task description with mandatory workflow:
@@ -165,6 +185,7 @@
 **Estimated Time:** 2 hours
 
 **Workflow Pattern:**
+
 ```python
 # 1. Get overview
 index = read_job_index()
@@ -176,7 +197,7 @@ for job in jobs:
 # 3. Smart log analysis
 for failed_job in failed_jobs:
     size = check_log_size(failed_job.folder)
-    
+
     if size < 50KB:
         log = read_full_log(failed_job.folder)
     else:
@@ -188,9 +209,11 @@ for failed_job in failed_jobs:
 ## 🧪 Phase 4: Testing & Validation (0% Complete)
 
 ### 4.1 Integration Tests
+
 **Status:** ⚠️ To Do
 
 **Test Cases:**
+
 1. Small log (< 50KB) - credential validation
 2. Medium log (50-200KB) - core-ci with warnings
 3. Large log (> 200KB) - core-ci with failures
@@ -202,9 +225,11 @@ for failed_job in failed_jobs:
 ---
 
 ### 4.2 Artifact Validation
+
 **Status:** ⚠️ To Do
 
 **Checks:**
+
 - ☐ All jobs upload artifacts
 - ☐ CrewAI downloads all artifacts
 - ☐ Workspace structure correct
@@ -217,18 +242,18 @@ for failed_job in failed_jobs:
 
 ## 📊 Success Metrics
 
-### Current Status:
+### Current Status
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| Composite action | 1 | 1 | ✅ |
-| CI tools | 6 | 6 | ✅ |
-| Jobs with capture | 4 | 1 | ⚠️ 25% |
-| Crews updated | 1 | 0 | ⚠️ 0% |
-| Documentation | 100% | 100% | ✅ |
-| Tests written | 5 | 0 | ⚠️ 0% |
+| Metric            | Target | Current | Status |
+| ----------------- | ------ | ------- | ------ |
+| Composite action  | 1      | 1       | ✅     |
+| CI tools          | 6      | 6       | ✅     |
+| Jobs with capture | 4      | 1       | ⚠️ 25% |
+| Crews updated     | 1      | 0       | ⚠️ 0%  |
+| Documentation     | 100%   | 100%    | ✅     |
+| Tests written     | 5      | 0       | ⚠️ 0%  |
 
-### Expected Benefits:
+### Expected Benefits
 
 - ✅ No API rate limits (artifact-based)
 - ✅ Complete visibility (all jobs captured)
@@ -241,6 +266,7 @@ for failed_job in failed_jobs:
 ## 🛣️ Roadmap
 
 ### Week 1 (Current)
+
 - [x] Core components
 - [x] First job (credential validation)
 - [x] Documentation
@@ -248,12 +274,14 @@ for failed_job in failed_jobs:
 - [ ] CI analysis crew update
 
 ### Week 2
+
 - [ ] Integration testing
 - [ ] Performance validation
 - [ ] Cost analysis
 - [ ] Merge to main
 
 ### Future Enhancements
+
 - [ ] Log compression (> 10MB)
 - [ ] Streaming analysis
 - [ ] Visual log viewer UI
@@ -264,22 +292,25 @@ for failed_job in failed_jobs:
 ## 🔗 Quick Links
 
 **Documentation:**
+
 - [Implementation Guide](./docs/ci-log-capture-implementation.md)
 - [Backlog](./BACKLOG.md)
 
 **Code:**
+
 - [Composite Action](./.github/actions/capture-job-output/action.yml)
 - [CI Tools](./.crewai/tools/ci_tools.py)
 - [CrewAI Workflow](./.github/workflows/crewai-review-reusable.yml)
 
 **Examples:**
+
 - [Credential Validation Job](./.github/workflows/validate-environment-reusable.yml) (✅ Complete pattern)
 
 ---
 
 ## 📝 Next Steps
 
-### Immediate (Next Session):
+### Immediate (Next Session)
 
 1. **Update Core CI Job** (1h)
    - File: `.github/workflows/format-lint-reusable.yml`
