@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from crewai_tools import tool
+from crewai.tools import tool
 
 WORKSPACE_DIR = Path(__file__).parent.parent / "workspace"
 CI_RESULTS_DIR = WORKSPACE_DIR / "ci_results"
