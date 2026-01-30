@@ -1,0 +1,113 @@
+parse_ci_output:
+  description: >
+    Parse CI outputs and write analysis to ci_summary.json.
+
+    **MANDATORY STEPS (complete ALL steps)**:
+
+    1. **Get CI status** - Call CIOutputParserTool to read CI job results 2.
+    **Read diff** - Call WorkspaceTool to read diff.txt for context 3. **Extract
+    checks performed** - Document which CI checks ran 4. **Categorize issues** -
+    Classify errors/warnings by severity 5. **Extract error details** - Get file
+    paths, line numbers, messages 6. **Analyze auto-fixes** - Identify what
+    format-and-lint fixed 7. **Write output file** - Call WorkspaceTool to write
+    ci_summary.json
+
+    **STEP 1: Get CI Status**
+
+    Call CIOutputParserTool to read CI environment variables: - CI job status
+    (success/failure) - CI job outputs (logs, errors) - Auto-fix information
+
+    **STEP 2: Read Diff**
+
+    Call WorkspaceTool to read diff.txt: - Understand which files changed -
+    Correlate CI errors to specific changes
+
+    **STEP 3: Extract Checks Performed**
+
+    Document which CI checks ran: - Code formatting (Black, Prettier, isort) -
+    Linting (pylint, flake8, ESLint, Ruff) - Type checking (mypy, TypeScript) -
+    Unit tests (pytest, jest) - Documentation link checking - Any other
+    automated checks
+
+    **STEP 4: Categorize Issues by Severity**
+
+    - **CRITICAL**: Build failures, type errors, syntax errors (blocks merge) -
+    **WARNING**: Lint warnings, format issues, style violations (should fix) -
+    **INFO**: Documentation links, minor suggestions (nice to have)
+
+    **STEP 5: Extract Error Details**
+
+    For each issue, extract: - Type (format error, lint error, type error, etc.)
+    - File path and line number (if available) - Specific error message - Root
+    cause analysis - Actionable fix suggestion
+
+    **STEP 6: Analyze Auto-Fixes**
+
+    Determine: - Did format-and-lint job auto-commit fixes? - What was fixed
+    (file count, line count)? - What still needs manual fixing?
+
+    **STEP 7: Write Output File (CRITICAL)**
+
+    Call WorkspaceTool to write ci_summary.json with this structure: ```json {
+      "status": "success",
+      "passed": true,
+      "summary": "Core CI: all checks passed successfully",
+      "checks_performed": [
+        "code-formatting",
+        "linting",
+        "type-checking",
+        "unit-tests"
+      ],
+      "critical_errors": [
+        {
+          "type": "Type Error",
+          "file": "src/utils.ts",
+          "line": "45",
+          "message": "Type 'string' is not assignable to type 'number'",
+          "fix_suggestion": "Change variable type or convert string to number"
+        }
+      ],
+      "warnings": [
+        {
+          "type": "Lint Warning",
+          "message": "Line too long (exceeds 100 chars)",
+          "count": 3,
+          "fix_suggestion": "Break long lines or adjust line length limit"
+        }
+      ],
+      "issue_analysis": {
+        "root_cause": "Recent refactor changed return types",
+        "fix_applied": "Auto-formatted 15 files, fixed import order",
+        "recommendation": "Review type definitions in changed files"
+      }
+    } ```
+
+    **OUTPUT FORMAT REQUIREMENTS**: - status: "success", "failure", or "warning"
+    - passed: boolean - summary: Brief text summary - checks_performed: Array of
+    check names - critical_errors: Array (may be empty) - warnings: Array (may
+    be empty) - issue_analysis: Object with root_cause, fix_applied,
+    recommendation
+
+    **VALIDATION CHECKLIST**: - [ ] Did you call CIOutputParserTool? - [ ] Did
+    you read diff.txt for context? - [ ] Did you call WorkspaceTool with
+    operation="write"? - [ ] Did you set filename="ci_summary.json"? - [ ] Does
+    content include all required fields? - [ ] Are arrays present even if empty?
+
+    **ERROR CATEGORIZATION GUIDE**: - Format errors (Prettier, Black) →
+    severity="warning" - Lint errors (ESLint, Ruff) → severity="warning" or
+    "critical" if many - Type errors (TypeScript, mypy) → severity="critical" -
+    Link check failures → severity="info" - Build failures → severity="critical"
+    - Test failures → severity="critical"
+
+    **CRITICAL**: - You MUST call WorkspaceTool to write ci_summary.json - DO
+    NOT return JSON as text - it must be written to a file - Your final answer
+    must confirm the file was written
+
+  expected_output: >
+    Confirmation message stating: "Successfully wrote ci_summary.json to
+    workspace."
+
+    The file MUST exist in workspace with: - Overall CI status
+    (success/warning/failure) - List of checks performed - Categorized errors
+    and warnings with file paths - Actionable fix suggestions - Issue analysis
+    (root cause, auto-fixes, recommendations)

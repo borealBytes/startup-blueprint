@@ -1,0 +1,85 @@
+name: Detect Tests
+
+on:
+  workflow_call:
+    outputs:
+      test-matrix:
+        description: 'JSON matrix of test jobs to run'
+        value: ${{ jobs.run.outputs.matrix }}
+      has-tests:
+        description: 'Whether any tests need to be run'
+        value: ${{ jobs.run.outputs.has-tests }}
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.detect_tests.outputs.matrix }}
+      has-tests: ${{ steps.detect_tests.outputs.has-tests }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect which tests to run
+        id: detect_tests
+        run: |
+          echo "🔍 Detecting testable directories..."
+
+          TEST_JOBS='[]'
+
+          # Check for .crewai/
+          if [ -d ".crewai" ] && [ -f ".crewai/pyproject.toml" ]; then
+            echo "✅ Found .crewai/ directory with pyproject.toml"
+            TEST_JOBS=$(echo "$TEST_JOBS" | jq -c '. + [{"name": "crewai", "path": ".crewai", "workflow": "test-crewai-reusable.yml"}]')
+          fi
+
+          # Check for apps/*/ directories with package.json or go.mod or pyproject.toml
+          if [ -d "apps" ]; then
+            for app_dir in apps/*/; do
+              if [ -d "$app_dir" ]; then
+                APP_NAME=$(basename "$app_dir")
+
+                if [ -f "${app_dir}package.json" ]; then
+                  echo "✅ Found Node.js app: $APP_NAME"
+                  TEST_JOBS=$(echo "$TEST_JOBS" | jq -c ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-node-reusable.yml\"}]")
+                elif [ -f "${app_dir}go.mod" ]; then
+                  echo "✅ Found Go app: $APP_NAME"
+                  TEST_JOBS=$(echo "$TEST_JOBS" | jq -c ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-go-reusable.yml\"}]")
+                elif [ -f "${app_dir}pyproject.toml" ]; then
+                  echo "✅ Found Python app: $APP_NAME"
+                  TEST_JOBS=$(echo "$TEST_JOBS" | jq -c ". + [{\"name\": \"$APP_NAME\", \"path\": \"$app_dir\", \"workflow\": \"test-python-reusable.yml\"}]")
+                fi
+              fi
+            done
+          fi
+
+          # Output matrix (compact JSON, no whitespace)
+          echo "matrix={\"include\":$TEST_JOBS}" >> $GITHUB_OUTPUT
+
+          # Check if we have any tests
+          TEST_COUNT=$(echo "$TEST_JOBS" | jq 'length')
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "has-tests=true" >> $GITHUB_OUTPUT
+            echo "🧪 Will run $TEST_COUNT test job(s)"
+          else
+            echo "has-tests=false" >> $GITHUB_OUTPUT
+            echo "⏭️ No testable directories found"
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🧪 Test Detection" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "$TEST_COUNT" -gt 0 ]; then
+            echo "Found **$TEST_COUNT** testable director(y/ies):" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            echo "$TEST_JOBS" | jq . >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No testable directories found. Skipping test phase." >> $GITHUB_STEP_SUMMARY
+          fi
