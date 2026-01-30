@@ -81,7 +81,7 @@ runs:
 
         # Capture summary with robust fallback
         SUMMARY_SOURCE=""
-        
+
         # Check input file first (must be non-empty)
         if [ -n "${{ inputs.summary-file }}" ] && [ -s "${{ inputs.summary-file }}" ]; then
           echo "  ℹ️  Using provided summary file: ${{ inputs.summary-file }}"
