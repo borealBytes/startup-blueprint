@@ -1,58 +1,80 @@
-quick_code_review:
+parse_and_contextualize:
   description: |
-    YOU MUST EXECUTE THESE 2 TOOL CALLS. DO NOT SKIP.
+    YOU MUST READ THE DIFF AND COMMIT MESSAGES:
 
-    STEP 1 - MANDATORY TOOL CALL:
-    Call WorkspaceTool with:
-    - operation: "read"
-    - filename: "diff.json"
-    - content: ""
+    STEP 1: Call WorkspaceTool(operation="read", filename="diff.txt", content="")
+    STEP 2: Call WorkspaceTool(operation="read", filename="commit_messages.txt", content="")
+    
+    Apply smart diff sampling strategy:
+    - If <100 lines changed: return full diff
+    - If 100-500 lines: sample files matching commit intent keywords
+    - If >500 lines: sample only high-risk files (auth, db, config, payment, etc.)
 
-    Extract these EXACT values:
-    - files_changed (integer)
-    - additions (integer)
-    - deletions (integer)
-    - pr_number (integer)
-    - commit_sha (string)
+    Produce JSON output with:
+    - commit_intent: summary of what changed (extracted from messages)
+    - total_changes: count of +/- lines
+    - changed_files: [{path, type, additions, risk_level}]
+    - review_focus_areas: list of focus tags (security, database, config, etc.)
+    - sampled_diff: the filtered/focused diff text (for next agent)
 
-    STEP 2 - MANDATORY TOOL CALL:
-    Call WorkspaceTool with:
-    - operation: "write"
-    - filename: "quick_review.json"
-    - content: (JSON object below)
+    Call: WorkspaceTool(operation="write", filename="diff_context.json", content=<your JSON>)
+  expected_output: |
+    "Context prepared: N files analyzed, X focus areas identified, diff sampled"
 
-    JSON structure for content parameter:
+detect_code_issues:
+  description: |
+    Using the diff context from the previous agent, detect code issues.
+
+    STEP 1: Call WorkspaceTool(operation="read", filename="diff_context.json", content="")
+    Extract the sampled_diff and review_focus_areas
+
+    Scan for issues in ONLY the changed code:
+    - Security: SQL injection, hardcoded secrets, eval/exec, auth bypasses
+    - Performance: N+1 queries, nested loops, missing pagination
+    - Quality: magic numbers, error handling, duplicate code
+    - Best practices: debug logging, TODO without tickets, undocumented public APIs
+
+    Return JSON with keys:
+    - critical: [{file, line, code_snippet, description, severity}]
+    - warnings: [{file, line, code_snippet, description}]
+    - info: [{file, line, code_snippet, description}]
+
+    Call: WorkspaceTool(operation="write", filename="code_issues.json", content=<your JSON>)
+  expected_output: |
+    "Analysis complete: N critical issues, M warnings detected"
+
+synthesize_report:
+  description: |
+    Create the final quick_review.json by synthesizing findings.
+
+    STEP 1: Call WorkspaceTool(operation="read", filename="diff_context.json", content="")
+    STEP 2: Call WorkspaceTool(operation="read", filename="code_issues.json", content="")
+    
+    Process:
+    1. Group similar issues together (same file+line+category)
+    2. Rank by severity and impact
+    3. Add clear fix_suggestion for each critical/warning
+    4. Add positive notes if you see good practices
+    5. Decide merge_status: APPROVE, REQUEST_CHANGES, or NEEDS_DISCUSSION
+
+    Write final JSON with structure:
     {
-      "status": "success",
-      "passed": true,
-      "summary": "Quick metadata review complete",
-      "critical": [],
-      "warnings": [],
-      "info": ["Reviewed {files_changed} files, {total_lines} lines changed"],
-      "files_reviewed": {files_changed},
-      "total_findings": 0,
-      "suggestions": []
+      "status": "ok|warning|critical",
+      "summary": "one-line summary",
+      "total_findings": N,
+      "critical": [...],
+      "warnings": [...],
+      "info": [...],
+      "merge_status": "APPROVE|REQUEST_CHANGES|NEEDS_DISCUSSION",
+      "merge_rationale": "why this decision"
     }
 
-    Where:
-    - {files_changed} = value from Step 1
-    - {total_lines} = additions + deletions from Step 1
-
-    Add to suggestions if:
-    - additions + deletions > 500: {"title": "Large PR", "description": "Consider crewai:full-review label"}
-    - files_changed > 20: {"title": "Many files", "description": "Consider crewai:full-review label"}
+    Call: WorkspaceTool(operation="write", filename="quick_review.json", content=<final JSON>)
 
     CRITICAL:
-    - You CANNOT complete this task without calling both tools
-    - Your response MUST include actual values from diff.json
-    - DO NOT make up numbers
-    - DO NOT skip tool calls
-
+    - Output must be valid JSON
+    - Include ALL findings (no truncation)
+    - Minimum 100 characters in summary
+    - Merge status must be one of the 3 options
   expected_output: |
-    You MUST return this EXACT format with REAL data from diff.json:
-
-    "Quick review complete: {files_changed} files, {additions}+{deletions} lines"
-
-    Where {files_changed}, {additions}, {deletions} are the ACTUAL values you read from diff.json in Step 1.
-
-    DO NOT return generic text. Use the real numbers from your tool call.
+    "Review synthesis complete: quick_review.json written with [N] findings"

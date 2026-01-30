@@ -1,10 +1,11 @@
-"""Quick review crew."""
+"""Quick review crew with optimized 3-agent architecture."""
 
 import logging
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
+from tools.diff_parser import smart_diff_sample
 from tools.workspace_tool import WorkspaceTool
 from utils.model_config import get_llm, get_rate_limiter
 
@@ -13,52 +14,93 @@ logger = logging.getLogger(__name__)
 
 @CrewBase
 class QuickReviewCrew:
-    """Quick review crew."""
+    """Quick review crew with adaptive diff sampling."""
 
     agents_config = "../config/agents.yaml"
     tasks_config = "../config/tasks/quick_review_tasks.yaml"
 
     def __init__(self):
         """Initialize quick review crew."""
-        # Get LLM from centralized config
         self.llm = get_llm()
         logger.info(f"QuickReview using model: {self.llm.model}")
 
     @agent
-    def quick_reviewer(self) -> Agent:
-        """Create quick reviewer agent."""
+    def diff_intelligence_specialist(self) -> Agent:
+        """Diff Intelligence Specialist - parses diffs and builds focused context."""
         return Agent(
-            config=self.agents_config["quick_reviewer"],
+            config=self.agents_config["diff_intelligence_specialist"],
             tools=[WorkspaceTool()],
             llm=self.llm,
-            function_calling_llm=self.llm,  # Enable function calling
-            max_iter=15,  # Increased from 10 to allow more tool calls
+            function_calling_llm=self.llm,
+            max_iter=10,
+            verbose=True,
+            allow_delegation=False,
+        )
+
+    @agent
+    def code_quality_investigator(self) -> Agent:
+        """Code Quality Investigator - detects issues in focused context."""
+        return Agent(
+            config=self.agents_config["code_quality_investigator"],
+            tools=[WorkspaceTool()],
+            llm=self.llm,
+            function_calling_llm=self.llm,
+            max_iter=12,
+            verbose=True,
+            allow_delegation=False,
+        )
+
+    @agent
+    def review_synthesizer(self) -> Agent:
+        """Review Synthesizer - consolidates findings into quick_review.json."""
+        return Agent(
+            config=self.agents_config["review_synthesizer"],
+            tools=[WorkspaceTool()],
+            llm=self.llm,
+            function_calling_llm=self.llm,
+            max_iter=10,
             verbose=True,
             allow_delegation=False,
         )
 
     @task
-    def quick_code_review(self) -> Task:
-        """Quick code review task."""
-        # CRITICAL: Do NOT use expected_output from config - agent copies it without working
-        # Instead, agent MUST write quick_review.json via WorkspaceTool
-        # Validation happens by checking if file exists, not by matching output text
-        task_config = self.tasks_config["quick_code_review"].copy()
-        # Remove expected_output to prevent agent from copying template
-        task_config.pop("expected_output", None)
-
+    def parse_and_contextualize(self) -> Task:
+        """Parse diff and build focused review context."""
         return Task(
-            description=task_config["description"],
-            agent=self.quick_reviewer(),
-            expected_output="Write quick_review.json to workspace. Confirm with: 'Written quick_review.json'",
+            config=self.tasks_config["parse_and_contextualize"],
+            agent=self.diff_intelligence_specialist(),
+        )
+
+    @task
+    def detect_code_issues(self) -> Task:
+        """Detect issues in focused diff context."""
+        return Task(
+            config=self.tasks_config["detect_code_issues"],
+            agent=self.code_quality_investigator(),
+        )
+
+    @task
+    def synthesize_report(self) -> Task:
+        """Synthesize findings into final quick_review.json."""
+        return Task(
+            config=self.tasks_config["synthesize_report"],
+            agent=self.review_synthesizer(),
         )
 
     @crew
     def crew(self) -> Crew:
         """Create quick review crew."""
         return Crew(
-            agents=[self.quick_reviewer()],
-            tasks=[self.quick_code_review()],
+            agents=[
+                self.diff_intelligence_specialist(),
+                self.code_quality_investigator(),
+                self.review_synthesizer(),
+            ],
+            tasks=[
+                self.parse_and_contextualize(),
+                self.detect_code_issues(),
+                self.synthesize_report(),
+            ],
             process=Process.sequential,
             verbose=True,
             max_rpm=get_rate_limiter().current_limit,
