@@ -311,15 +311,14 @@ jobs:
           python main.py 2>&1 | tee -a ../.crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 11: Upload workspace artifacts
+      # STEP 11: Upload workspace artifacts with ABSOLUTE PATH
       # ========================================
       - name: Upload agent workspace artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: crewai-agent-workspace-pr${{ inputs.pr_number }}-${{ github.run_id }}
-          path: |
-            .crewai/workspace/
+          path: ${{ github.workspace }}/.crewai/workspace/
           retention-days: 7
           if-no-files-found: warn
 
@@ -335,13 +334,13 @@ jobs:
           mode: 'finish'
 
       # ========================================
-      # STEP 13: Upload job output artifacts (from workflow, not composite action)
+      # STEP 13: Upload job output artifacts with ABSOLUTE PATH
       # ========================================
       - name: Upload job output artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ci-job-output-crewai-review
-          path: .crewai-job-output/
+          path: ${{ github.workspace }}/.crewai-job-output/
           retention-days: 7
           if-no-files-found: warn
