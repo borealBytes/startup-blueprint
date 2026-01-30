@@ -177,7 +177,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: ci-job-output-*
-          path: .crewai/ci-artifacts/
+          path: ci-artifacts
           merge-multiple: true
         continue-on-error: true
 
@@ -188,6 +188,10 @@ jobs:
           echo "::group::Organizing CI job data"
           mkdir -p workspace/ci_results
 
+          # Debug: Show what was downloaded
+          echo "Looking for artifacts in: $(pwd)/ci-artifacts"
+          ls -laR ci-artifacts 2>/dev/null || echo "ci-artifacts directory not found"
+
           # Check if artifacts were downloaded
           if [ ! -d "ci-artifacts" ]; then
             echo "No CI artifacts found - jobs may not have uploaded data"
@@ -196,17 +200,14 @@ jobs:
             exit 0
           fi
 
-          # Move job folders to workspace
-          if [ -d "ci-artifacts" ]; then
-            # Find all job folders and move them
-            for job_folder in ci-artifacts/*/; do
-              if [ -d "$job_folder" ]; then
-                JOB_NAME=$(basename "$job_folder")
-                mv "$job_folder" "workspace/ci_results/$JOB_NAME" 2>/dev/null || true
-                echo "Moved $JOB_NAME to workspace"
-              fi
-            done
-          fi
+          # Move job folders to workspace (handle both flat and nested structures)
+          for job_folder in ci-artifacts/*/; do
+            if [ -d "$job_folder" ]; then
+              JOB_NAME=$(basename "$job_folder")
+              mv "$job_folder" "workspace/ci_results/$JOB_NAME" 2>/dev/null || true
+              echo "Moved $JOB_NAME to workspace/ci_results/"
+            fi
+          done
 
           # Build job index from metadata files
           echo '{"run_id": ${{ github.run_id }}, "run_number": ${{ github.run_number }}, "jobs": []}' > workspace/ci_results/_job_index.json
@@ -227,7 +228,7 @@ jobs:
           # Show structure
           echo ""
           echo "CI Results Structure:"
-          ls -la workspace/ci_results/ 2>/dev/null || echo "No results directory"
+          ls -laR workspace/ci_results/ 2>/dev/null || echo "No results directory"
           echo "::endgroup::"
 
       - name: Setup Python
