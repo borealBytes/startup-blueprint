@@ -333,3 +333,15 @@ jobs:
           job-name: 'crewai-review'
           job-conclusion: ${{ job.status }}
           mode: 'finish'
+
+      # ========================================
+      # STEP 13: Upload job output artifacts (from workflow, not composite action)
+      # ========================================
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-crewai-review
+          path: .crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
