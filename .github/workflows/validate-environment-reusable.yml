@@ -128,16 +128,26 @@ jobs:
       - name: Post credential validation summary
         if: always()
         run: |
-          echo "## 🔐 Credential Validation Report" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Validation completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          # Create summary content
+          SUMMARY_FILE=$(mktemp)
+          echo "## 🔐 Credential Validation Report" >> "$SUMMARY_FILE"
+          echo "" >> "$SUMMARY_FILE"
+          echo "Validation completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$SUMMARY_FILE"
+          echo "" >> "$SUMMARY_FILE"
 
           if [ -f /tmp/credential-validation-summary.md ]; then
-            cat /tmp/credential-validation-summary.md >> $GITHUB_STEP_SUMMARY
+            cat /tmp/credential-validation-summary.md >> "$SUMMARY_FILE"
           else
-            echo "❌ Validation summary not found" >> $GITHUB_STEP_SUMMARY
+            echo "❌ Validation summary not found" >> "$SUMMARY_FILE"
           fi
+
+          # Write to GitHub step summary
+          cat "$SUMMARY_FILE" >> $GITHUB_STEP_SUMMARY
+
+          # Also save for capture-job-output action
+          mkdir -p .crewai-job-output
+          cp "$SUMMARY_FILE" .crewai-job-output/current-job-summary.md
+          rm "$SUMMARY_FILE"
 
       - name: Check credential validation result
         if: always()

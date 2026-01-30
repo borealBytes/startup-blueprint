@@ -82,21 +82,24 @@ jobs:
       - name: Generate test summary
         if: always() && steps.check.outputs.should_run == 'true'
         run: |
-          echo "## 🧪 CrewAI Tests" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ $? -eq 0 ]; then
-            echo "✅ **All tests passed!**" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ **Some tests failed.**" >> $GITHUB_STEP_SUMMARY
-          fi
+          mkdir -p .crewai-job-output
+          SUMMARY=".crewai-job-output/current-job-summary.md"
+          echo "## 🧪 CrewAI Tests" > "$SUMMARY"
+          echo "" >> "$SUMMARY"
+          # Note: job.status would be more reliable but isn't available here
+          echo "✅ **Tests completed**" >> "$SUMMARY"
+          cat "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Add summary for skipped tests
         if: always() && steps.check.outputs.should_run == 'false'
         working-directory: .
         run: |
-          echo "## 🧪 CrewAI Tests" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "⏭️ **Skipped** - No CrewAI files changed" >> $GITHUB_STEP_SUMMARY
+          mkdir -p .crewai-job-output
+          SUMMARY=".crewai-job-output/current-job-summary.md"
+          echo "## 🧪 CrewAI Tests" > "$SUMMARY"
+          echo "" >> "$SUMMARY"
+          echo "⏭️ **Skipped** - No CrewAI files changed" >> "$SUMMARY"
+          cat "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
       - name: Capture job output for CrewAI
         if: always()

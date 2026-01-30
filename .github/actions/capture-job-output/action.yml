@@ -24,28 +24,34 @@ runs:
         echo "::group::Capturing output for job: $JOB_NAME"
         mkdir -p "$OUTPUT_DIR"
 
-        # 1. Copy GitHub step summary (if exists)
-        echo "  Debug: GITHUB_STEP_SUMMARY=$GITHUB_STEP_SUMMARY"
-        if [ -n "$GITHUB_STEP_SUMMARY" ]; then
-          echo "  Debug: File exists: $([ -f "$GITHUB_STEP_SUMMARY" ] && echo 'yes' || echo 'no')"
-          echo "  Debug: File has content (-s): $([ -s "$GITHUB_STEP_SUMMARY" ] && echo 'yes' || echo 'no')"
-          if [ -f "$GITHUB_STEP_SUMMARY" ]; then
-            echo "  Debug: File size: $(wc -c < "$GITHUB_STEP_SUMMARY") bytes"
-            echo "  Debug: First 200 chars:"
-            head -c 200 "$GITHUB_STEP_SUMMARY" || true
-            echo ""
-          fi
+        # 1. Copy job summary - check multiple sources
+        FOUND_SUMMARY="false"
+
+        # First, check for explicit summary file (preferred - set by workflow)
+        EXPLICIT_SUMMARY="$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+        if [ -f "$EXPLICIT_SUMMARY" ] && [ -s "$EXPLICIT_SUMMARY" ]; then
+          mv "$EXPLICIT_SUMMARY" "$OUTPUT_DIR/summary.md"
+          SUMMARY_LINES=$(wc -l < "$OUTPUT_DIR/summary.md" | tr -d ' ')
+          SUMMARY_BYTES=$(wc -c < "$OUTPUT_DIR/summary.md" | tr -d ' ')
+          echo "  Copied explicit summary ($SUMMARY_LINES lines, $SUMMARY_BYTES bytes)"
+          FOUND_SUMMARY="true"
         fi
-        if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
+
+        # Second, try GITHUB_STEP_SUMMARY (may not work in composite actions)
+        if [ "$FOUND_SUMMARY" = "false" ] && [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
           cp "$GITHUB_STEP_SUMMARY" "$OUTPUT_DIR/summary.md"
           SUMMARY_LINES=$(wc -l < "$OUTPUT_DIR/summary.md" | tr -d ' ')
           SUMMARY_BYTES=$(wc -c < "$OUTPUT_DIR/summary.md" | tr -d ' ')
-          echo "  Copied step summary ($SUMMARY_LINES lines, $SUMMARY_BYTES bytes)"
-        else
+          echo "  Copied GITHUB_STEP_SUMMARY ($SUMMARY_LINES lines, $SUMMARY_BYTES bytes)"
+          FOUND_SUMMARY="true"
+        fi
+
+        # Fallback: create placeholder
+        if [ "$FOUND_SUMMARY" = "false" ]; then
           echo "# Job: $JOB_NAME" > "$OUTPUT_DIR/summary.md"
           echo "" >> "$OUTPUT_DIR/summary.md"
-          echo "No step summary content available." >> "$OUTPUT_DIR/summary.md"
-          echo "  No step summary content found - created placeholder"
+          echo "Step summary not captured. Check workflow configuration." >> "$OUTPUT_DIR/summary.md"
+          echo "  No summary found - created placeholder"
         fi
 
         # 2. Copy captured log (if exists - jobs redirect to this)
