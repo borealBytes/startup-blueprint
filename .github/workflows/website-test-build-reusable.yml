@@ -116,20 +116,21 @@ jobs:
       - name: Run linting
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🔍 Running linting..."
-          pnpm run lint || echo "⚠️  Linting not configured yet"
+          mkdir -p .crewai-job-output
+          echo "🔍 Running linting..." | tee -a .crewai-job-output/current-job.log
+          pnpm run lint 2>&1 | tee -a .crewai-job-output/current-job.log || echo "⚠️  Linting not configured yet"
 
       - name: Run tests
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🧪 Running tests..."
-          pnpm run test || echo "⚠️  Tests not configured yet"
+          echo "🧪 Running tests..." | tee -a .crewai-job-output/current-job.log
+          pnpm run test 2>&1 | tee -a .crewai-job-output/current-job.log || echo "⚠️  Tests not configured yet"
 
       - name: Build website
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🏗️  Building website..."
-          pnpm run build
+          echo "🏗️  Building website..." | tee -a .crewai-job-output/current-job.log
+          pnpm run build 2>&1 | tee -a .crewai-job-output/current-job.log
 
       - name: Upload build artifacts
         if: steps.check.outputs.should_run == 'true'

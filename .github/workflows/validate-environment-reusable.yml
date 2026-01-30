@@ -123,7 +123,8 @@ jobs:
           GOOGLE_REDIRECT_URI: ${{ vars.GOOGLE_REDIRECT_URI }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          bash scripts/validate-credentials.sh
+          mkdir -p .crewai-job-output
+          bash scripts/validate-credentials.sh 2>&1 | tee .crewai-job-output/current-job.log
 
       - name: Post credential validation summary
         if: always()

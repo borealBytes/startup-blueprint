@@ -65,6 +65,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Capture lychee output for log
+        if: always() && steps.check.outputs.should_run == 'true'
+        run: |
+          mkdir -p .crewai-job-output
+          if [ -f ./lychee-report.md ]; then
+            cp ./lychee-report.md .crewai-job-output/current-job.log
+          fi
+
       - name: Add results to Actions summary
         if: always() && steps.check.outputs.should_run == 'true'
         run: |

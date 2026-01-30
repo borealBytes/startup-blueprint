@@ -957,13 +957,30 @@ jobs:
             echo "**Original Commit SHA:** \`$INITIAL_SHA\`" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Save summary for capture
+      - name: Save summary and logs for capture
         if: always()
         run: |
           mkdir -p .crewai-job-output
+
+          # Save step summary
           if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
             cp "$GITHUB_STEP_SUMMARY" .crewai-job-output/current-job-summary.md
           fi
+
+          # Combine linter logs
+          LOG_FILE=".crewai-job-output/current-job.log"
+          echo "=== Format & Lint Log ===" > "$LOG_FILE"
+          echo "" >> "$LOG_FILE"
+          for log in /tmp/prettier.log /tmp/black.log /tmp/isort.log /tmp/sqlfluff.log \
+                     /tmp/eslint.log /tmp/stylelint.log /tmp/markdownlint.log \
+                     /tmp/yamllint.log /tmp/shellcheck.log /tmp/ruff.log \
+                     /tmp/golangci.log /tmp/commitlint.log /tmp/typescript.log; do
+            if [ -f "$log" ] && [ -s "$log" ]; then
+              echo "--- $(basename "$log" .log) ---" >> "$LOG_FILE"
+              cat "$log" >> "$LOG_FILE"
+              echo "" >> "$LOG_FILE"
+            fi
+          done
 
       - name: Capture job output for CrewAI
         if: always()

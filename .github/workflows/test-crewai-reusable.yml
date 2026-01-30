@@ -76,8 +76,9 @@ jobs:
       - name: Run tests
         if: steps.check.outputs.should_run == 'true'
         run: |
+          mkdir -p .crewai-job-output
           echo "🧪 Running CrewAI tests..."
-          pytest tests/ -v --tb=short
+          pytest tests/ -v --tb=short 2>&1 | tee .crewai-job-output/current-job.log
 
       - name: Generate test summary
         if: always() && steps.check.outputs.should_run == 'true'
