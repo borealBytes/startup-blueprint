@@ -547,30 +547,82 @@ def format_finding_item(finding, severity_emoji):
 
 
 def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
-    """Create a comprehensive fallback summary extracting all available findings.
+    """Create executive summary from crew JSON outputs.
 
     Args:
         workspace_dir: Path to workspace directory
         env_vars: Environment variables
         workflows_executed: List of executed workflows
     """
-    logger.info("🔧 Creating comprehensive fallback summary...")
+    logger.info("🔧 Creating executive summary from crew outputs...")
 
     workspace = WorkspaceTool()
 
-    # Collect what we can from workspace
+    # Collect findings from all crews
+    ci_data = workspace.read_json("ci_summary.json") if workspace.exists("ci_summary.json") else {}
+    quick_data = (
+        workspace.read_json("quick_review.json") if workspace.exists("quick_review.json") else {}
+    )
+    router_data = (
+        workspace.read_json("router_decision.json")
+        if workspace.exists("router_decision.json")
+        else {}
+    )
+    full_data = (
+        workspace.read_json("full_review.json") if workspace.exists("full_review.json") else {}
+    )
+
+    # Count findings
+    ci_critical = len(ci_data.get("critical_errors", []))
+    ci_warnings = len(ci_data.get("warnings", []))
+    quick_critical = len(quick_data.get("critical", []))
+    quick_warnings = len(quick_data.get("warnings", []))
+    quick_info = len(quick_data.get("info", []))
+
+    total_critical = ci_critical + quick_critical
+    total_warnings = ci_warnings + quick_warnings
+
+    # Start building summary
     summary_parts = []
     summary_parts.append("## ⚠️ Review Summary")
     summary_parts.append("")
-    summary_parts.append(
-        f"Review completed for PR #{env_vars['pr_number']} - "
-        f"{len(workflows_executed)} workflows executed."
-    )
+
+    # Executive Summary
+    summary_parts.append("### 📋 Executive Summary")
     summary_parts.append("")
-    summary_parts.append(f"**Commit**: `{env_vars['commit_sha'][:7]}`")
-    summary_parts.append(f"**Repository**: {env_vars['repository']}")
-    summary_parts.append(f"**Workflows**: {', '.join(workflows_executed)}")
-    summary_parts.append(f"**Timestamp**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    if total_critical > 0:
+        summary_parts.append(
+            f"**Status**: 🔴 **Action Required** - {total_critical} critical issue(s) must be addressed"
+        )
+    elif total_warnings > 0:
+        summary_parts.append(
+            f"**Status**: 🟡 **Review Recommended** - {total_warnings} warning(s) found"
+        )
+    else:
+        summary_parts.append("**Status**: ✅ **Looks Good** - No critical issues detected")
+
+    summary_parts.append("")
+    summary_parts.append(
+        f"**PR**: #{env_vars['pr_number']} | **Commit**: `{env_vars['commit_sha'][:7]}` | **Repository**: {env_vars['repository']}"
+    )
+
+    # Build summary line
+    summary_line_parts = []
+    if ci_data.get("status") == "success":
+        summary_line_parts.append("✅ CI passed")
+    elif ci_data.get("status"):
+        summary_line_parts.append(f"❌ CI {ci_data.get('status')}")
+
+    if total_critical > 0:
+        summary_line_parts.append(f"🔴 {total_critical} critical")
+    if total_warnings > 0:
+        summary_line_parts.append(f"🟡 {total_warnings} warnings")
+    if quick_info > 0:
+        summary_line_parts.append(f"ℹ️ {quick_info} suggestions")
+
+    if summary_line_parts:
+        summary_parts.append(f"**Summary**: {' • '.join(summary_line_parts)}")
+
     summary_parts.append("")
     summary_parts.append("---")
     summary_parts.append("")
@@ -776,7 +828,24 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
         summary_parts.append("Status: Did not run")
         summary_parts.append("")
 
-    # Router Suggestions
+    positive_notes = []
+    if total_critical == 0:
+        positive_notes.append("No critical issues detected")
+    if ci_data.get("status") == "success":
+        positive_notes.append("All CI checks passed")
+    if quick_data.get("merge_status") == "APPROVE":
+        positive_notes.append("Code quality review recommends approval")
+
+    if positive_notes:
+        summary_parts.append("<details>")
+        summary_parts.append(f"<summary><b>✨ What's Good ({len(positive_notes)})</b></summary>")
+        summary_parts.append("")
+        for note in positive_notes:
+            summary_parts.append(f"- ✅ {note}")
+        summary_parts.append("")
+        summary_parts.append("</details>")
+        summary_parts.append("")
+
     if workspace.exists("router_decision.json"):
         try:
             router_data = workspace.read_json("router_decision.json")
