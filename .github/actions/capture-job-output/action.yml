@@ -42,7 +42,7 @@ runs:
         # Log the start
         echo "========================================" | tee -a .crewai-job-output/current-job.log
         echo "Job: $JOB_NAME" | tee -a .crewai-job-output/current-job.log
-        echo "Started: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" | tee -a .crewai-job-output/current-job.log
+        echo "Started: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" | tee -a .crewai-job-output/current-job.log
         echo "========================================" | tee -a .crewai-job-output/current-job.log
         echo "" | tee -a .crewai-job-output/current-job.log
 
@@ -62,7 +62,7 @@ runs:
         # Add job completion marker to log
         echo "" >> .crewai-job-output/current-job.log
         echo "========================================" >> .crewai-job-output/current-job.log
-        echo "Job Completed: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> .crewai-job-output/current-job.log
+        echo "Job Completed: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> .crewai-job-output/current-job.log
         echo "Conclusion: ${{ inputs.job-conclusion }}" >> .crewai-job-output/current-job.log
         echo "========================================" >> .crewai-job-output/current-job.log
 
@@ -79,33 +79,36 @@ runs:
           echo "  ⚠️ No log file found"
         fi
 
-        # Capture summary
+        # Capture summary with robust fallback
         SUMMARY_SOURCE=""
-        if [ -n "${{ inputs.summary-file }}" ] && [ -f "${{ inputs.summary-file }}" ]; then
+        
+        # Check input file first (must be non-empty)
+        if [ -n "${{ inputs.summary-file }}" ] && [ -s "${{ inputs.summary-file }}" ]; then
           echo "  ℹ️  Using provided summary file: ${{ inputs.summary-file }}"
           SUMMARY_SOURCE="${{ inputs.summary-file }}"
-        elif [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+        # Then check step summary (must be non-empty)
+        elif [ -n "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
           SUMMARY_SOURCE="$GITHUB_STEP_SUMMARY"
         fi
 
         if [ -n "$SUMMARY_SOURCE" ]; then
           cp "$SUMMARY_SOURCE" "$OUTPUT_DIR/summary.md"
           
-          # Check if empty (composite action limitation work-around detection)
-          SUMMARY_SIZE=$(wc -c < "$OUTPUT_DIR/summary.md")
-          if [ "$SUMMARY_SIZE" -eq 0 ] && [ -z "${{ inputs.summary-file }}" ]; then
-             echo "  ⚠️ Warning: GITHUB_STEP_SUMMARY was empty (common in composite actions)."
+          # Double check if copied file is empty (just in case)
+          if [ ! -s "$OUTPUT_DIR/summary.md" ]; then
+             echo "  ⚠️ Warning: Summary file was empty after copy."
              echo "# $JOB_NAME" > "$OUTPUT_DIR/summary.md"
              echo "" >> "$OUTPUT_DIR/summary.md"
-             echo "Summary could not be captured automatically from GITHUB_STEP_SUMMARY." >> "$OUTPUT_DIR/summary.md"
+             echo "Summary was empty." >> "$OUTPUT_DIR/summary.md"
           else
-             echo "  ✅ Copied step summary ($(wc -l < "$OUTPUT_DIR/summary.md") lines)"
+             echo "  ✅ Copied summary ($(wc -l < "$OUTPUT_DIR/summary.md") lines)"
           fi
         else
+          # Fallback if no source found
           echo "# $JOB_NAME" > "$OUTPUT_DIR/summary.md"
           echo "" >> "$OUTPUT_DIR/summary.md"
           echo "No step summary available." >> "$OUTPUT_DIR/summary.md"
-          echo "  ⚠️ No step summary found"
+          echo "  ⚠️ No summary found, created placeholder"
         fi
 
         # Create metadata JSON
@@ -117,9 +120,9 @@ runs:
           "workflow": "${{ github.workflow }}",
           "run_id": "${{ github.run_id }}",
           "run_number": "${{ github.run_number }}",
-          "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
-          "summary_exists": $([ -f "$OUTPUT_DIR/summary.md" ] && echo "true" || echo "false"),
-          "log_exists": $([ -f "$OUTPUT_DIR/log.txt" ] && echo "true" || echo "false"),
+          "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')",
+          "summary_exists": $([ -s "$OUTPUT_DIR/summary.md" ] && echo "true" || echo "false"),
+          "log_exists": $([ -s "$OUTPUT_DIR/log.txt" ] && echo "true" || echo "false"),
           "log_size_bytes": $LOG_SIZE,
           "log_lines": $LOG_LINES
         }
