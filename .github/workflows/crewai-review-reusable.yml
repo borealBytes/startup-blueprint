@@ -321,6 +321,7 @@ jobs:
           path: ${{ github.workspace }}/.crewai/workspace/
           retention-days: 7
           if-no-files-found: warn
+          include-hidden-files: true
 
       # ========================================
       # STEP 12: Finalize log capture
@@ -344,3 +345,4 @@ jobs:
           path: ${{ github.workspace }}/.crewai-job-output/
           retention-days: 7
           if-no-files-found: warn
+          include-hidden-files: true
