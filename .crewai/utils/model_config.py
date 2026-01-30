@@ -92,7 +92,9 @@ MODEL_REGISTRY = {
     ),
 }
 
-DEFAULT_MODEL_KEY = "gemini-3-flash"  # User requested Gemini 3 Flash Preview (mapped to reliable Gemini 2.0 Flash)
+DEFAULT_MODEL_KEY = (
+    "gemini-3-flash"  # User requested Gemini 3 Flash Preview (mapped to reliable Gemini 2.0 Flash)
+)
 FALLBACK_MODEL_KEY = "gemini-flash"  # Gemini as fallback
 
 
