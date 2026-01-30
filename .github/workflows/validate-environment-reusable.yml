@@ -209,6 +209,7 @@ jobs:
           job-name: 'credential-validation'
           job-conclusion: ${{ job.status }}
           mode: 'finish'
+          summary-file: '/tmp/credential-validation-summary.md'
 
       # ========================================
       # STEP 9: Upload artifacts with ABSOLUTE PATH
