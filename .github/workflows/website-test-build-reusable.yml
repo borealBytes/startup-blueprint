@@ -39,6 +39,12 @@ jobs:
           ref: ${{ inputs.commit_sha || github.sha }}
           fetch-depth: 0
 
+      - name: Initialize job capture
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'test-website'
+          mode: 'start'
+
       - name: Check if website files changed
         id: check
         working-directory: .
@@ -116,21 +122,23 @@ jobs:
       - name: Run linting
         if: steps.check.outputs.should_run == 'true'
         run: |
-          mkdir -p .crewai-job-output
-          echo "🔍 Running linting..." | tee -a .crewai-job-output/current-job.log
-          pnpm run lint 2>&1 | tee -a .crewai-job-output/current-job.log || echo "⚠️  Linting not configured yet"
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🔍 Running linting..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          pnpm run lint 2>&1 | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log" || echo "⚠️  Linting not configured yet"
 
       - name: Run tests
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🧪 Running tests..." | tee -a .crewai-job-output/current-job.log
-          pnpm run test 2>&1 | tee -a .crewai-job-output/current-job.log || echo "⚠️  Tests not configured yet"
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🧪 Running tests..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          pnpm run test 2>&1 | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log" || echo "⚠️  Tests not configured yet"
 
       - name: Build website
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🏗️  Building website..." | tee -a .crewai-job-output/current-job.log
-          pnpm run build 2>&1 | tee -a .crewai-job-output/current-job.log
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🏗️  Building website..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          pnpm run build 2>&1 | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
 
       - name: Upload build artifacts
         if: steps.check.outputs.should_run == 'true'
@@ -176,14 +184,26 @@ jobs:
       - name: Save summary for capture
         if: always()
         run: |
-          mkdir -p .crewai-job-output
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
           if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
-            cp "$GITHUB_STEP_SUMMARY" .crewai-job-output/current-job-summary.md
+            cp "$GITHUB_STEP_SUMMARY" "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
           fi
 
-      - name: Capture job output for CrewAI
+      - name: Finalize job capture
         if: always()
         uses: ./.github/actions/capture-job-output
         with:
           job-name: 'test-website'
           job-conclusion: ${{ job.status }}
+          mode: 'finish'
+          summary-file: ${{ github.workspace }}/.crewai-job-output/current-job-summary.md
+
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-test-website
+          path: ${{ github.workspace }}/.crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true
