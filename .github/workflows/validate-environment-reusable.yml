@@ -101,7 +101,15 @@ jobs:
 
     steps:
       # ========================================
-      # STEP 0: Initialize log capture
+      # STEP 1: Checkout FIRST (required for local action)
+      # ========================================
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+      
+      # ========================================
+      # STEP 2: Initialize log capture (AFTER checkout)
       # ========================================
       - name: Initialize job capture
         uses: ./.github/actions/capture-job-output
@@ -110,13 +118,8 @@ jobs:
           mode: 'start'
       
       # ========================================
-      # STEP 1: Checkout with logging
+      # STEP 3: Log checkout completion
       # ========================================
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.commit_sha || github.sha }}
-      
       - name: Log checkout complete
         run: |
           echo "✅ Code checked out" | tee -a .crewai-job-output/current-job.log
@@ -125,7 +128,7 @@ jobs:
           echo "" | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 2: Install dependencies with logging
+      # STEP 4: Install dependencies with logging
       # ========================================
       - name: Install dependencies
         run: |
@@ -146,7 +149,7 @@ jobs:
           echo "" | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 3: Run validation with logging
+      # STEP 5: Run validation with logging
       # ========================================
       - name: Validate all credentials
         id: validate
@@ -165,7 +168,7 @@ jobs:
           bash scripts/validate-credentials.sh 2>&1 | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 4: Generate GitHub summary
+      # STEP 6: Generate GitHub summary
       # ========================================
       - name: Post credential validation summary
         if: always()
@@ -182,7 +185,7 @@ jobs:
           fi
 
       # ========================================
-      # STEP 5: Check validation result
+      # STEP 7: Check validation result
       # ========================================
       - name: Check credential validation result
         if: always()
@@ -197,7 +200,7 @@ jobs:
           echo "✅ All credentials validated successfully" | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 6: Finalize log capture
+      # STEP 8: Finalize log capture
       # ========================================
       - name: Finalize job capture
         if: always()
