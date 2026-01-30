@@ -211,32 +211,14 @@ jobs:
           mode: 'finish'
 
       # ========================================
-      # STEP 8.5: DEBUG - List directory contents
-      # ========================================
-      - name: DEBUG - List directory before upload
-        if: always()
-        run: |
-          echo "=== DEBUG: Current directory ==="
-          pwd
-          echo ""
-          echo "=== DEBUG: List all files ==="
-          ls -la
-          echo ""
-          echo "=== DEBUG: Check .crewai-job-output ==="
-          ls -la .crewai-job-output/ || echo "Directory does not exist!"
-          echo ""
-          echo "=== DEBUG: Tree view (if available) ==="
-          tree .crewai-job-output/ || find .crewai-job-output/ -type f || echo "Cannot list"
-
-      # ========================================
-      # STEP 9: Upload artifacts (from workflow, not composite action)
+      # STEP 9: Upload artifacts with ABSOLUTE PATH
       # ========================================
       - name: Upload job output artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ci-job-output-credential-validation
-          path: .crewai-job-output/
+          path: ${{ github.workspace }}/.crewai-job-output/
           retention-days: 7
           if-no-files-found: warn
 
