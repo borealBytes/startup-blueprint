@@ -21,46 +21,46 @@ runs:
       shell: bash
       run: |
         set -e
-        
+
         JOB_NAME="${{ inputs.job-name }}"
         JOB_FOLDER=$(echo "$JOB_NAME" | tr '[:upper:]' '[:lower:]' | tr ' /' '-')
-        
+
         echo "🎬 Starting log capture for: $JOB_NAME"
-        
+
         # Create output directory and log file
         mkdir -p ".crewai-job-output"
         touch ".crewai-job-output/current-job.log"
-        
+
         # Save job folder name for later steps
         echo "$JOB_FOLDER" > ".crewai-job-output/current-job-folder"
-        
+
         # Log the start
         echo "========================================" | tee -a .crewai-job-output/current-job.log
         echo "Job: $JOB_NAME" | tee -a .crewai-job-output/current-job.log
         echo "Started: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" | tee -a .crewai-job-output/current-job.log
         echo "========================================" | tee -a .crewai-job-output/current-job.log
         echo "" | tee -a .crewai-job-output/current-job.log
-    
+
     - name: Finalize job capture
       if: inputs.mode == 'finish'
       shell: bash
       run: |
         set -e
-        
+
         JOB_NAME="${{ inputs.job-name }}"
         JOB_FOLDER=$(cat ".crewai-job-output/current-job-folder" 2>/dev/null || echo "$JOB_NAME" | tr '[:upper:]' '[:lower:]' | tr ' /' '-')
         OUTPUT_DIR=".crewai-job-output/$JOB_FOLDER"
-        
+
         echo "📦 Finalizing capture for job: $JOB_NAME"
         mkdir -p "$OUTPUT_DIR"
-        
+
         # Add job completion marker to log
         echo "" >> .crewai-job-output/current-job.log
         echo "========================================" >> .crewai-job-output/current-job.log
         echo "Job Completed: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> .crewai-job-output/current-job.log
         echo "Conclusion: ${{ inputs.job-conclusion }}" >> .crewai-job-output/current-job.log
         echo "========================================" >> .crewai-job-output/current-job.log
-        
+
         # Move log to final location
         if [ -f ".crewai-job-output/current-job.log" ]; then
           mv ".crewai-job-output/current-job.log" "$OUTPUT_DIR/log.txt"
@@ -73,7 +73,7 @@ runs:
           LOG_LINES=0
           echo "  ⚠️ No log file found"
         fi
-        
+
         # Copy GitHub step summary (if exists)
         if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
           cp "$GITHUB_STEP_SUMMARY" "$OUTPUT_DIR/summary.md"
@@ -84,7 +84,7 @@ runs:
           echo "No step summary available." >> "$OUTPUT_DIR/summary.md"
           echo "  ⚠️ No step summary found"
         fi
-        
+
         # Create metadata JSON
         cat > "$OUTPUT_DIR/metadata.json" <<EOF
         {
@@ -101,12 +101,12 @@ runs:
           "log_lines": $LOG_LINES
         }
         EOF
-        
+
         echo "  ✅ Created metadata"
         echo ""
         echo "📋 Output captured to: $OUTPUT_DIR"
         ls -lh "$OUTPUT_DIR"
-    
+
     - name: Upload job output artifact
       if: inputs.mode == 'finish'
       uses: actions/upload-artifact@v4
