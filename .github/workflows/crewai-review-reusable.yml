@@ -30,7 +30,16 @@ jobs:
 
     steps:
       # ========================================
-      # STEP 0: Initialize log capture
+      # STEP 1: Checkout FIRST (required for local action)
+      # ========================================
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      
+      # ========================================
+      # STEP 2: Initialize log capture (AFTER checkout)
       # ========================================
       - name: Initialize job capture
         uses: ./.github/actions/capture-job-output
@@ -39,14 +48,8 @@ jobs:
           mode: 'start'
       
       # ========================================
-      # STEP 1: Checkout with logging
+      # STEP 3: Log checkout completion
       # ========================================
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.commit_sha }}
-          fetch-depth: 0
-      
       - name: Log checkout complete
         run: |
           echo "✅ Code checked out" | tee -a .crewai-job-output/current-job.log
@@ -55,7 +58,7 @@ jobs:
           echo "" | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 2: Prepare PR data with logging
+      # STEP 4: Prepare PR data with logging
       # ========================================
       - name: Prepare PR data using local git
         working-directory: .crewai
@@ -196,7 +199,7 @@ jobs:
           echo "" | tee -a ../.crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 3: Download CI artifacts
+      # STEP 5: Download CI artifacts
       # ========================================
       - name: Download CI job outputs
         uses: actions/download-artifact@v4
@@ -213,7 +216,7 @@ jobs:
           echo "" | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 4: Organize CI results
+      # STEP 6: Organize CI results
       # ========================================
       - name: Organize CI results in workspace
         working-directory: .crewai
@@ -257,7 +260,7 @@ jobs:
           echo "" | tee -a ../.crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 5: Setup Python with logging
+      # STEP 7: Setup Python with logging
       # ========================================
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -273,7 +276,7 @@ jobs:
           echo "" | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 6: Install dependencies with logging
+      # STEP 8: Install dependencies with logging
       # ========================================
       - name: Install dependencies
         working-directory: .crewai
@@ -284,7 +287,7 @@ jobs:
           echo "" | tee -a ../.crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 7: Configure environment
+      # STEP 9: Configure environment
       # ========================================
       - name: Configure environment
         run: |
@@ -296,7 +299,7 @@ jobs:
           echo "" | tee -a .crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 8: Run CrewAI with full logging
+      # STEP 10: Run CrewAI with full logging
       # ========================================
       - name: Run CrewAI code review
         working-directory: .crewai
@@ -308,7 +311,7 @@ jobs:
           python main.py 2>&1 | tee -a ../.crewai-job-output/current-job.log
 
       # ========================================
-      # STEP 9: Upload workspace artifacts
+      # STEP 11: Upload workspace artifacts
       # ========================================
       - name: Upload agent workspace artifacts
         if: always()
@@ -321,7 +324,7 @@ jobs:
           if-no-files-found: warn
 
       # ========================================
-      # STEP 10: Finalize log capture
+      # STEP 12: Finalize log capture
       # ========================================
       - name: Finalize job capture
         if: always()
