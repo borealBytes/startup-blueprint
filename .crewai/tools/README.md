@@ -8,6 +8,7 @@
 ## 📚 Overview
 
 These tools enable CrewAI agents to analyze CI pipeline results efficiently by:
+
 - ✅ Checking log sizes before reading (avoid token waste)
 - ✅ Reading summaries first (know WHAT failed)
 - ✅ Using grep/search for large logs (targeted investigation)
@@ -24,6 +25,7 @@ These tools enable CrewAI agents to analyze CI pipeline results efficiently by:
 **Returns:** Job names, statuses, log sizes, timestamps
 
 **Example Output:**
+
 ```
 # CI Job Index
 
@@ -43,6 +45,7 @@ Workflow Run: 123456 (#42)
 ```
 
 **When to Use:**
+
 - ✅ Start of every CI analysis
 - ✅ To see which jobs ran
 - ✅ To identify failed jobs
@@ -56,6 +59,7 @@ Workflow Run: 123456 (#42)
 **Returns:** Size stats + recommendation
 
 **Example:**
+
 ```python
 size = check_log_size('core-ci')
 # Returns:
@@ -64,11 +68,13 @@ size = check_log_size('core-ci')
 ```
 
 **Size Thresholds:**
+
 - **< 50KB:** Safe to read fully
 - **50-200KB:** Read with caution
 - **> 200KB:** MUST use search/grep
 
 **When to Use:**
+
 - ✅ Before calling `read_full_log()`
 - ✅ To decide between full read vs search
 - ❌ Don't use if log size already shown in index
@@ -82,29 +88,34 @@ size = check_log_size('core-ci')
 **Returns:** Formatted summary showing what failed
 
 **Example Output:**
+
 ```markdown
 # Core CI Summary
 
 ❌ **Tests failed**
 
 ## Test Results
+
 - ✅ Format checks: Passed
 - ❌ Unit tests: 3 failed, 45 passed
 - ❌ Integration tests: 1 failed, 12 passed
 
 ## Failed Tests
+
 - test_user_login (auth/test_auth.py)
 - test_api_rate_limit (api/test_limits.py)
 - test_db_transaction (db/test_transactions.py)
 ```
 
 **Why Summaries First:**
+
 - Summaries tell you **WHAT** failed
 - Logs tell you **HOW** it failed
 - Summaries are always small (< 5KB)
 - Saves tokens and time
 
 **When to Use:**
+
 - ✅ For EVERY job (even successful ones)
 - ✅ Before reading any logs
 - ✅ To identify which tests/checks failed
@@ -118,6 +129,7 @@ size = check_log_size('core-ci')
 **Returns:** Matching lines with context
 
 **Good Patterns:**
+
 ```python
 # Find errors
 search_log('core-ci', 'error')
@@ -136,6 +148,7 @@ search_log('core-ci', 'auth/test_auth.py')
 ```
 
 **Example Output:**
+
 ```
 # Search Results for 'error' in core-ci
 
@@ -143,9 +156,11 @@ Found 3 matches (showing up to 50)
 
 ## Match 1 (Line 234)
 ```
+
 Running test_user_login...
 ERROR: Authentication failed
 Expected: 200, Got: 401
+
 ```
 
 ## Match 2 (Line 567)
@@ -153,12 +168,14 @@ Expected: 200, Got: 401
 ```
 
 **Parameters:**
+
 - `folder_name`: From job index (e.g., "core-ci")
 - `pattern`: Regex pattern (case-insensitive)
 - `context_lines`: Lines before/after match (default: 3)
 - `max_matches`: Max results to return (default: 50)
 
 **When to Use:**
+
 - ✅ For logs > 200KB
 - ✅ To find specific errors/tests
 - ✅ To investigate failures found in summary
@@ -173,11 +190,13 @@ Expected: 200, Got: 401
 **Returns:** Full log content
 
 **Safety Features:**
+
 - ⚠️ Blocks reading logs > 200KB without limit
 - ⚠️ Warns if log is 50-200KB
 - ✅ Allows truncation with `max_lines` parameter
 
 **Examples:**
+
 ```python
 # Small log - safe
 log = read_full_log('credential-validation')
@@ -192,6 +211,7 @@ log = read_full_log('core-ci', max_lines=500)
 ```
 
 **When to Use:**
+
 - ✅ For logs < 50KB
 - ✅ After checking size with `check_log_size()`
 - ❌ NEVER for logs > 200KB without limit
@@ -205,6 +225,7 @@ log = read_full_log('core-ci', max_lines=500)
 **Returns:** Pattern counts and recommendation
 
 **Example Output:**
+
 ```
 # Log Statistics: core-ci
 
@@ -223,6 +244,7 @@ Use `search_log('core-ci', 'error')` to investigate.
 ```
 
 **When to Use:**
+
 - ✅ For medium logs (50-200KB) to decide if deep dive needed
 - ✅ To prioritize which jobs need attention
 - ✅ To quantify severity
@@ -250,16 +272,16 @@ for job in failed_jobs:
     if job.log_size < 50KB:
         log = read_full_log(job.folder)
         # Safe to read everything
-    
+
     # Option B: Medium log
     elif job.log_size < 200KB:
         stats = get_log_stats(job.folder)
         # Check error density
-        
+
         if stats.error_count > 10:
             errors = search_log(job.folder, 'error', max_matches=20)
             # Focus on errors
-    
+
     # Option C: Large log
     else:
         # MUST use search, never full read
@@ -273,17 +295,20 @@ for job in failed_jobs:
 ## ✅ Do's
 
 1. **Always start with index**
+
    ```python
    index = read_job_index()  # First thing
    ```
 
 2. **Read all summaries first**
+
    ```python
    for job in jobs:
        summary = read_job_summary(job.folder)
    ```
 
 3. **Check size before reading**
+
    ```python
    size = check_log_size('core-ci')
    if size < 50KB:
@@ -291,16 +316,18 @@ for job in failed_jobs:
    ```
 
 4. **Use search for large logs**
+
    ```python
    if log_size > 200KB:
        errors = search_log('core-ci', 'error')
    ```
 
 5. **Provide specific references**
+
    ```python
    # Good
    "Fix auth/test_auth.py:45 - authentication check failing"
-   
+
    # Bad
    "Fix authentication"
    ```
@@ -310,10 +337,11 @@ for job in failed_jobs:
 ## ❌ Don'ts
 
 1. **Don't read logs without checking size**
+
    ```python
    # BAD
    log = read_full_log('core-ci')  # Could be 500KB!
-   
+
    # GOOD
    size = check_log_size('core-ci')
    if size < 50KB:
@@ -321,29 +349,32 @@ for job in failed_jobs:
    ```
 
 2. **Don't skip summaries**
+
    ```python
    # BAD
    log = read_full_log('core-ci')  # Without context
-   
+
    # GOOD
    summary = read_job_summary('core-ci')  # Know what to look for
    errors = search_log('core-ci', 'test_user_login')  # Targeted
    ```
 
 3. **Don't use full read for large logs**
+
    ```python
    # BAD
    log = read_full_log('core-ci', max_lines=10000)  # Still too much!
-   
+
    # GOOD
    errors = search_log('core-ci', 'error', max_matches=20)  # Focused
    ```
 
 4. **Don't provide vague recommendations**
+
    ```python
    # BAD
    "Tests failed, please fix"
-   
+
    # GOOD
    "3 tests failed in auth/test_auth.py:
    - test_user_login (line 45): Expected 200, got 401
@@ -407,7 +438,9 @@ output = """
 
 **Error:**
 ```
+
 ❌ CLOUDFLARE_API_TOKEN: Token expired (401 Unauthorized)
+
 ```
 
 **Fix Required:**
