@@ -1,5 +1,6 @@
 """Cost tracking for LiteLLM API calls during CrewAI execution."""
 
+import atexit
 import logging
 import os
 import time
@@ -50,7 +51,29 @@ class CostTracker:
         self.current_task: Optional[str] = None
         self.call_counter = 0
         self.generation_ids: Dict[str, int] = {}  # Track generation_id -> call_number
+        self._cleanup_registered = False
         logger.info("📊 Cost tracker initialized")
+
+        # Register cleanup handler
+        self._register_cleanup()
+
+    def _register_cleanup(self):
+        """Register cleanup handler for atexit."""
+        if not self._cleanup_registered:
+            try:
+                atexit.register(self._cleanup)
+                self._cleanup_registered = True
+            except RuntimeError:
+                # Already in shutdown, skip registration
+                pass
+
+    def _cleanup(self):
+        """Cleanup method called on exit."""
+        try:
+            if self.calls:
+                logger.debug(f"Cost tracker cleanup: {len(self.calls)} calls recorded")
+        except Exception:
+            pass  # Ignore errors during shutdown
 
     def set_current_task(self, task_name: str):
         """Set the current task name for associating API calls."""
@@ -181,11 +204,38 @@ class CostTracker:
         """Get total output tokens across all API calls."""
         return sum(call.tokens_out for call in self.calls)
 
+    def get_total_duration(self) -> float:
+        """Get total duration across all API calls."""
+        return sum(call.duration_seconds for call in self.calls)
+
     def get_average_tokens_per_second(self) -> float:
         """Get average tokens per second across all API calls."""
         if not self.calls:
             return 0.0
         return sum(call.tokens_per_second for call in self.calls) / len(self.calls)
+
+    def get_summary(self) -> Dict:
+        """Get summary statistics for all API calls.
+
+        Returns:
+            Dictionary containing:
+            - total_calls: Number of API calls
+            - total_tokens: Total tokens (input + output)
+            - total_tokens_in: Total input tokens
+            - total_tokens_out: Total output tokens
+            - total_cost: Total cost in USD
+            - total_duration: Total duration in seconds
+            - average_tokens_per_second: Average throughput
+        """
+        return {
+            "total_calls": len(self.calls),
+            "total_tokens": self.get_total_tokens(),
+            "total_tokens_in": self.get_total_tokens_in(),
+            "total_tokens_out": self.get_total_tokens_out(),
+            "total_cost": self.get_total_cost(),
+            "total_duration": self.get_total_duration(),
+            "average_tokens_per_second": self.get_average_tokens_per_second(),
+        }
 
     def format_as_markdown_table(self) -> str:
         """Format all metrics as a markdown table.

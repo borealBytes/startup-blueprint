@@ -1,0 +1,69 @@
+quick_code_review:
+  description: >
+    Perform a fast code quality check on the diff.
+
+    INPUTS AVAILABLE: - Workspace diff from diff.txt (cached by router) - CI
+    summary from ci_summary.json (what already failed) - Workspace commits from
+    commits.json (commit context)
+
+    YOUR TASKS: 1. Use WorkspaceTool to read diff.txt
+
+    2. Use WorkspaceTool to read ci_summary.json for context
+
+    3. Use WorkspaceTool to read commits.json for context
+
+    4. Scan for common code smells:
+       - Long functions (>50 lines)
+       - Deep nesting (>3 levels)
+       - Magic numbers (hardcoded constants)
+       - Duplicate code patterns
+       - TODO/FIXME comments
+       - Poor variable naming
+       - Missing error handling
+       - Console.log/print statements
+
+    5. Identify potential bugs:
+       - Off-by-one errors
+       - Null/undefined checks
+       - Resource leaks (unclosed files/connections)
+       - Race conditions (async/await issues)
+
+    6. Check for best practices:
+       - DRY (Don't Repeat Yourself)
+       - Single Responsibility Principle
+       - Proper error propagation
+       - Consistent code style
+
+    7. **ACTION REQUIRED**: Save findings using WorkspaceTool:
+       ```
+       WorkspaceTool({
+         "operation": "write",
+         "filename": "quick_review.json",
+         "content": json.dumps({
+           "critical": [...],
+           "warnings": [...],
+           "info": [...],
+           "summary": "..."
+         })
+       })
+       ```
+
+    IMPORTANT: - Focus on NEW code (lines with + in diff) - Skip CI errors
+    already in ci_summary.json - Be constructive and specific - Suggest fixes,
+    not just problems - Prioritize high-impact issues
+
+    CATEGORIZATION: - Critical: Potential bugs, security issues, broken
+    functionality - Warning: Code smells, maintainability issues, style
+    violations - Info: Suggestions for improvement, best practices
+
+    CRITICAL: You MUST call WorkspaceTool with operation="write" to save the
+    JSON. DO NOT just return JSON as text - it must be written to
+    quick_review.json file.
+
+  expected_output: >
+    Complete code review WRITTEN to quick_review.json file using WorkspaceTool
+    with: - Critical issues (potential bugs, security) - Warnings (code smells,
+    maintainability) - Info (suggestions, best practices) - Overall summary with
+    key findings - All issues with specific file, line, and fix suggestions
+
+    The file must exist in workspace after task completion.

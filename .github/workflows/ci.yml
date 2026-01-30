@@ -9,22 +9,53 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Step 1: Run core CI (format, lint, link check)
+  # Step 1: Run core CI (format, lint, link check, test detection)
   core-ci:
     name: Core CI
     uses: ./.github/workflows/core-ci-reusable.yml
     secrets: inherit
 
-  # Step 2: Run CrewAI review ONLY if core CI succeeds
+  # Step 2: Run detected tests in parallel
+  # Each test type is a separate job that runs conditionally
+  
+  test-crewai:
+    name: Test CrewAI
+    needs: [core-ci]
+    if: |
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      contains(needs.core-ci.outputs.test-matrix, 'test-crewai-reusable.yml')
+    uses: ./.github/workflows/test-crewai-reusable.yml
+    with:
+      commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+    secrets: inherit
+
+  # Add more test jobs here as needed:
+  # test-node:
+  #   name: Test Node Apps
+  #   needs: [core-ci]
+  #   if: |
+  #     always() &&
+  #     (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+  #     contains(needs.core-ci.outputs.test-matrix, 'test-node-reusable.yml')
+  #   uses: ./.github/workflows/test-node-reusable.yml
+  #   with:
+  #     commit_sha: ${{ needs.core-ci.outputs.final-commit-sha }}
+  #   secrets: inherit
+
+  # Step 3: Run CrewAI review ONLY if core CI completes (success or failure)
   crewai-review:
     name: CrewAI Code Review
-    needs: [core-ci]
-    # Only run if:
-    # - Core CI succeeded
+    needs: [core-ci, test-crewai]
+    # Run if:
+    # - Core CI completed (success OR failure - we want to analyze failures too!)
+    # - Tests completed or were skipped
     # - Not a bot PR
     # - Not a draft PR
     if: |
-      needs.core-ci.result == 'success' &&
+      always() &&
+      (needs.core-ci.result == 'success' || needs.core-ci.result == 'failure') &&
+      (needs.test-crewai.result == 'success' || needs.test-crewai.result == 'failure' || needs.test-crewai.result == 'skipped') &&
       github.actor != 'dependabot[bot]' &&
       github.actor != 'renovate[bot]' &&
       !github.event.pull_request.draft
@@ -32,5 +63,6 @@ jobs:
     with:
       pr_number: ${{ github.event.pull_request.number }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
+      core_ci_result: ${{ needs.core-ci.result }}
     secrets:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
