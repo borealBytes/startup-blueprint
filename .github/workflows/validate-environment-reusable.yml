@@ -100,19 +100,54 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ========================================
+      # STEP 0: Initialize log capture
+      # ========================================
+      - name: Initialize job capture
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'credential-validation'
+          mode: 'start'
+      
+      # ========================================
+      # STEP 1: Checkout with logging
+      # ========================================
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
+      
+      - name: Log checkout complete
+        run: |
+          echo "✅ Code checked out" | tee -a .crewai-job-output/current-job.log
+          echo "  Repository: ${{ github.repository }}" | tee -a .crewai-job-output/current-job.log
+          echo "  Ref: ${{ inputs.commit_sha || github.sha }}" | tee -a .crewai-job-output/current-job.log
+          echo "" | tee -a .crewai-job-output/current-job.log
 
+      # ========================================
+      # STEP 2: Install dependencies with logging
+      # ========================================
       - name: Install dependencies
         run: |
+          echo "📦 Installing dependencies..." | tee -a .crewai-job-output/current-job.log
+          echo "" | tee -a .crewai-job-output/current-job.log
+          
           # Install wrangler for Cloudflare validation
-          npm install -g wrangler@latest
+          echo "Installing Wrangler..." | tee -a .crewai-job-output/current-job.log
+          npm install -g wrangler@latest 2>&1 | tee -a .crewai-job-output/current-job.log
+          
+          echo "" | tee -a .crewai-job-output/current-job.log
+          echo "Installing system packages..." | tee -a .crewai-job-output/current-job.log
+          sudo apt-get update 2>&1 | tee -a .crewai-job-output/current-job.log
+          sudo apt-get install -y jq curl 2>&1 | tee -a .crewai-job-output/current-job.log
+          
+          echo "" | tee -a .crewai-job-output/current-job.log
+          echo "✅ Dependencies installed" | tee -a .crewai-job-output/current-job.log
+          echo "" | tee -a .crewai-job-output/current-job.log
 
-          # Install jq for JSON parsing
-          sudo apt-get update && sudo apt-get install -y jq curl
-
+      # ========================================
+      # STEP 3: Run validation with logging
+      # ========================================
       - name: Validate all credentials
         id: validate
         env:
@@ -123,51 +158,54 @@ jobs:
           GOOGLE_REDIRECT_URI: ${{ vars.GOOGLE_REDIRECT_URI }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          mkdir -p .crewai-job-output
-          bash scripts/validate-credentials.sh 2>&1 | tee .crewai-job-output/current-job.log
+          echo "🔐 Running credential validation..." | tee -a .crewai-job-output/current-job.log
+          echo "" | tee -a .crewai-job-output/current-job.log
+          
+          # Run the validation script with output to both stdout and log
+          bash scripts/validate-credentials.sh 2>&1 | tee -a .crewai-job-output/current-job.log
 
+      # ========================================
+      # STEP 4: Generate GitHub summary
+      # ========================================
       - name: Post credential validation summary
         if: always()
         run: |
-          # Create summary content
-          SUMMARY_FILE=$(mktemp)
-          echo "## 🔐 Credential Validation Report" >> "$SUMMARY_FILE"
-          echo "" >> "$SUMMARY_FILE"
-          echo "Validation completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> "$SUMMARY_FILE"
-          echo "" >> "$SUMMARY_FILE"
+          echo "## 🔐 Credential Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Validation completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ -f /tmp/credential-validation-summary.md ]; then
-            cat /tmp/credential-validation-summary.md >> "$SUMMARY_FILE"
+            cat /tmp/credential-validation-summary.md >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Validation summary not found" >> "$SUMMARY_FILE"
+            echo "❌ Validation summary not found" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Write to GitHub step summary
-          cat "$SUMMARY_FILE" >> $GITHUB_STEP_SUMMARY
-
-          # Also save for capture-job-output action
-          mkdir -p .crewai-job-output
-          cp "$SUMMARY_FILE" .crewai-job-output/current-job-summary.md
-          rm "$SUMMARY_FILE"
-
+      # ========================================
+      # STEP 5: Check validation result
+      # ========================================
       - name: Check credential validation result
         if: always()
         run: |
           if [ -f /tmp/credential-validation-result ]; then
             RESULT=$(cat /tmp/credential-validation-result)
             if [ "$RESULT" != "0" ]; then
-              echo "❌ Credential validation failed"
+              echo "❌ Credential validation failed" | tee -a .crewai-job-output/current-job.log
               exit 1
             fi
           fi
-          echo "✅ All credentials validated successfully"
+          echo "✅ All credentials validated successfully" | tee -a .crewai-job-output/current-job.log
 
-      - name: Capture job output for CrewAI
+      # ========================================
+      # STEP 6: Finalize log capture
+      # ========================================
+      - name: Finalize job capture
         if: always()
         uses: ./.github/actions/capture-job-output
         with:
-          job-name: 'validate-credentials'
+          job-name: 'credential-validation'
           job-conclusion: ${{ job.status }}
+          mode: 'finish'
 
   check-preview-label-conflicts:
     name: Check Preview Label Conflicts
