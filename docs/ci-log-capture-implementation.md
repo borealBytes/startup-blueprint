@@ -33,12 +33,14 @@ CI Job Starts
 ### Key Innovation: No API Scraping
 
 **Traditional Approach (Bad):**
+
 - CrewAI calls GitHub API to fetch job logs
 - Rate limits become a problem
 - Data may not be complete yet
 - Extra latency and complexity
 
 **Our Approach (Good):**
+
 - Each job captures its own output during execution
 - Uploads as artifact (GitHub's native feature)
 - CrewAI downloads artifacts (unlimited, fast)
@@ -53,12 +55,14 @@ CI Job Starts
 **Two Modes:**
 
 #### Mode: `start`
+
 - Creates `.crewai-job-output/` directory
 - Initializes `current-job.log` file
 - Logs job start timestamp
 - Saves job folder name for later
 
 #### Mode: `finish`
+
 - Reads current-job.log
 - Copies GitHub step summary
 - Creates metadata.json with:
@@ -80,29 +84,29 @@ steps:
     with:
       job-name: 'your-job-name'
       mode: 'start'
-  
+
   # Checkout
   - name: Checkout
     uses: actions/checkout@v4
-  
+
   - name: Log checkout
     run: echo "✅ Checkout complete" | tee -a .crewai-job-output/current-job.log
-  
+
   # Setup with logging
   - name: Setup [tool]
     uses: actions/setup-[tool]@vX
-  
+
   - name: Log setup
     run: |
       echo "✅ Setup complete" | tee -a .crewai-job-output/current-job.log
       [tool] --version | tee -a .crewai-job-output/current-job.log
-  
+
   # Main work with full logging
   - name: Run [task]
     run: |
       echo "🚀 Running..." | tee -a .crewai-job-output/current-job.log
       [command] 2>&1 | tee -a .crewai-job-output/current-job.log
-  
+
   # ALWAYS LAST (even on failure)
   - name: Finalize job capture
     if: always()
@@ -123,6 +127,7 @@ steps:
 2. **Checkout & prepare PR data** - With logging
 3. **Download artifacts** - All `ci-job-output-*` artifacts
 4. **Organize workspace:**
+
    ```
    workspace/
    ├── diff.txt
@@ -138,6 +143,7 @@ steps:
        ├── test-crewai/
        └── test-build-website/
    ```
+
 5. **Install dependencies** - With logging
 6. **Run CrewAI** - Full output captured
 7. **Finalize capture** - Upload CrewAI's own log
@@ -155,11 +161,13 @@ steps:
 #### Available Tools
 
 ##### `read_job_index()`
+
 **Purpose:** Get overview of all jobs  
 **Returns:** Job names, statuses, log sizes, timestamps  
 **Use:** ALWAYS call this first
 
 **Example Output:**
+
 ```
 # CI Job Index
 
@@ -179,11 +187,13 @@ Workflow Run: 123456 (#42)
 ```
 
 ##### `check_log_size(folder_name)`
+
 **Purpose:** Check size before reading  
 **Returns:** Size stats + recommendation  
 **Use:** Before calling `read_full_log`
 
 ##### `read_job_summary(folder_name)`
+
 **Purpose:** Read GitHub Actions step summary  
 **Returns:** Formatted summary showing what failed  
 **Use:** ALWAYS read summaries before logs
@@ -191,27 +201,32 @@ Workflow Run: 123456 (#42)
 **Why:** Summaries are small and tell you WHAT failed. Logs show HOW it failed.
 
 ##### `search_log(folder_name, pattern, context_lines=3, max_matches=50)`
+
 **Purpose:** Grep for specific patterns  
 **Returns:** Matching lines with context  
 **Use:** For large logs instead of reading everything
 
 **Good Patterns:**
+
 - `"error"` - Find error messages
 - `"FAILED"` - Find test failures
 - `"exception"` - Find stack traces
 - `"test_user_login"` - Find specific test
 
 ##### `read_full_log(folder_name, max_lines=None)`
+
 **Purpose:** Read complete log  
 **Returns:** Full log content  
 **Safety:** Blocks reading logs > 200KB without limit
 
 ##### `get_log_stats(folder_name)`
+
 **Purpose:** Quick assessment without reading  
 **Returns:** Error counts, warning counts, file size  
 **Use:** Decide if detailed review is needed
 
 **Example Output:**
+
 ```
 # Log Statistics: core-ci
 
@@ -246,17 +261,17 @@ for job in jobs:
 # 3. Smart log analysis (only for failed jobs)
 for failed_job in failed_jobs:
     size_check = check_log_size(failed_job.folder)
-    
+
     if size < 50KB:
         # Small log - safe to read
         log = read_full_log(failed_job.folder)
-    
+
     elif size < 200KB:
         # Medium log - get stats first
         stats = get_log_stats(failed_job.folder)
         if stats.error_count > 0:
             errors = search_log(failed_job.folder, 'error')
-    
+
     else:
         # Large log - MUST use search
         errors = search_log(failed_job.folder, 'error')
@@ -329,28 +344,33 @@ These jobs still need log capture added:
 ## Benefits
 
 ### 1. No API Rate Limits
+
 - Artifacts use GitHub's storage (unlimited reads)
 - No GitHub API calls needed
 - Faster and more reliable
 
 ### 2. Complete Visibility
+
 - See exactly what each job did
 - See what data CrewAI received
 - Audit trail of AI decisions
 - Cost tracking for all crews
 
 ### 3. Efficient Token Usage
+
 - Size checks prevent reading huge logs
 - Search/grep for targeted investigation
 - Summaries give context cheaply
 - Statistics provide quick assessment
 
 ### 4. Better Debugging
+
 - When CrewAI fails, see its full log
 - When CI fails, see complete context
 - Reproducible analysis (artifacts retained 7 days)
 
 ### 5. Scalable
+
 - Add new jobs easily (use composite action)
 - Add new analysis tools easily (standard pattern)
 - No infrastructure changes needed
@@ -358,6 +378,7 @@ These jobs still need log capture added:
 ## Example: Complete Job Log
 
 ### Before (Partial Capture)
+
 ```
 ========================================
 Credential Validation for startup-blueprint
@@ -372,6 +393,7 @@ Timestamp: 2026-01-30 01:09:38 UTC
 ```
 
 ### After (Complete Capture)
+
 ```
 ========================================
 Job: credential-validation
@@ -437,7 +459,9 @@ Conclusion: success
 ## Future Enhancements
 
 ### 1. Log Compression
+
 For jobs with very large logs (>10MB), compress before upload:
+
 ```yaml
 - name: Finalize with compression
   run: |
@@ -446,7 +470,9 @@ For jobs with very large logs (>10MB), compress before upload:
 ```
 
 ### 2. Streaming Analysis
+
 For extremely large logs, analyze in chunks:
+
 ```python
 @tool("Stream Log Analysis")
 def analyze_log_streaming(folder_name: str, chunk_size: int = 1000):
@@ -455,14 +481,18 @@ def analyze_log_streaming(folder_name: str, chunk_size: int = 1000):
 ```
 
 ### 3. Visual Log Viewer
+
 Web UI to view logs with:
+
 - Syntax highlighting
 - Collapsible sections
 - Error highlighting
 - Timeline view
 
 ### 4. Historical Comparison
+
 Compare current run to previous runs:
+
 - "This test started failing in run #42"
 - "Error count increased by 300%"
 - "New error pattern detected"
@@ -474,11 +504,13 @@ Compare current run to previous runs:
 **Symptom:** `No CI artifacts found - jobs may not have uploaded data`
 
 **Causes:**
+
 1. Job didn't finish (canceled/timeout)
 2. Job doesn't have capture action
 3. Upload failed (network issue)
 
 **Fix:**
+
 - Check job completed successfully
 - Verify `finalize job capture` step ran
 - Check Actions artifacts page
@@ -490,6 +522,7 @@ Compare current run to previous runs:
 **Cause:** Agent tried to read large log without checking size
 
 **Fix:** Agent should:
+
 1. Call `check_log_size()` first
 2. Use `search_log()` for large files
 3. Or call with limit: `read_full_log(folder, 500)`
@@ -501,11 +534,12 @@ Compare current run to previous runs:
 **Cause:** Job missing log statements after setup steps
 
 **Fix:** Add logging after each step:
+
 ```yaml
 - name: Setup Node
   uses: actions/setup-node@v4
 
-- name: Log setup  # ADD THIS
+- name: Log setup # ADD THIS
   run: echo "✅ Node setup" | tee -a .crewai-job-output/current-job.log
 ```
 
