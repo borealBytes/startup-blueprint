@@ -9,7 +9,6 @@ from tools.ci_output_parser_tool import CIOutputParserTool
 from tools.ci_tools import (
     check_log_size,
     get_log_stats,
-    list_ci_jobs,
     read_full_log,
     read_job_index,
     read_job_summary,
@@ -47,7 +46,6 @@ class CILogAnalysisCrew:
                 search_log,
                 read_full_log,
                 get_log_stats,
-                list_ci_jobs,
                 # Legacy tools
                 CIOutputParserTool(),
                 WorkspaceTool(),
