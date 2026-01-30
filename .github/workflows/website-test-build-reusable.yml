@@ -88,7 +88,7 @@ jobs:
 
           # Check for apps/startup-blueprint/ directory changes across the entire diff
           echo "🔍 Running diff..."
-          CHANGED_FILES=$(git diff --name-only "$BASE".."$HEAD" | grep '^apps/startup-blueprint/' || true)
+          CHANGED_FILES=$(git diff --name-only "$BASE".."HEAD" | grep '^apps/startup-blueprint/' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "⏭️  No website files changed - skipping tests and build"
@@ -185,8 +185,14 @@ jobs:
         if: always()
         run: |
           mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
-          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+          # Save step summary with fallback to prevent empty file
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
             cp "$GITHUB_STEP_SUMMARY" "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          else
+            # Fallback if summary is missing or empty
+            echo "# Website Test & Build Summary" > "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "" >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "No step summary was generated for this job." >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
           fi
 
       - name: Finalize job capture
