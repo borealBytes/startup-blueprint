@@ -25,17 +25,18 @@ This branch contains a complete refactoring of the CrewAI quick review crew from
 
 Start here based on your interest:
 
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| **QUICK_REVIEW_OPTIMIZATION.md** | Architecture details, diff sampling strategy, configuration reference | 15 min |
-| **CLEANUP_NOTES.md** | Migration guide, before/after comparison, rollback instructions | 5 min |
-| **IMPLEMENTATION_STATUS.md** | Complete project summary, verification checklist, next steps | 10 min |
+| Document                         | Purpose                                                               | Read Time |
+| -------------------------------- | --------------------------------------------------------------------- | --------- |
+| **QUICK_REVIEW_OPTIMIZATION.md** | Architecture details, diff sampling strategy, configuration reference | 15 min    |
+| **CLEANUP_NOTES.md**             | Migration guide, before/after comparison, rollback instructions       | 5 min     |
+| **IMPLEMENTATION_STATUS.md**     | Complete project summary, verification checklist, next steps          | 10 min    |
 
 ---
 
 ## Key Files to Know
 
 ### Core Implementation
+
 ```
 .crewai/
 ├── tools/
@@ -48,6 +49,7 @@ Start here based on your interest:
 ```
 
 ### Legacy (Deleted)
+
 ```
 .crewai/crew.py                         ✂️ Legacy CodeReviewCrew
 .crewai/config/tasks.yaml               ✂️ Monolithic config
@@ -59,12 +61,14 @@ Start here based on your interest:
 ## How to Get Started
 
 ### 1. Understand the Architecture (10 min)
+
 ```bash
 # Read the architecture guide
 cat QUICK_REVIEW_OPTIMIZATION.md | head -100
 ```
 
 ### 2. Review Changes (5 min)
+
 ```bash
 # See what changed
 git diff HEAD~1 .crewai/crews/quick_review_crew.py
@@ -72,6 +76,7 @@ git diff HEAD~1 .crewai/config/agents.yaml
 ```
 
 ### 3. Test the Implementation (5 min)
+
 ```bash
 cd .crewai
 python -c "
@@ -84,6 +89,7 @@ print(f'   Tasks: {len(crew.crew().tasks)}')
 ```
 
 ### 4. Integrate with Main (Next)
+
 The router in `main.py` already handles quick_review crew.  
 No changes needed - it just works!
 
@@ -91,29 +97,31 @@ No changes needed - it just works!
 
 ## What Changed (Files)
 
-| File | Change | Impact |
-|------|--------|--------|
-| `tools/diff_parser.py` | ✨ NEW | Provides smart diff sampling |
-| `crews/quick_review_crew.py` | 🔄 REFACTORED | 3-agent architecture |
-| `config/agents.yaml` | 📝 UPDATED | Added 3 new agents |
-| `config/tasks/quick_review_tasks.yaml` | ✏️ REWRITTEN | 3 new tasks |
-| `config/tasks/final_summary_tasks.yaml` | 📝 UPDATED | Reads all crew outputs |
-| `__init__.py` | 📝 UPDATED | Version bump (0.1.0 → 0.2.0) |
-| `crew.py` | ✂️ DELETED | Legacy - no longer used |
-| `config/tasks.yaml` | ✂️ DELETED | Superseded by task-specific files |
-| `config/tasks/ci_log_tasks.yaml` | ✂️ DELETED | Renamed to ci_log_analysis_tasks.yaml |
+| File                                    | Change        | Impact                                |
+| --------------------------------------- | ------------- | ------------------------------------- |
+| `tools/diff_parser.py`                  | ✨ NEW        | Provides smart diff sampling          |
+| `crews/quick_review_crew.py`            | 🔄 REFACTORED | 3-agent architecture                  |
+| `config/agents.yaml`                    | 📝 UPDATED    | Added 3 new agents                    |
+| `config/tasks/quick_review_tasks.yaml`  | ✏️ REWRITTEN  | 3 new tasks                           |
+| `config/tasks/final_summary_tasks.yaml` | 📝 UPDATED    | Reads all crew outputs                |
+| `__init__.py`                           | 📝 UPDATED    | Version bump (0.1.0 → 0.2.0)          |
+| `crew.py`                               | ✂️ DELETED    | Legacy - no longer used               |
+| `config/tasks.yaml`                     | ✂️ DELETED    | Superseded by task-specific files     |
+| `config/tasks/ci_log_tasks.yaml`        | ✂️ DELETED    | Renamed to ci_log_analysis_tasks.yaml |
 
 ---
 
 ## Metrics & Results
 
 ### Before (Legacy)
+
 - 1 agent doing everything
 - Full diff always (inefficient)
 - Shallow analysis
 - Generic findings
 
 ### After (Optimized)
+
 - 3 specialized agents (60% better focus)
 - Smart sampled diff (60-80% token reduction)
 - Deeper, focused analysis
@@ -124,12 +132,14 @@ No changes needed - it just works!
 ## Integration Status
 
 ✅ **Ready to Use**
+
 - `main.py` already imports `QuickReviewCrew`
 - No changes needed to orchestration
 - Works with existing router system
 - Backward compatible
 
 ✅ **Data Flow Working**
+
 ```
 diff.txt → Agent 1 → diff_context.json
          → Agent 2 → code_issues.json
@@ -177,11 +187,13 @@ A: Test with mock data, monitor token improvements, integrate full review crew.
 ## Questions?
 
 Refer to the documentation:
+
 - **Architecture**: QUICK_REVIEW_OPTIMIZATION.md
-- **Migration**: CLEANUP_NOTES.md  
+- **Migration**: CLEANUP_NOTES.md
 - **Status & Details**: IMPLEMENTATION_STATUS.md
 
 Or check the inline code documentation in:
+
 - `.crewai/tools/diff_parser.py` - Smart sampling explanation
 - `.crewai/crews/quick_review_crew.py` - Agent definitions
 - `.crewai/config/agents.yaml` - Agent personas

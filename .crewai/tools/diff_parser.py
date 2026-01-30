@@ -16,7 +16,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Tuple
 
-
 # Heuristic keywords for identifying higher-risk files.
 RISKY_PATH_KEYWORDS: Tuple[str, ...] = (
     "auth",

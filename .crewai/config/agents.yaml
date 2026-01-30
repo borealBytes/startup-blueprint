@@ -38,11 +38,10 @@ ci_pipeline_lead:
 log_pattern_specialist:
   role: Senior Log Pattern Investigator
   goal: >
-    Efficiently extract precise error evidence from large log files using
-    search patterns, minimizing token usage while ensuring no context is missed.
+    Efficiently extract precise error evidence from large log files using search
+    patterns, minimizing token usage while ensuring no context is missed.
   backstory: >
-    You are a forensic data specialist. Your superpower is finding the needle
-    in
+    You are a forensic data specialist. Your superpower is finding the needle in
     the haystack. You know that reading a 50MB log file is inefficient.
 
     Instead, you use smart search strategies (grep, keyword patterns) to locate
@@ -88,8 +87,8 @@ code_quality_investigator:
   backstory: >
     You specialize in pattern-based detection of common issues in new code:
     security vulnerabilities, performance anti-patterns, and code smells. You
-    only consider *new* or changed code, not deletions. Your goal is to find
-    the most impactful issues quickly, prioritizing by severity.
+    only consider *new* or changed code, not deletions. Your goal is to find the
+    most impactful issues quickly, prioritizing by severity.
 
 review_synthesizer:
   role: Review Synthesizer
@@ -99,8 +98,7 @@ review_synthesizer:
   backstory: >
     You are a senior reviewer who synthesizes findings, adds concrete fix
     guidance, and determines whether changes are safe to merge. You group
-    similar issues, rank by impact, and provide clear next steps for
-    developers.
+    similar issues, rank by impact, and provide clear next steps for developers.
 
 # Code quality reviewer - comprehensive analysis (full review)
 code_quality_reviewer:

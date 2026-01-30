@@ -4,7 +4,7 @@ parse_and_contextualize:
 
     STEP 1: Call WorkspaceTool(operation="read", filename="diff.txt", content="")
     STEP 2: Call WorkspaceTool(operation="read", filename="commit_messages.txt", content="")
-    
+
     Apply smart diff sampling strategy:
     - If <100 lines changed: return full diff
     - If 100-500 lines: sample files matching commit intent keywords
@@ -49,7 +49,7 @@ synthesize_report:
 
     STEP 1: Call WorkspaceTool(operation="read", filename="diff_context.json", content="")
     STEP 2: Call WorkspaceTool(operation="read", filename="code_issues.json", content="")
-    
+
     Process:
     1. Group similar issues together (same file+line+category)
     2. Rank by severity and impact

@@ -3,18 +3,24 @@
 ## Files Deleted
 
 ### 1. `.crewai/crew.py` (394 lines)
+
 **Reason**: Legacy single-crew implementation superseded by router-based system
+
 - Old: `CodeReviewCrew` with 4 agents and 6 sequential tasks
 - New: Router coordinates 6 specialized crews (router, quick, full, ci, legal, final-summary)
 - Status: Not imported or used by `main.py`
 
 ### 2. `.crewai/config/tasks/ci_log_tasks.yaml`
+
 **Reason**: Renamed to `ci_log_analysis_tasks.yaml` for consistency
+
 - Old file had identical schema with different name
 - `ci_log_analysis_crew.py` now imports `ci_log_analysis_tasks.yaml`
 
 ### 3. `.crewai/config/tasks.yaml`
+
 **Reason**: Superseded by task-specific YAML files
+
 - Old monolithic config file
 - New: Each crew has its own `{crew}_tasks.yaml`
 - Keeps config closer to crew implementation
@@ -22,19 +28,23 @@
 ## Files Updated
 
 ### 1. `.crewai/__init__.py`
+
 **Changes**:
+
 - Removed: Try/except import of legacy `CodeReviewCrew`
 - Removed: `__all__ = ["CodeReviewCrew"]` export
 - Added: Updated docstring to reflect "router-based" system
 - Updated: Version bumped from 0.1.0 to 0.2.0
 
 **Impact**: Any code importing `from .crewai import CodeReviewCrew` will now fail with clear error
+
 - **Status**: NOT a breaking change - `main.py` doesn't use this
 - **Migration**: No imports of CodeReviewCrew exist in the codebase
 
 ## Architecture Changes
 
 ### Before (Legacy)
+
 ```
 Single Crew (CodeReviewCrew)
 ├── 4 agents (quality, security, architecture, summary)
@@ -43,6 +53,7 @@ Single Crew (CodeReviewCrew)
 ```
 
 ### After (Router-Based)
+
 ```
 Router Crew
 ├── Analyzes PR → writes router_decision.json
@@ -66,6 +77,7 @@ Final Summary Crew
 These files remain but are NOT used by the current implementation:
 
 ### `.crewai/crews/code-review/spec.md`
+
 - Documentation artifact
 - Can be referenced for historical context
 - No functional code
@@ -89,12 +101,14 @@ These files remain but are NOT used by the current implementation:
 ## Rollback Plan
 
 If needed to revert to legacy system:
+
 1. Restore `crew.py` from git history
 2. Restore `config/tasks.yaml` from git history
 3. Update `__init__.py` to export `CodeReviewCrew`
 4. Switch `main.py` to use legacy crew
 
 **But don't!** The router-based system is superior:
+
 - More modular and maintainable
 - Better specialization of concerns
 - More efficient token usage

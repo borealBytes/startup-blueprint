@@ -9,6 +9,7 @@ The quick review crew has been refactored from a single-agent to a **3-agent opt
 ### New Agents
 
 #### 1. **Diff Intelligence Specialist** (Reader)
+
 - **Role**: Parse diffs and build focused context
 - **Goal**: Extract only relevant context while respecting token budgets
 - **Responsibilities**:
@@ -21,13 +22,14 @@ The quick review crew has been refactored from a single-agent to a **3-agent opt
   - Output: Tags like "security", "database", "config", "performance"
 
 **Output File**: `diff_context.json`
+
 ```json
 {
   "commit_intent": "Add user authentication with OAuth",
   "total_changes": 250,
   "changed_files": [
-    {"path": "src/auth.py", "type": "source", "additions": 45, "risk_level": "high"},
-    {"path": "tests/test_auth.py", "type": "test", "additions": 60, "risk_level": "low"}
+    { "path": "src/auth.py", "type": "source", "additions": 45, "risk_level": "high" },
+    { "path": "tests/test_auth.py", "type": "test", "additions": 60, "risk_level": "low" }
   ],
   "review_focus_areas": ["security", "authentication"],
   "sampled_diff": "...filtered diff..."
@@ -37,6 +39,7 @@ The quick review crew has been refactored from a single-agent to a **3-agent opt
 ---
 
 #### 2. **Code Quality Investigator** (Analyst)
+
 - **Role**: Detect issues in focused context
 - **Goal**: Identify security, performance, and maintainability problems
 - **Responsibilities**:
@@ -50,6 +53,7 @@ The quick review crew has been refactored from a single-agent to a **3-agent opt
   - Use focus areas to prioritize scanning
 
 **Output File**: `code_issues.json`
+
 ```json
 {
   "critical": [
@@ -69,6 +73,7 @@ The quick review crew has been refactored from a single-agent to a **3-agent opt
 ---
 
 #### 3. **Review Synthesizer** (Reporter)
+
 - **Role**: Consolidate findings into final JSON
 - **Goal**: Create actionable, prioritized recommendations
 - **Responsibilities**:
@@ -81,6 +86,7 @@ The quick review crew has been refactored from a single-agent to a **3-agent opt
   - Write final `quick_review.json`
 
 **Output File**: `quick_review.json`
+
 ```json
 {
   "status": "warning",
@@ -101,17 +107,19 @@ The quick review crew has been refactored from a single-agent to a **3-agent opt
 ### Implemented in `diff_parser.py`
 
 ```python
-def smart_diff_sample(diff_text, commit_messages, 
+def smart_diff_sample(diff_text, commit_messages,
                       small_threshold=100, medium_threshold=500):
 ```
 
 **Logic**:
+
 1. Count total changed lines in diff
 2. If < 100 lines → return full diff (agent gets complete context)
 3. If 100-500 lines → extract commit intent keywords and filter diff to only matching files
 4. If > 500 lines → compute risk scores for each file and keep only high-risk files
 
 **Risk Score Calculation**:
+
 - +3 points: Contains risky keywords (auth, payment, db, secret, config, etc.)
 - +2 points: Configuration files (.yaml, .json, .env, etc.)
 - +3 points: Large changes (>200 lines)
@@ -119,6 +127,7 @@ def smart_diff_sample(diff_text, commit_messages,
 - -2 points: Test files (discount risk)
 
 **Benefits**:
+
 - Reduces token usage on large diffs by 60-80%
 - Keeps full context for small/medium PRs
 - Prioritizes agent attention on high-risk changes
@@ -186,29 +195,29 @@ Three task definitions:
 ```yaml
 parse_and_contextualize:
   description: Read diff, apply smart sampling, produce diff_context.json
-  expected_output: "Context prepared: N files analyzed..."
+  expected_output: 'Context prepared: N files analyzed...'
 
 detect_code_issues:
   description: Scan focused diff for issues, produce code_issues.json
-  expected_output: "Analysis complete: N critical issues, M warnings..."
+  expected_output: 'Analysis complete: N critical issues, M warnings...'
 
 synthesize_report:
   description: Consolidate into quick_review.json
-  expected_output: "Review synthesis complete: quick_review.json written..."
+  expected_output: 'Review synthesis complete: quick_review.json written...'
 ```
 
 ---
 
 ## Key Improvements
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **Agents** | 1 generic reviewer | 3 specialized agents |
-| **Token Efficiency** | Full diff per PR (100-1000 lines) | Smart sampled (50-300 lines) |
-| **Diff Handling** | Naive "read it all" | Adaptive strategy by size/risk |
-| **Issue Detection** | Broad & shallow | Focused & deeper |
-| **Output Quality** | Generic findings | Prioritized with fix suggestions |
-| **Merge Recommendation** | None | APPROVE / REQUEST_CHANGES / NEEDS_DISCUSSION |
+| Aspect                   | Before                            | After                                        |
+| ------------------------ | --------------------------------- | -------------------------------------------- |
+| **Agents**               | 1 generic reviewer                | 3 specialized agents                         |
+| **Token Efficiency**     | Full diff per PR (100-1000 lines) | Smart sampled (50-300 lines)                 |
+| **Diff Handling**        | Naive "read it all"               | Adaptive strategy by size/risk               |
+| **Issue Detection**      | Broad & shallow                   | Focused & deeper                             |
+| **Output Quality**       | Generic findings                  | Prioritized with fix suggestions             |
+| **Merge Recommendation** | None                              | APPROVE / REQUEST_CHANGES / NEEDS_DISCUSSION |
 
 ---
 
