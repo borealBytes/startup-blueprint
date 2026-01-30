@@ -50,7 +50,7 @@
   - ✅ get_log_stats
 
 - [x] [P0] [ci] Update CrewAI workflow to download artifacts and organize workspace. Est: 2h. BRANCH: `feat/crewai-optimize-crew` PR: TBD
-  - ✅ Download ci-job-output-* artifacts
+  - ✅ Download ci-job-output-\* artifacts
   - ✅ Organize into workspace/ci_results/
   - ✅ Build job index
   - ✅ Capture CrewAI's own execution
@@ -88,6 +88,7 @@
 **Status:** Core components complete, job updates in progress
 
 **Completed:**
+
 - ✅ Composite action (`.github/actions/capture-job-output/action.yml`)
 - ✅ CI tools (`.crewai/tools/ci_tools.py`)
 - ✅ CrewAI workflow updates (`.github/workflows/crewai-review-reusable.yml`)
@@ -95,6 +96,7 @@
 - ✅ Documentation (`docs/ci-log-capture-implementation.md`)
 
 **Remaining Work:**
+
 1. Update core-ci job pattern
 2. Update test-crewai job pattern
 3. Update test-build-website job pattern
@@ -102,12 +104,14 @@
 5. Add integration tests
 
 **Architecture:**
+
 - Jobs capture their own logs → upload as artifacts
 - CrewAI downloads artifacts → organizes into workspace
 - Smart tools check size before reading
 - No API scraping needed = no rate limits
 
 **Benefits:**
+
 - Complete visibility into all CI jobs
 - Intelligent size-aware log handling
 - Efficient token usage (grep vs full read)
