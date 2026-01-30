@@ -93,7 +93,7 @@ runs:
 
         if [ -n "$SUMMARY_SOURCE" ]; then
           cp "$SUMMARY_SOURCE" "$OUTPUT_DIR/summary.md"
-          
+
           # Double check if copied file is empty (just in case)
           if [ ! -s "$OUTPUT_DIR/summary.md" ]; then
              echo "  ⚠️ Warning: Summary file was empty after copy."

@@ -11,7 +11,7 @@ triage_failures:
     This task creates the "investigation plan" for the next agent.
   expected_output: >
     A JSON-structured list of failed jobs, their folder names, and a brief
-    summary of the failure 
+    summary of the failure
     from the summary files. If no jobs failed, report that all passed.
   agent: ci_pipeline_lead
 
@@ -23,7 +23,7 @@ investigate_logs:
 
     For each failed job: 1. Call check_log_size(folder_name) FIRST. 2. If log <
     50KB: Use read_full_log(folder_name). 3. If log > 50KB: Use
-    search_log(folder_name, pattern) with smart patterns 
+    search_log(folder_name, pattern) with smart patterns
        (e.g., "error", "exception", "failed", "fatal").
     4. Use get_log_stats(folder_name) to gauge error density.
 
@@ -31,7 +31,7 @@ investigate_logs:
     error messages.
   expected_output: >
     Detailed log snippets containing the specific error traces, stack dumps, or
-    failure messages 
+    failure messages
     for each failed job.
   agent: log_pattern_specialist
 
