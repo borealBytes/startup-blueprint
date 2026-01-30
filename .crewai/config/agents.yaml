@@ -38,11 +38,10 @@ ci_pipeline_lead:
 log_pattern_specialist:
   role: Senior Log Pattern Investigator
   goal: >
-    Efficiently extract precise error evidence from large log files using
-    search patterns, minimizing token usage while ensuring no context is missed.
+    Efficiently extract precise error evidence from large log files using search
+    patterns, minimizing token usage while ensuring no context is missed.
   backstory: >
-    You are a forensic data specialist. Your superpower is finding the needle
-    in
+    You are a forensic data specialist. Your superpower is finding the needle in
     the haystack. You know that reading a 50MB log file is inefficient.
 
     Instead, you use smart search strategies (grep, keyword patterns) to locate

@@ -11,8 +11,8 @@ triage_failures:
     This task creates the "investigation plan" for the next agent.
   expected_output: >
     A JSON-structured list of failed jobs, their folder names, and a brief
-    summary of the failure
-    from the summary files. If no jobs failed, report that all passed.
+    summary of the failure from the summary files. If no jobs failed, report
+    that all passed.
   agent: ci_pipeline_lead
 
 # Task 2: Investigation - Get the evidence
@@ -31,8 +31,7 @@ investigate_logs:
     error messages.
   expected_output: >
     Detailed log snippets containing the specific error traces, stack dumps, or
-    failure messages
-    for each failed job.
+    failure messages for each failed job.
   agent: log_pattern_specialist
 
 # Task 3: Resolution - Explain and Fix
