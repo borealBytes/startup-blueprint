@@ -23,6 +23,12 @@ jobs:
           ref: ${{ inputs.commit_sha || github.sha }}
           fetch-depth: 0
 
+      - name: Initialize job capture
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'test-docs-links'
+          mode: 'start'
+
       - name: Check if docs changed
         id: check
         run: |
@@ -68,9 +74,9 @@ jobs:
       - name: Capture lychee output for log
         if: always() && steps.check.outputs.should_run == 'true'
         run: |
-          mkdir -p .crewai-job-output
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
           if [ -f ./lychee-report.md ]; then
-            cp ./lychee-report.md .crewai-job-output/current-job.log
+            cp ./lychee-report.md "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           fi
 
       - name: Add results to Actions summary
@@ -134,14 +140,32 @@ jobs:
       - name: Save summary for capture
         if: always()
         run: |
-          mkdir -p .crewai-job-output
-          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
-            cp "$GITHUB_STEP_SUMMARY" .crewai-job-output/current-job-summary.md
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          # Save step summary with fallback to prevent empty file
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            cp "$GITHUB_STEP_SUMMARY" "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          else
+            # Fallback if summary is missing or empty
+            echo "# Docs Check Summary" > "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "" >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "No step summary was generated for this job." >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
           fi
 
-      - name: Capture job output for CrewAI
+      - name: Finalize job capture
         if: always()
         uses: ./.github/actions/capture-job-output
         with:
           job-name: 'test-docs-links'
           job-conclusion: ${{ job.status }}
+          mode: 'finish'
+          summary-file: ${{ github.workspace }}/.crewai-job-output/current-job-summary.md
+
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-test-docs-links
+          path: ${{ github.workspace }}/.crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true

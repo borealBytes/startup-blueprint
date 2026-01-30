@@ -1,75 +1,74 @@
-parse_ci_output:
+# Task 1: Triage - Identify what broke
+triage_failures:
   description: >
-    ANALYZE CI/CD PIPELINE RESULTS INTELLIGENTLY AND EFFICIENTLY.
+    Analyze the CI job index and individual job summaries to identify which jobs
+    failed.
 
-    MANDATORY WORKFLOW - Execute ALL steps in order:
+    1. Call read_job_index() to get the full list of jobs. 2. For every job,
+    call read_job_summary(folder_name). 3. Identify jobs with status "failure"
+    or "cancelled".
 
+    This task creates the "investigation plan" for the next agent.
+  expected_output: >
+    A JSON-structured list of failed jobs, their folder names, and a brief
+    summary of the failure 
+    from the summary files. If no jobs failed, report that all passed.
+  agent: ci_pipeline_lead
 
-    STEP 1: Read Job Index
+# Task 2: Investigation - Get the evidence
+investigate_logs:
+  description: >
+    For each failed job identified in the triage phase, extract the specific
+    error evidence.
 
-    Call read_job_index() to see ALL jobs that ran in this pipeline. This shows
-    job names, pass/fail status, and log sizes.
+    For each failed job: 1. Call check_log_size(folder_name) FIRST. 2. If log <
+    50KB: Use read_full_log(folder_name). 3. If log > 50KB: Use
+    search_log(folder_name, pattern) with smart patterns 
+       (e.g., "error", "exception", "failed", "fatal").
+    4. Use get_log_stats(folder_name) to gauge error density.
 
+    Do NOT analyze the root cause yet—just extract the raw exception traces and
+    error messages.
+  expected_output: >
+    Detailed log snippets containing the specific error traces, stack dumps, or
+    failure messages 
+    for each failed job.
+  agent: log_pattern_specialist
 
-    STEP 2: Read ALL Job Summaries
+# Task 3: Resolution - Explain and Fix
+determine_root_cause:
+  description: >
+    Analyze the extracted log evidence to determine the technical root cause and
+    provide fixes.
 
-    For EVERY job listed, call read_job_summary(folder_name) where folder_name
-    is the job folder from the index (e.g., "core-ci", "test-crewai"). Summaries
-    are small and tell you WHAT failed. Never skip summaries.
+    For each error trace found: 1. Explain WHY it failed (e.g., "Missing
+    dependency", "Syntax error", "Timeout"). 2. Provide a specific, actionable
+    fix (e.g., "Add package X to package.json", "Fix typo in line 42"). 3.
+    Classify severity (Critical/Warning).
+  expected_output: >
+    A structured analysis of each failure, including Root Cause, Fix
+    Recommendation, and Severity.
+  agent: error_resolution_specialist
 
+# Task 4: Reporting - Final Summary
+compile_ci_report:
+  description: >
+    Synthesize all findings into the final ci_summary.json file.
 
-    STEP 3: Smart Log Analysis (only for jobs with issues)
-
-    For jobs that FAILED or have warnings:
-
-    a. Call check_log_size(folder_name) FIRST b. If log < 50KB: safe to use
-    read_full_log(folder_name) c. If log 50-200KB: use
-    get_log_stats(folder_name) to decide d. If log > 200KB: MUST use
-    search_log(folder_name, pattern) ONLY
-
-    Effective search patterns for large logs: - "error" - finds error messages -
-    "FAILED" - finds test failures - "exception" - finds stack traces - specific
-    test names from summary - specific file names that failed
-
-
-    STEP 4: Also read legacy CI data
-
-    Use CIOutputParserTool(core_ci_result="") to get core CI job status. Use
-    WorkspaceTool(operation="read", filename="diff.json", content="") for file
-    change statistics.
-
-
-    STEP 5: Write ci_summary.json with comprehensive analysis
-
-    Use WorkspaceTool(operation="write", filename="ci_summary.json",
-    content=<json_object>)
+    1. Combine the triage status, log evidence, and root cause analysis. 2. Use
+    CIOutputParserTool to get core CI status. 3. Use WorkspaceTool to read
+    diff.json for context if needed. 4. Write the final JSON file using
+    WorkspaceTool(operation="write", filename="ci_summary.json", ...).
 
     Required JSON structure: {
       "status": "success|warning|failure",
-      "passed": true|false,
-      "summary": "Brief pipeline summary",
-      "jobs_analyzed": ["job-name", ...],
-      "checks_performed": ["check-name", ...],
+      "summary": "High-level summary",
+      "jobs_analyzed": [...],
       "critical_errors": [{type, file, line, message, fix_suggestion, job}],
-      "warnings": [{type, message, count, fix_suggestion, job}],
-      "issue_analysis": {root_cause, fix_applied, recommendation},
-      "merge_status": "APPROVE|REQUEST_CHANGES|NEEDS_DISCUSSION",
-      "merge_rationale": "Why this recommendation"
+      "warnings": [...],
+      "merge_status": "APPROVE|REQUEST_CHANGES",
+      "merge_rationale": "..."
     }
-
-    Categorize by severity: - CRITICAL: build/type/test failures (blocks merge)
-    - WARNING: lint/format issues (should fix) - INFO: docs/suggestions (nice to
-    have)
-
-
-    CRITICAL CONSTRAINTS: - ALL steps MUST complete - DO NOT return text like "I
-    will..." - EXECUTE the actions - DO NOT read logs > 200KB without checking
-    size first - Always read summaries before logs - Use search/grep for
-    targeted investigation - Focus on actionable feedback - You MUST call
-    WorkspaceTool to write ci_summary.json - The task is NOT complete until
-    ci_summary.json exists
-
   expected_output: >
-    "Successfully analyzed N jobs and wrote ci_summary.json with findings."
-
-    The file MUST physically exist in workspace directory.
+    "Successfully wrote ci_summary.json with N critical errors and M warnings."
+  agent: ci_pipeline_lead

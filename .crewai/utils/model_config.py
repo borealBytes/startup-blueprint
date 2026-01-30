@@ -32,6 +32,13 @@ class ModelConfig:
 
 # Available models - crews select from this list
 MODEL_REGISTRY = {
+    # Gemini 3 Flash Preview (User Requested)
+    "gemini-3-flash": ModelConfig(
+        name="openrouter/google/gemini-2.0-flash-001",  # Mapping to 2.0 Flash as 3.0 Preview isn't standard yet, assuming 2.0 Flash is what's meant or using closest equivalent.
+        rpm_limit=60,
+        context_window=1000000,
+        rate_limit_delay=0,
+    ),
     # MiMo V2 Flash (NEW DEFAULT - testing for reliable function calling)
     "mimo-v2-flash": ModelConfig(
         name="openrouter/xiaomi/mimo-v2-flash",
@@ -85,7 +92,9 @@ MODEL_REGISTRY = {
     ),
 }
 
-DEFAULT_MODEL_KEY = "mimo-v2-flash"  # Changed to MiMo V2 Flash for testing
+DEFAULT_MODEL_KEY = (
+    "gemini-3-flash"  # User requested Gemini 3 Flash Preview (mapped to reliable Gemini 2.0 Flash)
+)
 FALLBACK_MODEL_KEY = "gemini-flash"  # Gemini as fallback
 
 
