@@ -210,6 +210,18 @@ jobs:
           job-conclusion: ${{ job.status }}
           mode: 'finish'
 
+      # ========================================
+      # STEP 9: Upload artifacts (from workflow, not composite action)
+      # ========================================
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-credential-validation
+          path: .crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
+
   check-preview-label-conflicts:
     name: Check Preview Label Conflicts
     runs-on: ubuntu-latest
