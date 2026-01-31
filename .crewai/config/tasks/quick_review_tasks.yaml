@@ -1,39 +1,36 @@
 parse_and_contextualize:
   description: >
-    Parse the diff and commits to create structured context.
-    Read diff.txt and commits.json, then create a JSON analysis with:
-    - commit_intent: summary of what changed
-    - total_changes: number of lines added/deleted
-    - changed_files: list of files with path, type (modified/added/deleted), additions, deletions, risk_level
-    - review_focus_areas: list like ["security", "database", "config"]
-    - sampled_diff: the actual diff content to review
-    Return ONLY raw JSON without markdown formatting. Do not wrap in ```json blocks.
+    Parse the diff and commits to create structured context. Read diff.txt and
+    commits.json, then create a JSON analysis with: - commit_intent: summary of
+    what changed - total_changes: number of lines added/deleted - changed_files:
+    list of files with path, type (modified/added/deleted), additions,
+    deletions, risk_level - review_focus_areas: list like ["security",
+    "database", "config"] - sampled_diff: the actual diff content to review
+    Return ONLY raw JSON without markdown formatting. Do not wrap in ```json
+    blocks.
   expected_output: 'Valid JSON with diff analysis'
 
 detect_code_issues:
   description: >
-    Analyze the diff context and identify code issues.
-    Look for:
-    - Security issues (SQL injection, hardcoded secrets, eval/exec)
-    - Performance issues (N+1 queries, nested loops, missing pagination)
-    - Quality issues (magic numbers, poor error handling, duplicate code)
-    Return JSON with three arrays: critical[], warnings[], info[]
-    Each issue should have: file, line, code_snippet, description
-    If no issues found, return empty arrays.
-    Return ONLY raw JSON without markdown formatting. Do not wrap in ```json blocks.
+    Analyze the diff context and identify code issues. Look for: - Security
+    issues (SQL injection, hardcoded secrets, eval/exec) - Performance issues
+    (N+1 queries, nested loops, missing pagination) - Quality issues (magic
+    numbers, poor error handling, duplicate code) Return JSON with three arrays:
+    critical[], warnings[], info[] Each issue should have: file, line,
+    code_snippet, description If no issues found, return empty arrays. Return
+    ONLY raw JSON without markdown formatting. Do not wrap in ```json blocks.
   expected_output: 'Valid JSON with issues array'
 
 synthesize_report:
   description: >
-    Create the final review report from diff context and code issues.
-    Combine all findings into a comprehensive review with:
-    - status: "ok", "warning", or "critical"
-    - summary: detailed review summary (minimum 100 characters)
-    - total_findings: total number of issues
-    - critical[]: array of critical issues with file, line, code_snippet, description, fix_suggestion
-    - warnings[]: array of warnings with same structure
-    - info[]: array of informational notes
-    - merge_status: "APPROVE", "REQUEST_CHANGES", or "NEEDS_DISCUSSION"
-    - merge_rationale: explanation for the merge decision
-    Return ONLY raw JSON without markdown formatting. Do not wrap in ```json blocks.
+    Create the final review report from diff context and code issues. Combine
+    all findings into a comprehensive review with: - status: "ok", "warning", or
+    "critical" - summary: detailed review summary (minimum 100 characters) -
+    total_findings: total number of issues - critical[]: array of critical
+    issues with file, line, code_snippet, description, fix_suggestion -
+    warnings[]: array of warnings with same structure - info[]: array of
+    informational notes - merge_status: "APPROVE", "REQUEST_CHANGES", or
+    "NEEDS_DISCUSSION" - merge_rationale: explanation for the merge decision
+    Return ONLY raw JSON without markdown formatting. Do not wrap in ```json
+    blocks.
   expected_output: 'Valid JSON with complete review'
