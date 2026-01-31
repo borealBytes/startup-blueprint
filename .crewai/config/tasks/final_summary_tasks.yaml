@@ -1,9 +1,10 @@
 synthesize_summary:
   description: >
-    Synthesize all crew outputs into final_summary.md.
-    1. Read ci_summary.json, quick_review.json, router_decision.json using WorkspaceTool.
-    2. Read full_review.json and legal_review.json if they exist.
-    3. Create comprehensive markdown summary with all findings.
-    4. Write result to final_summary.md using WorkspaceTool(operation="write", filename="final_summary.md", content=markdown).
-    Include: PR metadata, CI status, review findings, merge recommendations.
-  expected_output: "final_summary.md written"
+    Synthesize all crew outputs into final_summary.md. 1. Read ci_summary.json,
+    quick_review.json, router_decision.json using WorkspaceTool. 2. Read
+    full_review.json and legal_review.json if they exist. 3. Create
+    comprehensive markdown summary with all findings. 4. Write result to
+    final_summary.md using WorkspaceTool(operation="write",
+    filename="final_summary.md", content=markdown). Include: PR metadata, CI
+    status, review findings, merge recommendations.
+  expected_output: 'final_summary.md written'
