@@ -44,6 +44,8 @@ class CILogAnalysisCrew:
                 # Triage & Reporting tools
                 read_job_index,
                 read_job_summary,
+                get_log_stats,
+                check_log_size,
                 CIOutputParserTool(),
                 WorkspaceTool(),
             ],
