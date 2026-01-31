@@ -1,21 +1,24 @@
-# Task 1: Triage - Identify what broke
+# Task 1: Triage - Identify what broke using enhanced parser
 triage_failures:
   description: >
-    Analyze CI job index and scan logs for errors.
+    Analyze CI logs using the enhanced CIOutputParserTool to extract ALL errors.
 
-    1. Call read_job_index() to get all jobs 2. For each job:
-       - Call read_job_summary(folder_name) for metadata
-       - Call get_log_stats(folder_name) to check log content for errors
-    3. Identify jobs needing investigation:
-       - Jobs with conclusion="failure" or "cancelled"
-       - Jobs with log_stats showing errors in log content
-    4. Create investigation plan with job details and error counts
+    CRITICAL STEPS:
+    1. Call CIOutputParserTool._run(ci_logs_dir="ci_results") to get FULL parsed output
+       with detailed errors from stylelint, sqlfluff, markdownlint, etc.
+    2. Also call read_job_index() to get job metadata
+    3. Identify all jobs with errors from the parser output (check critical_errors and warnings)
+    4. Create investigation plan with:
+       - Jobs with detailed error counts from parser
+       - Specific tools that reported errors (stylelint, sqlfluff, etc.)
+       - File paths and line numbers from parser output
 
-    Note: Some jobs report "success" in metadata but have errors in logs. Always
-    check get_log_stats() to find hidden errors.
+    The parser output contains structured data with: status, passed, summary,
+    checks_performed, critical_errors[], warnings[], jobs_analyzed[].
+    Use this data directly for your analysis.
   expected_output: >
-    List of jobs needing investigation with their error counts from both
-    metadata and log analysis.
+    Detailed investigation plan including: jobs with errors, specific CI tools
+    that failed, error counts from parser, and file paths needing review.
   agent: ci_pipeline_lead
 
 # Task 2: Investigation - Get the evidence
@@ -57,20 +60,26 @@ compile_ci_report:
   description: >
     Synthesize all findings into the final ci_summary.json file.
 
-    1. Combine the triage status, log evidence, and root cause analysis. 2. Use
-    CIOutputParserTool to get core CI status. 3. Use WorkspaceTool to read
-    diff.json for context if needed. 4. Write the final JSON file using
-    WorkspaceTool(operation="write", filename="ci_summary.json", ...).
+    STEPS:
+    1. Call CIOutputParserTool with ci_logs_dir="ci_results" to get DETAILED
+       parsed output including all stylelint, sqlfluff, and other CI errors.
+    2. Combine the triage status, log evidence, and root cause analysis.
+    3. Use WorkspaceTool to read diff.json for context if needed.
+    4. Write the final JSON file using WorkspaceTool.
+
+    CRITICAL: You MUST call CIOutputParserTool._run with ci_logs_dir parameter
+    to get the full error details. Do NOT rely only on search_log results.
 
     Required JSON structure: {
       "status": "success|warning|failure",
-      "summary": "High-level summary",
+      "summary": "High-level summary with specific error counts",
+      "checks_performed": ["stylelint", "sqlfluff", ...],
       "jobs_analyzed": [...],
-      "critical_errors": [{type, file, line, message, fix_suggestion, job}],
+      "critical_errors": [{type, file, line, message, fix_suggestion, tool}],
       "warnings": [...],
       "merge_status": "APPROVE|REQUEST_CHANGES",
       "merge_rationale": "..."
     }
   expected_output: >
-    "Successfully wrote ci_summary.json with N critical errors and M warnings."
+    "Successfully wrote ci_summary.json with N critical errors and M warnings from specific tools."
   agent: ci_pipeline_lead
