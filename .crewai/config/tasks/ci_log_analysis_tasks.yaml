@@ -3,8 +3,7 @@ triage_failures:
   description: >
     Analyze CI job index and scan logs for errors.
 
-    1. Call read_job_index() to get all jobs
-    2. For each job:
+    1. Call read_job_index() to get all jobs 2. For each job:
        - Call read_job_summary(folder_name) for metadata
        - Call get_log_stats(folder_name) to check log content for errors
     3. Identify jobs needing investigation:
@@ -12,8 +11,8 @@ triage_failures:
        - Jobs with log_stats showing errors in log content
     4. Create investigation plan with job details and error counts
 
-    Note: Some jobs report "success" in metadata but have errors in logs.
-    Always check get_log_stats() to find hidden errors.
+    Note: Some jobs report "success" in metadata but have errors in logs. Always
+    check get_log_stats() to find hidden errors.
   expected_output: >
     List of jobs needing investigation with their error counts from both
     metadata and log analysis.
