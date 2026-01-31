@@ -89,6 +89,15 @@ class QuickReviewCrew:
             output_file="quick_review.json",
         )
 
+    @task
+    def completion_task(self) -> Task:
+        """Dummy task to ensure synthesize_report output_file works."""
+        return Task(
+            description="Confirm quick review completed.",
+            expected_output="Done",
+            agent=self.review_synthesizer(),
+        )
+
     @crew
     def crew(self) -> Crew:
         """Create quick review crew."""
@@ -102,6 +111,7 @@ class QuickReviewCrew:
                 self.parse_and_contextualize(),
                 self.detect_code_issues(),
                 self.synthesize_report(),
+                self.completion_task(),
             ],
             process=Process.sequential,
             verbose=True,
