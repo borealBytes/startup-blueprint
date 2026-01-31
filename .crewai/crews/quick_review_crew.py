@@ -68,7 +68,6 @@ class QuickReviewCrew:
         return Task(
             config=self.tasks_config["parse_and_contextualize"],
             agent=self.diff_intelligence_specialist(),
-            output_file="diff_context.json",
         )
 
     @task
@@ -77,7 +76,6 @@ class QuickReviewCrew:
         return Task(
             config=self.tasks_config["detect_code_issues"],
             agent=self.code_quality_investigator(),
-            output_file="code_issues.json",
         )
 
     @task
@@ -86,7 +84,6 @@ class QuickReviewCrew:
         return Task(
             config=self.tasks_config["synthesize_report"],
             agent=self.review_synthesizer(),
-            output_file="quick_review.json",
         )
 
     @crew
