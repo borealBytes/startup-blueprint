@@ -1,28 +1,38 @@
 parse_and_contextualize:
   description: >
-    Parse diff and commits to create diff_context.json. 1. Read diff.txt and
-    commits.json using WorkspaceTool. 2. Analyze changes and create context. 3.
-    Write result to diff_context.json using WorkspaceTool(operation="write",
-    filename="diff_context.json", content=dict). Structure: {commit_intent,
-    total_changes, changed_files[], review_focus_areas[], sampled_diff}
-  expected_output: 'diff_context.json written'
+    Parse the diff and commits to create structured context.
+    Read diff.txt and commits.json, then create a JSON analysis with:
+    - commit_intent: summary of what changed
+    - total_changes: number of lines added/deleted
+    - changed_files: list of files with path, type (modified/added/deleted), additions, deletions, risk_level
+    - review_focus_areas: list like ["security", "database", "config"]
+    - sampled_diff: the actual diff content to review
+    Return ONLY valid JSON matching this structure.
+  expected_output: 'Valid JSON with diff analysis'
 
 detect_code_issues:
   description: >
-    Analyze diff_context.json and write code_issues.json. 1. Read
-    diff_context.json using WorkspaceTool. 2. Scan for security, performance,
-    and quality issues. 3. Write findings to code_issues.json using
-    WorkspaceTool(operation="write", filename="code_issues.json", content=dict).
-    Structure: {critical[], warnings[], info[]}
-  expected_output: 'code_issues.json written'
+    Analyze the diff context and identify code issues.
+    Look for:
+    - Security issues (SQL injection, hardcoded secrets, eval/exec)
+    - Performance issues (N+1 queries, nested loops, missing pagination)
+    - Quality issues (magic numbers, poor error handling, duplicate code)
+    Return JSON with three arrays: critical[], warnings[], info[]
+    Each issue should have: file, line, code_snippet, description
+    If no issues found, return empty arrays.
+  expected_output: 'Valid JSON with issues array'
 
 synthesize_report:
   description: >
-    Create final quick_review.json from diff_context.json and code_issues.json.
-    1. Read diff_context.json and code_issues.json using WorkspaceTool. 2.
-    Synthesize findings into structured review. 3. Write result to
-    quick_review.json using WorkspaceTool(operation="write",
-    filename="quick_review.json", content=dict). Structure: {status, summary,
-    total_findings, critical[], warnings[], info[], merge_status,
-    merge_rationale}
-  expected_output: 'quick_review.json written'
+    Create the final review report from diff context and code issues.
+    Combine all findings into a comprehensive review with:
+    - status: "ok", "warning", or "critical"
+    - summary: detailed review summary (minimum 100 characters)
+    - total_findings: total number of issues
+    - critical[]: array of critical issues with file, line, code_snippet, description, fix_suggestion
+    - warnings[]: array of warnings with same structure
+    - info[]: array of informational notes
+    - merge_status: "APPROVE", "REQUEST_CHANGES", or "NEEDS_DISCUSSION"
+    - merge_rationale: explanation for the merge decision
+    Return ONLY valid JSON.
+  expected_output: 'Valid JSON with complete review'
