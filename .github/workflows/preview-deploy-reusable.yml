@@ -54,6 +54,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Initialize job capture
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'deploy-preview'
+          mode: 'start'
+
+      - name: Log deployment start
+        working-directory: .
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🚀 Starting preview deployment" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "Workspace: ${{ inputs.workspace }}" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "PR: #${{ inputs.pr_number }}" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -127,7 +141,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          echo "🚀 Deploying to Cloudflare Pages..."
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🚀 Deploying to Cloudflare Pages..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+
           pnpm exec wrangler pages deploy ./dist \
             --project-name=${{ inputs.workspace }} \
             --branch=preview-pr-${{ inputs.pr_number }} | tee deploy_output.txt
@@ -136,6 +152,16 @@ jobs:
           DEPLOY_URL=$(grep -oP 'https://[^\s]+' deploy_output.txt | head -1 || echo "")
           if [ -n "$DEPLOY_URL" ]; then
             echo "deployment_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Append deploy output to captured log
+        if: always()
+        working-directory: apps/startup-blueprint
+        run: |
+          if [ -f deploy_output.txt ]; then
+            echo "" >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+            echo "=== wrangler deploy output ===" >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+            cat deploy_output.txt >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           fi
 
       - name: Extract deployment URL
@@ -263,37 +289,37 @@ jobs:
           PREVIEW_URL="${{ steps.extract_url.outputs.url }}"
           CUSTOM_URL="${{ steps.extract_url.outputs.custom_url }}"
 
-          echo "🔍 Verifying preview deployment..."
-          echo ""
+          echo "🔍 Verifying preview deployment..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
 
           # Wait a moment for deployment to propagate
           sleep 5
 
           # Check direct URL
-          echo "Testing direct URL: $PREVIEW_URL"
+          echo "Testing direct URL: $PREVIEW_URL" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$PREVIEW_URL" || echo "000")
 
           if [ "$HTTP_CODE" == "200" ]; then
-            echo "✅ Direct URL is accessible (HTTP $HTTP_CODE)"
+            echo "✅ Direct URL is accessible (HTTP $HTTP_CODE)" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           else
-            echo "⚠️ Direct URL returned HTTP $HTTP_CODE"
+            echo "⚠️ Direct URL returned HTTP $HTTP_CODE" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           fi
           
-          echo ""
-          echo "Testing custom domain: $CUSTOM_URL"
-          echo "⚠️ Custom domain may take 1-2 minutes to propagate DNS changes"
+          echo "" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "Testing custom domain: $CUSTOM_URL" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "⚠️ Custom domain may take 1-2 minutes to propagate DNS changes" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           
           # Try custom domain (may fail initially due to DNS propagation)
           CUSTOM_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$CUSTOM_URL" || echo "000")
           
           if [ "$CUSTOM_CODE" == "200" ]; then
-            echo "✅ Custom domain is accessible (HTTP $CUSTOM_CODE)"
+            echo "✅ Custom domain is accessible (HTTP $CUSTOM_CODE)" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           else
-            echo "⚠️ Custom domain returned HTTP $CUSTOM_CODE (may need DNS propagation time)"
+            echo "⚠️ Custom domain returned HTTP $CUSTOM_CODE (may need DNS propagation time)" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
           fi
           
-          echo ""
-          echo "✅ Deployment verification complete"
+          echo "" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "✅ Deployment verification complete" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
 
       - name: Generate deployment summary
         working-directory: .
@@ -319,3 +345,31 @@ jobs:
           echo "⚠️ **Note:** DNS propagation for the custom domain may take 1-2 minutes." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Ready for production deployment on merge to main**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Save summary for capture
+        if: always()
+        working-directory: .
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            cp "$GITHUB_STEP_SUMMARY" "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          fi
+
+      - name: Finalize job capture
+        if: always()
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'deploy-preview'
+          job-conclusion: ${{ job.status }}
+          mode: 'finish'
+          summary-file: ${{ github.workspace }}/.crewai-job-output/current-job-summary.md
+
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-deploy-preview
+          path: ${{ github.workspace }}/.crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true

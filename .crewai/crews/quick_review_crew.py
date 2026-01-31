@@ -1,69 +1,155 @@
-"""Quick review crew."""
+"""Quick review crew with adaptive diff sampling."""
 
 import logging
-import os
+from typing import List
 
-from crewai import LLM, Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from pydantic import BaseModel, Field
 
 from tools.workspace_tool import WorkspaceTool
+from utils.model_config import get_llm, get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
 
+class DiffContext(BaseModel):
+    """Schema for diff context output."""
+
+    commit_intent: str = Field(description="Summary of what changed")
+    total_changes: int = Field(description="Total lines added/deleted")
+    changed_files: List[dict] = Field(description="List of changed files with metadata")
+    review_focus_areas: List[str] = Field(description="Areas to focus review on")
+    sampled_diff: str = Field(description="The actual diff content")
+
+
+class CodeIssues(BaseModel):
+    """Schema for code issues output."""
+
+    critical: List[dict] = Field(default_factory=list, description="Critical issues")
+    warnings: List[dict] = Field(default_factory=list, description="Warning issues")
+    info: List[dict] = Field(default_factory=list, description="Info notes")
+
+
+class QuickReview(BaseModel):
+    """Schema for final quick review output."""
+
+    status: str = Field(description="ok|warning|critical")
+    summary: str = Field(description="Detailed review summary")
+    total_findings: int = Field(description="Total number of issues")
+    critical: List[dict] = Field(default_factory=list, description="Critical issues")
+    warnings: List[dict] = Field(default_factory=list, description="Warning issues")
+    info: List[dict] = Field(default_factory=list, description="Info notes")
+    merge_status: str = Field(description="APPROVE|REQUEST_CHANGES|NEEDS_DISCUSSION")
+    merge_rationale: str = Field(description="Explanation for merge decision")
+
+
 @CrewBase
 class QuickReviewCrew:
-    """Quick review crew."""
+    """Quick review crew with adaptive diff sampling."""
 
     agents_config = "../config/agents.yaml"
     tasks_config = "../config/tasks/quick_review_tasks.yaml"
 
     def __init__(self):
         """Initialize quick review crew."""
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            raise ValueError("OPENROUTER_API_KEY required")
+        self.llm = get_llm()
+        logger.info(f"QuickReview using model: {self.llm.model}")
 
-        self.model_name = os.getenv("MODEL_DEFAULT", "openrouter/xiaomi/mimo-v2-flash")
-
-        # Create LLM instance with function calling
-        self.llm = LLM(
-            model=self.model_name,
-            api_key=api_key,
-            base_url="https://openrouter.ai/api/v1",
+    @agent
+    def diff_intelligence_specialist(self) -> Agent:
+        """Diff Intelligence Specialist - parses diffs and builds focused context."""
+        return Agent(
+            config=self.agents_config["diff_intelligence_specialist"],
+            tools=[WorkspaceTool()],
+            llm=self.llm,
+            function_calling_llm=self.llm,
+            max_iter=10,
+            verbose=True,
+            allow_delegation=False,
         )
 
     @agent
-    def quick_reviewer(self) -> Agent:
-        """Create quick reviewer agent."""
+    def code_quality_investigator(self) -> Agent:
+        """Code Quality Investigator - detects issues in focused context."""
         return Agent(
-            config=self.agents_config["quick_reviewer"],
+            config=self.agents_config["code_quality_investigator"],
             tools=[WorkspaceTool()],
             llm=self.llm,
-            function_calling_llm=self.llm,  # Enable function calling
+            function_calling_llm=self.llm,
+            max_iter=12,
+            verbose=True,
+            allow_delegation=False,
+        )
+
+    @agent
+    def review_synthesizer(self) -> Agent:
+        """Review Synthesizer - consolidates findings into quick_review.json."""
+        return Agent(
+            config=self.agents_config["review_synthesizer"],
+            tools=[WorkspaceTool()],
+            llm=self.llm,
+            function_calling_llm=self.llm,
             max_iter=10,
             verbose=True,
             allow_delegation=False,
         )
 
     @task
-    def quick_code_review(self) -> Task:
-        """Quick code review task."""
-        # Agent writes output directly using WorkspaceTool
-        # No output_file needed - agent calls WorkspaceTool with:
-        #   operation="write", filename="quick_review.json"
+    def parse_and_contextualize(self) -> Task:
+        """Parse diff and build focused review context."""
         return Task(
-            config=self.tasks_config["quick_code_review"],
-            agent=self.quick_reviewer(),
-            # output_file removed - agent writes directly via WorkspaceTool
+            config=self.tasks_config["parse_and_contextualize"],
+            agent=self.diff_intelligence_specialist(),
+            output_pydantic=DiffContext,
+            output_file="diff_context.json",
+        )
+
+    @task
+    def detect_code_issues(self) -> Task:
+        """Detect issues in focused diff context."""
+        return Task(
+            config=self.tasks_config["detect_code_issues"],
+            agent=self.code_quality_investigator(),
+            output_pydantic=CodeIssues,
+            output_file="code_issues.json",
+        )
+
+    @task
+    def synthesize_report(self) -> Task:
+        """Synthesize findings into final quick_review.json."""
+        return Task(
+            config=self.tasks_config["synthesize_report"],
+            agent=self.review_synthesizer(),
+            output_pydantic=QuickReview,
+            output_file="quick_review.json",
+        )
+
+    @task
+    def completion_task(self) -> Task:
+        """Dummy task to ensure file writing works."""
+        return Task(
+            description="Confirm quick review completed.",
+            expected_output="Done",
+            agent=self.review_synthesizer(),
         )
 
     @crew
     def crew(self) -> Crew:
         """Create quick review crew."""
         return Crew(
-            agents=[self.quick_reviewer()],
-            tasks=[self.quick_code_review()],
+            agents=[
+                self.diff_intelligence_specialist(),
+                self.code_quality_investigator(),
+                self.review_synthesizer(),
+            ],
+            tasks=[
+                self.parse_and_contextualize(),
+                self.detect_code_issues(),
+                self.synthesize_report(),
+                self.completion_task(),
+            ],
             process=Process.sequential,
             verbose=True,
+            max_rpm=get_rate_limiter().current_limit,
         )

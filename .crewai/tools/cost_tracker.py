@@ -4,6 +4,7 @@ import atexit
 import logging
 import os
 import time
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -18,6 +19,7 @@ class APICallMetrics:
 
     call_number: int
     task_name: str
+    crew_name: str  # NEW: Identify which crew made the call
     model: str
     tokens_in: int
     tokens_out: int
@@ -30,15 +32,12 @@ class APICallMetrics:
 
     def __str__(self) -> str:
         """Format metrics as a table row."""
+        # Shorten model name for display
+        model_short = self.model.replace("gemini-2.0-flash", "gemini-flash").replace("-001", "")
         return (
-            f"| {self.call_number} "
-            f"| {self.task_name} "
-            f"| {self.model} "
-            f"| {self.tokens_in:,} "
-            f"| {self.tokens_out:,} "
-            f"| {self.total_tokens:,} "
-            f"| ${self.cost:.6f} "
-            f"| {self.tokens_per_second:.1f} |"
+            f"| #{self.call_number} | {self.crew_name} | {model_short} "
+            f"| {self.tokens_in:,} | {self.tokens_out:,} "
+            f"| ${self.cost:.6f} | {self.tokens_per_second:.1f} tok/s |"
         )
 
 
@@ -49,6 +48,7 @@ class CostTracker:
         """Initialize cost tracker."""
         self.calls: List[APICallMetrics] = []
         self.current_task: Optional[str] = None
+        self.current_crew: Optional[str] = None  # NEW: Track current crew
         self.call_counter = 0
         self.generation_ids: Dict[str, int] = {}  # Track generation_id -> call_number
         self._cleanup_registered = False
@@ -75,10 +75,54 @@ class CostTracker:
         except Exception:
             pass  # Ignore errors during shutdown
 
+    def _infer_crew_from_task(self, task_name: str) -> str:
+        """Infer crew name from task name."""
+        task_lower = task_name.lower()
+        if "route" in task_lower or "router" in task_lower:
+            return "Router"
+        elif "ci" in task_lower or "log" in task_lower:
+            return "CI Analysis"
+        elif "quick" in task_lower:
+            return "Quick Review"
+        elif "full" in task_lower:
+            return "Full Review"
+        elif "legal" in task_lower:
+            return "Legal Review"
+        elif "summary" in task_lower or "synthesize" in task_lower:
+            return "Final Summary"
+        return "Unknown"
+
     def set_current_task(self, task_name: str):
         """Set the current task name for associating API calls."""
         self.current_task = task_name
-        logger.info(f"🏷️  Tracking costs for: {task_name}")
+        self.current_crew = self._infer_crew_from_task(task_name)
+        logger.info(f"🏷️  Tracking costs for: {task_name} (Crew: {self.current_crew})")
+
+    def _calculate_cost(self, model: str, tokens_in: int, tokens_out: int) -> float:
+        """Calculate cost based on model and token counts.
+
+        Pricing for common models (per 1M tokens):
+        - gemini-2.0-flash: $0.10 input, $0.40 output
+        - gemini-1.5-flash: $0.075 input, $0.30 output
+        - gpt-4o-mini: $0.15 input, $0.60 output
+        """
+        model_lower = model.lower()
+
+        if "gemini-2.0-flash" in model_lower:
+            input_cost = tokens_in * 0.0000001  # $0.10 per 1M
+            output_cost = tokens_out * 0.0000004  # $0.40 per 1M
+        elif "gemini-1.5-flash" in model_lower:
+            input_cost = tokens_in * 0.000000075  # $0.075 per 1M
+            output_cost = tokens_out * 0.0000003  # $0.30 per 1M
+        elif "gpt-4o-mini" in model_lower:
+            input_cost = tokens_in * 0.00000015  # $0.15 per 1M
+            output_cost = tokens_out * 0.0000006  # $0.60 per 1M
+        else:
+            # Default to Gemini Flash pricing
+            input_cost = tokens_in * 0.0000001
+            output_cost = tokens_out * 0.0000004
+
+        return input_cost + output_cost
 
     def log_api_call(
         self,
@@ -92,7 +136,7 @@ class CostTracker:
         """Log metrics for a single API call.
 
         Args:
-            model: Model name (e.g., 'xiaomi/mimo-v2-flash')
+            model: Model name (e.g., 'google/gemini-2.0-flash-001')
             tokens_in: Input tokens (prompt)
             tokens_out: Output tokens (completion)
             cost: Cost in USD
@@ -107,10 +151,16 @@ class CostTracker:
 
         # Use current task or "Unknown" if not set
         task_name = self.current_task or "Unknown"
+        crew_name = self.current_crew or self._infer_crew_from_task(task_name)
+
+        # If cost is 0 (OpenRouter free tier doesn't report costs), calculate manually
+        if cost == 0.0:
+            cost = self._calculate_cost(model, tokens_in, tokens_out)
 
         metrics = APICallMetrics(
             call_number=self.call_counter,
             task_name=task_name,
+            crew_name=crew_name,
             model=model,
             tokens_in=tokens_in,
             tokens_out=tokens_out,
@@ -129,10 +179,34 @@ class CostTracker:
             self.generation_ids[generation_id] = self.call_counter
 
         logger.info(
-            f"💸 Call #{self.call_counter}: {model} "
+            f"💸 Call #{self.call_counter} ({crew_name}): {model} "
             f"({tokens_in:,} in, {tokens_out:,} out, "
             f"${cost:.6f}, {tokens_per_second:.1f} tok/s)"
         )
+
+    def get_crew_summary(self) -> Dict[str, Dict]:
+        """Get cost summary grouped by crew."""
+        crew_stats = defaultdict(
+            lambda: {
+                "calls": 0,
+                "tokens_in": 0,
+                "tokens_out": 0,
+                "total_tokens": 0,
+                "cost": 0.0,
+                "duration": 0.0,
+            }
+        )
+
+        for call in self.calls:
+            stats = crew_stats[call.crew_name]
+            stats["calls"] += 1
+            stats["tokens_in"] += call.tokens_in
+            stats["tokens_out"] += call.tokens_out
+            stats["total_tokens"] += call.total_tokens
+            stats["cost"] += call.cost
+            stats["duration"] += call.duration_seconds
+
+        return dict(crew_stats)
 
     def enrich_from_openrouter(self):
         """Enrich metrics by fetching data from OpenRouter API using generation IDs.
@@ -226,6 +300,7 @@ class CostTracker:
             - total_cost: Total cost in USD
             - total_duration: Total duration in seconds
             - average_tokens_per_second: Average throughput
+            - crew_breakdown: Per-crew statistics
         """
         return {
             "total_calls": len(self.calls),
@@ -235,10 +310,11 @@ class CostTracker:
             "total_cost": self.get_total_cost(),
             "total_duration": self.get_total_duration(),
             "average_tokens_per_second": self.get_average_tokens_per_second(),
+            "crew_breakdown": self.get_crew_summary(),
         }
 
     def format_as_markdown_table(self) -> str:
-        """Format all metrics as a markdown table.
+        """Format all metrics as a markdown table with crew breakdowns.
 
         Returns:
             Markdown-formatted table string
@@ -247,28 +323,51 @@ class CostTracker:
             return "_No API calls recorded_"
 
         lines = [
-            "| # | Task | Model | Tokens In | Tokens Out | Total | Cost | Tok/Sec |",
-            "|---|------|-------|-----------|------------|-------|------|---------|",
+            "| Call | Crew | Model | Input | Output | Cost | Speed |",
+            "|------|------|-------|-------|--------|------|-------|",
         ]
 
-        # Add each call
-        for call in self.calls:
+        # Group calls by crew and add crew subtotals
+        crew_summary = self.get_crew_summary()
+        current_crew = None
+        crew_start_call = 1
+
+        for i, call in enumerate(self.calls):
+            # Add crew subtotal before switching crews
+            if current_crew and call.crew_name != current_crew:
+                stats = crew_summary[current_crew]
+                lines.append(
+                    f"| **{current_crew} Total** | **{stats['calls']} calls** | - "
+                    f"| **{stats['tokens_in']:,}** | **{stats['tokens_out']:,}** "
+                    f"| **${stats['cost']:.6f}** | - |"
+                )
+                crew_start_call = call.call_number
+
+            current_crew = call.crew_name
             lines.append(str(call))
 
-        # Add totals row
+        # Add final crew subtotal
+        if current_crew:
+            stats = crew_summary[current_crew]
+            lines.append(
+                f"| **{current_crew} Total** | **{stats['calls']} calls** | - "
+                f"| **{stats['tokens_in']:,}** | **{stats['tokens_out']:,}** "
+                f"| **${stats['cost']:.6f}** | - |"
+            )
+
+        # Add grand total
         lines.append(
-            f"| **TOTAL** | **{len(self.calls)} calls** | - "
+            f"| **GRAND TOTAL** | **{len(self.calls)} calls** | - "
             f"| **{self.get_total_tokens_in():,}** "
             f"| **{self.get_total_tokens_out():,}** "
-            f"| **{self.get_total_tokens():,}** "
             f"| **${self.get_total_cost():.6f}** "
-            f"| **{self.get_average_tokens_per_second():.1f}** |"
+            f"| **{self.get_average_tokens_per_second():.1f} tok/s** |"
         )
 
         return "\n".join(lines)
 
     def format_summary(self) -> str:
-        """Format a brief summary of costs.
+        """Format a brief summary of costs with crew breakdown.
 
         Returns:
             Human-readable summary string
@@ -276,12 +375,22 @@ class CostTracker:
         if not self.calls:
             return "No API calls recorded"
 
+        crew_summary = self.get_crew_summary()
+        crew_lines = []
+        for crew_name in sorted(crew_summary.keys()):
+            stats = crew_summary[crew_name]
+            crew_lines.append(
+                f"  • {crew_name}: {stats['calls']} calls, "
+                f"${stats['cost']:.6f} ({stats['total_tokens']:,} tokens)"
+            )
+
         return (
             f"📊 Total API Calls: {len(self.calls)}\n"
             f"💰 Total Cost: ${self.get_total_cost():.6f}\n"
             f"🔢 Total Tokens: {self.get_total_tokens():,} "
             f"({self.get_total_tokens_in():,} in, {self.get_total_tokens_out():,} out)\n"
-            f"⚡ Average Speed: {self.get_average_tokens_per_second():.1f} tokens/sec"
+            f"⚡ Average Speed: {self.get_average_tokens_per_second():.1f} tokens/sec\n"
+            f"\n📋 By Crew:\n" + "\n".join(crew_lines)
         )
 
 

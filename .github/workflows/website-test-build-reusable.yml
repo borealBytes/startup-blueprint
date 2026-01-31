@@ -39,6 +39,12 @@ jobs:
           ref: ${{ inputs.commit_sha || github.sha }}
           fetch-depth: 0
 
+      - name: Initialize job capture
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'test-website'
+          mode: 'start'
+
       - name: Check if website files changed
         id: check
         working-directory: .
@@ -82,7 +88,7 @@ jobs:
 
           # Check for apps/startup-blueprint/ directory changes across the entire diff
           echo "🔍 Running diff..."
-          CHANGED_FILES=$(git diff --name-only "$BASE".."$HEAD" | grep '^apps/startup-blueprint/' || true)
+          CHANGED_FILES=$(git diff --name-only "$BASE".."HEAD" | grep '^apps/startup-blueprint/' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "⏭️  No website files changed - skipping tests and build"
@@ -116,20 +122,23 @@ jobs:
       - name: Run linting
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🔍 Running linting..."
-          pnpm run lint || echo "⚠️  Linting not configured yet"
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🔍 Running linting..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          pnpm run lint 2>&1 | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log" || echo "⚠️  Linting not configured yet"
 
       - name: Run tests
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🧪 Running tests..."
-          pnpm run test || echo "⚠️  Tests not configured yet"
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🧪 Running tests..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          pnpm run test 2>&1 | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log" || echo "⚠️  Tests not configured yet"
 
       - name: Build website
         if: steps.check.outputs.should_run == 'true'
         run: |
-          echo "🏗️  Building website..."
-          pnpm run build
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🏗️  Building website..." | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          pnpm run build 2>&1 | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
 
       - name: Upload build artifacts
         if: steps.check.outputs.should_run == 'true'
@@ -171,3 +180,36 @@ jobs:
           echo "## 🏗️ Website Build" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "⏭️ **Skipped** - No website files changed" >> $GITHUB_STEP_SUMMARY
+
+      - name: Save summary for capture
+        if: always()
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          # Save step summary with fallback to prevent empty file
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            cp "$GITHUB_STEP_SUMMARY" "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          else
+            # Fallback if summary is missing or empty
+            echo "# Website Test & Build Summary" > "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "" >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "No step summary was generated for this job." >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          fi
+
+      - name: Finalize job capture
+        if: always()
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'test-website'
+          job-conclusion: ${{ job.status }}
+          mode: 'finish'
+          summary-file: ${{ github.workspace }}/.crewai-job-output/current-job-summary.md
+
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-test-website
+          path: ${{ github.workspace }}/.crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true

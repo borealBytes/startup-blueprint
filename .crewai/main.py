@@ -9,6 +9,69 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# CRITICAL: Register models BEFORE importing any CrewAI components
+# This must happen before CrewAI checks model capabilities during class decoration
+from utils.model_config import get_rate_limit_delay, register_models
+
+register_models()
+
+import litellm
+
+litellm.num_retries = 3
+setattr(litellm, "request_timeout", 120)
+
+from tools.cost_tracker import get_tracker
+
+_cost_tracker = get_tracker()
+
+
+def _litellm_success_callback(kwargs, completion_response, start_time, end_time):
+    """Track successful LLM calls for cost monitoring."""
+    try:
+        model = kwargs.get("model", "unknown")
+        response_obj = completion_response
+        if hasattr(response_obj, "usage"):
+            usage = response_obj.usage
+            tokens_in = getattr(usage, "prompt_tokens", 0)
+            tokens_out = getattr(usage, "completion_tokens", 0)
+        else:
+            tokens_in = 0
+            tokens_out = 0
+        # Handle both timedelta and float duration formats
+        try:
+            duration = float(end_time - start_time)
+        except (TypeError, ValueError):
+            # If it's a timedelta or other object, try to convert
+            if hasattr(end_time - start_time, "total_seconds"):
+                duration = (end_time - start_time).total_seconds()
+            else:
+                duration = 0.0
+        cost = getattr(response_obj, "cost", 0.0) or 0.0
+        _cost_tracker.log_api_call(model, tokens_in, tokens_out, cost, duration)
+    except Exception as e:
+        logger.warning(f"⚠️ Cost tracking error (success): {e}")
+
+
+def _litellm_failure_callback(kwargs, error, start_time, end_time):
+    """Track failed LLM calls for monitoring."""
+    try:
+        model = kwargs.get("model", "unknown")
+        # Handle both timedelta and float duration formats
+        try:
+            duration = float(end_time - start_time)
+        except (TypeError, ValueError):
+            if hasattr(end_time - start_time, "total_seconds"):
+                duration = (end_time - start_time).total_seconds()
+            else:
+                duration = 0.0
+        _cost_tracker.log_api_call(model, 0, 0, 0.0, duration)
+    except Exception as e:
+        logger.warning(f"⚠️ Cost tracking error (failure): {e}")
+
+
+litellm.success_callback = [_litellm_success_callback]
+litellm.failure_callback = [_litellm_failure_callback]
+
 from crews.ci_log_analysis_crew import CILogAnalysisCrew
 from crews.final_summary_crew import FinalSummaryCrew
 from crews.full_review_crew import FullReviewCrew
@@ -16,6 +79,7 @@ from crews.legal_review_crew import LegalReviewCrew
 from crews.quick_review_crew import QuickReviewCrew
 from crews.router_crew import RouterCrew
 from tools.cost_tracker import get_tracker
+from tools.github_tools import CommitDiffTool
 from tools.workspace_tool import WorkspaceTool
 
 # Configure logging
@@ -108,6 +172,10 @@ def run_router(env_vars):
     logger.info("🔀 STEP 1: Router - Analyzing PR and deciding workflows")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("analyze_pr_and_route")
+
     try:
         router = RouterCrew()
         result = router.crew().kickoff(
@@ -179,7 +247,12 @@ def run_ci_analysis(env_vars):
     logger.info("📊 STEP 2: CI Log Analysis - Parsing core-ci results")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("parse_ci_output")
+
     try:
+        prepare_ci_results_inputs()
         ci_crew = CILogAnalysisCrew()
         result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
 
@@ -240,7 +313,77 @@ def run_ci_analysis(env_vars):
         return False
 
 
-def run_quick_review():
+def prepare_review_inputs(env_vars):
+    workspace = WorkspaceTool()
+    commit_sha = env_vars["commit_sha"]
+    repository = env_vars["repository"]
+
+    diff_result = CommitDiffTool._run(commit_sha=commit_sha, repository=repository)
+    if diff_result.get("error"):
+        logger.warning(f"⚠️ Could not fetch diff: {diff_result['error']}")
+        return False
+
+    diff_content = diff_result.get("diff_content", "")
+    if diff_content:
+        workspace.write("diff.txt", diff_content)
+
+    commits_payload = [
+        {
+            "sha": diff_result.get("commit_sha", commit_sha),
+            "message": diff_result.get("message", ""),
+            "author": diff_result.get("author", ""),
+            "total_additions": diff_result.get("total_additions", 0),
+            "total_deletions": diff_result.get("total_deletions", 0),
+            "total_changes": diff_result.get("total_changes", 0),
+            "files": diff_result.get("files", []),
+        }
+    ]
+
+    workspace.write_json("commits.json", {"commits": commits_payload})
+    workspace.write_json(
+        "diff.json",
+        {
+            "commit_sha": diff_result.get("commit_sha", commit_sha),
+            "message": diff_result.get("message", ""),
+            "author": diff_result.get("author", ""),
+            "files": diff_result.get("files", []),
+            "total_additions": diff_result.get("total_additions", 0),
+            "total_deletions": diff_result.get("total_deletions", 0),
+            "total_changes": diff_result.get("total_changes", 0),
+        },
+    )
+
+    return True
+
+
+def prepare_ci_results_inputs():
+    workspace_dir = Path(__file__).parent / "workspace"
+    target_dir = workspace_dir / "ci_results"
+    if target_dir.exists():
+        return True
+
+    env_path = os.getenv("CI_RESULTS_DIR")
+    candidates = []
+    if env_path:
+        candidates.append(Path(env_path))
+
+    github_workspace = os.getenv("GITHUB_WORKSPACE")
+    if github_workspace:
+        candidates.append(Path(github_workspace) / ".crewai" / "workspace" / "ci_results")
+        candidates.append(Path(github_workspace) / "ci_results")
+
+    for source_dir in candidates:
+        if source_dir.exists():
+            import shutil
+
+            target_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(source_dir, target_dir)
+            return True
+
+    return False
+
+
+def run_quick_review(env_vars):
     """Run quick review crew.
 
     Returns:
@@ -250,7 +393,12 @@ def run_quick_review():
     logger.info("⚡ STEP 3: Quick Review - Fast code quality check")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("quick_code_review")
+
     try:
+        prepare_review_inputs(env_vars)
         quick_crew = QuickReviewCrew()
         result = quick_crew.crew().kickoff()
 
@@ -338,6 +486,10 @@ def run_full_review(env_vars):
     logger.info("🔍 STEP 4: Full Technical Review - Deep analysis")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("full_technical_review")
+
     try:
         full_crew = FullReviewCrew()
         result = full_crew.crew().kickoff(
@@ -394,6 +546,10 @@ def run_legal_review():
     logger.info("⚖️ STEP 5: Legal Review - Compliance check (STUB)")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("legal_compliance_check")
+
     try:
         legal_crew = LegalReviewCrew()
         result = legal_crew.kickoff()  # Uses stub implementation
@@ -423,6 +579,10 @@ def run_final_summary(env_vars, workflows_executed):
     logger.info("📋 STEP 6: Final Summary - Synthesizing all reviews")
     logger.info("=" * 60)
 
+    # Track costs for this crew
+    tracker = get_tracker()
+    tracker.set_current_task("synthesize_final_summary")
+
     try:
         # Count the number of reviews/workflows that were executed
         workflow_count = len(workflows_executed)
@@ -431,11 +591,13 @@ def run_final_summary(env_vars, workflows_executed):
         result = summary_crew.crew().kickoff(
             inputs={
                 "pr_number": env_vars["pr_number"],
-                "commit_sha": env_vars["commit_sha"],
+                "sha": env_vars["commit_sha"],
                 "repository": env_vars["repository"],
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                "time": datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S UTC"
+                ),  # Changed from timestamp to time
                 "count": workflow_count,
-                "workflows": ", ".join(workflows_executed),
+                "list": ", ".join(workflows_executed),  # Changed from workflows to list
             }
         )
 
@@ -507,30 +669,82 @@ def format_finding_item(finding, severity_emoji):
 
 
 def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
-    """Create a comprehensive fallback summary extracting all available findings.
+    """Create executive summary from crew JSON outputs.
 
     Args:
         workspace_dir: Path to workspace directory
         env_vars: Environment variables
         workflows_executed: List of executed workflows
     """
-    logger.info("🔧 Creating comprehensive fallback summary...")
+    logger.info("🔧 Creating executive summary from crew outputs...")
 
     workspace = WorkspaceTool()
 
-    # Collect what we can from workspace
+    # Collect findings from all crews
+    ci_data = workspace.read_json("ci_summary.json") if workspace.exists("ci_summary.json") else {}
+    quick_data = (
+        workspace.read_json("quick_review.json") if workspace.exists("quick_review.json") else {}
+    )
+    router_data = (
+        workspace.read_json("router_decision.json")
+        if workspace.exists("router_decision.json")
+        else {}
+    )
+    full_data = (
+        workspace.read_json("full_review.json") if workspace.exists("full_review.json") else {}
+    )
+
+    # Count findings
+    ci_critical = len(ci_data.get("critical_errors", []))
+    ci_warnings = len(ci_data.get("warnings", []))
+    quick_critical = len(quick_data.get("critical", []))
+    quick_warnings = len(quick_data.get("warnings", []))
+    quick_info = len(quick_data.get("info", []))
+
+    total_critical = ci_critical + quick_critical
+    total_warnings = ci_warnings + quick_warnings
+
+    # Start building summary
     summary_parts = []
     summary_parts.append("## ⚠️ Review Summary")
     summary_parts.append("")
-    summary_parts.append(
-        f"Review completed for PR #{env_vars['pr_number']} - "
-        f"{len(workflows_executed)} workflows executed."
-    )
+
+    # Executive Summary
+    summary_parts.append("### 📋 Executive Summary")
     summary_parts.append("")
-    summary_parts.append(f"**Commit**: `{env_vars['commit_sha'][:7]}`")
-    summary_parts.append(f"**Repository**: {env_vars['repository']}")
-    summary_parts.append(f"**Workflows**: {', '.join(workflows_executed)}")
-    summary_parts.append(f"**Timestamp**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    if total_critical > 0:
+        summary_parts.append(
+            f"**Status**: 🔴 **Action Required** - {total_critical} critical issue(s) must be addressed"
+        )
+    elif total_warnings > 0:
+        summary_parts.append(
+            f"**Status**: 🟡 **Review Recommended** - {total_warnings} warning(s) found"
+        )
+    else:
+        summary_parts.append("**Status**: ✅ **Looks Good** - No critical issues detected")
+
+    summary_parts.append("")
+    summary_parts.append(
+        f"**PR**: #{env_vars['pr_number']} | **Commit**: `{env_vars['commit_sha'][:7]}` | **Repository**: {env_vars['repository']}"
+    )
+
+    # Build summary line
+    summary_line_parts = []
+    if ci_data.get("status") == "success":
+        summary_line_parts.append("✅ CI passed")
+    elif ci_data.get("status"):
+        summary_line_parts.append(f"❌ CI {ci_data.get('status')}")
+
+    if total_critical > 0:
+        summary_line_parts.append(f"🔴 {total_critical} critical")
+    if total_warnings > 0:
+        summary_line_parts.append(f"🟡 {total_warnings} warnings")
+    if quick_info > 0:
+        summary_line_parts.append(f"ℹ️ {quick_info} suggestions")
+
+    if summary_line_parts:
+        summary_parts.append(f"**Summary**: {' • '.join(summary_line_parts)}")
+
     summary_parts.append("")
     summary_parts.append("---")
     summary_parts.append("")
@@ -736,7 +950,24 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
         summary_parts.append("Status: Did not run")
         summary_parts.append("")
 
-    # Router Suggestions
+    positive_notes = []
+    if total_critical == 0:
+        positive_notes.append("No critical issues detected")
+    if ci_data.get("status") == "success":
+        positive_notes.append("All CI checks passed")
+    if quick_data.get("merge_status") == "APPROVE":
+        positive_notes.append("Code quality review recommends approval")
+
+    if positive_notes:
+        summary_parts.append("<details>")
+        summary_parts.append(f"<summary><b>✨ What's Good ({len(positive_notes)})</b></summary>")
+        summary_parts.append("")
+        for note in positive_notes:
+            summary_parts.append(f"- ✅ {note}")
+        summary_parts.append("")
+        summary_parts.append("</details>")
+        summary_parts.append("")
+
     if workspace.exists("router_decision.json"):
         try:
             router_data = workspace.read_json("router_decision.json")
@@ -764,61 +995,35 @@ def create_fallback_summary(workspace_dir, env_vars, workflows_executed):
 
 
 def generate_cost_breakdown():
-    """Generate markdown table with cost breakdown.
+    """Generate markdown table with cost breakdown grouped by crew.
 
     Returns:
-        str: Markdown formatted cost breakdown table
+        str: Markdown formatted cost breakdown table with crew subtotals
     """
     try:
         tracker = get_tracker()
         summary = tracker.get_summary()
-        calls = tracker.calls
 
         if summary["total_calls"] == 0:
             return "\n---\n\n## 💰 Cost Tracking\n\nNo API calls recorded.\n"
 
-        # Build markdown table
+        # Use tracker's built-in markdown table formatter
+        # It includes crew column, crew subtotals, and grand total
+        table = tracker.format_as_markdown_table()
+
         lines = []
         lines.append("")
         lines.append("---")
         lines.append("")
-        lines.append("## 💰 Cost Breakdown")
+        lines.append("## 💰 Cost Breakdown by Crew")
         lines.append("")
-        lines.append("| Call | Model | Input | Output | Cost | Speed |")
-        lines.append("|------|-------|-------|--------|------|-------|")
-
-        # CRITICAL: Access dataclass attributes with dot notation, not subscripts
-        for i, call in enumerate(calls, 1):
-            model_short = call.model.split("/")[-1]  # Last part of model name
-            input_tokens = f"{call.tokens_in:,}"
-            output_tokens = f"{call.tokens_out:,}"
-            cost = f"${call.cost:.6f}"
-
-            # Calculate speed (tokens/sec)
-            if call.duration_seconds > 0:
-                speed = (call.tokens_in + call.tokens_out) / call.duration_seconds
-                speed_str = f"{speed:.1f} tok/s"
-            else:
-                speed_str = "N/A"
-
-            lines.append(
-                f"| #{i} | {model_short} | {input_tokens} | "
-                f"{output_tokens} | {cost} | {speed_str} |"
-            )
-
-        # Add totals row
-        lines.append(
-            f"| **TOTAL** | **{summary['total_calls']} calls** | "
-            f"**{summary['total_tokens_in']:,}** | "
-            f"**{summary['total_tokens_out']:,}** | "
-            f"**${summary['total_cost']:.6f}** | "
-            f"**{summary['total_duration']:.1f}s** |"
-        )
-
+        lines.append(table)
         lines.append("")
         lines.append(
-            f"**Total Tokens**: {summary['total_tokens']:,} | "
-            f"**Avg Speed**: {summary['total_tokens'] / summary['total_duration']:.1f} tok/s"
+            f"**Summary**: {summary['total_calls']} calls across "
+            f"{len(summary['crew_breakdown'])} crews | "
+            f"Total: {summary['total_tokens']:,} tokens in {summary['total_duration']:.1f}s | "
+            f"Avg: {summary['total_tokens'] / summary['total_duration']:.1f} tok/s"
         )
         lines.append("")
 
@@ -927,6 +1132,17 @@ def print_cost_summary():
         logger.info(f"Total Cost: ${summary['total_cost']:.4f}")
         logger.info(f"Total Duration: {summary['total_duration']:.2f}s")
 
+        # Print per-crew breakdown
+        if summary["crew_breakdown"]:
+            logger.info("")
+            logger.info("By Crew:")
+            for crew_name in sorted(summary["crew_breakdown"].keys()):
+                stats = summary["crew_breakdown"][crew_name]
+                logger.info(
+                    f"  • {crew_name}: {stats['calls']} calls, "
+                    f"${stats['cost']:.4f} ({stats['total_tokens']:,} tokens)"
+                )
+
     except Exception as e:
         logger.warning(f"⚠️ Could not generate cost summary: {e}")
 
@@ -949,9 +1165,16 @@ def main():
         workflows_executed = []
         workflow_success = {}  # Track which workflows succeeded
 
-        # STEP 1: Router decides workflows
-        decision = run_router(env_vars)
-        workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
+        skip_router = os.getenv("SKIP_ROUTER", "true").lower() == "true"
+        if skip_router:
+            logger.info("⏩ SKIP_ROUTER enabled - using default workflows directly")
+            workflows = ["ci-log-analysis", "quick-review"]
+        else:
+            decision = run_router(env_vars)
+            workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
+
+        # Rate limit delay: centralized in MODEL_REGISTRY (0s for paid, 10s for free)
+        rate_limit_delay = get_rate_limit_delay()
 
         # STEP 2: Always run CI analysis (default)
         if "ci-log-analysis" in workflows:
@@ -960,14 +1183,22 @@ def main():
             workflow_success["ci-log-analysis"] = success
             if not success:
                 logger.warning("⚠️ CI analysis had issues, but continuing...")
+            # Rate limit buffer
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
 
         # STEP 3: Always run quick review (default)
         if "quick-review" in workflows:
-            success = run_quick_review()
+            success = run_quick_review(env_vars)
             workflows_executed.append("quick-review")
             workflow_success["quick-review"] = success
             if not success:
                 logger.warning("⚠️ Quick review had issues, but continuing...")
+            # Rate limit buffer
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
 
         # STEP 4: Conditional - Full review
         if "full-review" in workflows:
@@ -976,6 +1207,10 @@ def main():
             workflow_success["full-review"] = success
             if not success:
                 logger.warning("⚠️ Full review had issues, but continuing...")
+            # Rate limit buffer
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
         else:
             logger.info("⏩ Skipping full review (no crewai:full-review label)")
 
@@ -986,6 +1221,10 @@ def main():
             workflow_success["legal-review"] = success
             if not success:
                 logger.warning("⚠️ Legal review had issues, but continuing...")
+            # Rate limit buffer
+            if rate_limit_delay > 0:
+                logger.info(f"⏳ Waiting {rate_limit_delay}s for rate limit buffer...")
+                time.sleep(rate_limit_delay)
         else:
             logger.info("⏩ Skipping legal review (no crewai:legal label)")
 

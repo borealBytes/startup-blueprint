@@ -40,6 +40,18 @@ jobs:
         with:
           fetch-depth: 10
 
+      - name: Initialize job capture
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'deploy-production'
+          mode: 'start'
+
+      - name: Log deployment start
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          echo "🎉 Starting production deployment" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "Workspace: ${{ inputs.workspace }}" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+
       - name: Extract PR number and verify preview
         id: verify_preview
         uses: actions/github-script@v7
@@ -126,6 +138,7 @@ jobs:
           PRODUCTION_URL="https://${{ inputs.workspace }}.pages.dev"
           echo "url=$PRODUCTION_URL" >> $GITHUB_OUTPUT
           echo "✅ Production deployed to: $PRODUCTION_URL"
+          echo "✅ Production deployed to: $PRODUCTION_URL" | tee -a "$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
 
       - name: Create deployment status
         uses: actions/github-script@v7
@@ -204,3 +217,30 @@ jobs:
           if [ -n "${{ steps.verify_preview.outputs.pr_number }}" ]; then
             echo "**Source PR:** #${{ steps.verify_preview.outputs.pr_number }}" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Save summary for capture
+        if: always()
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -f "$GITHUB_STEP_SUMMARY" ]; then
+            cp "$GITHUB_STEP_SUMMARY" "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          fi
+
+      - name: Finalize job capture
+        if: always()
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'deploy-production'
+          job-conclusion: ${{ job.status }}
+          mode: 'finish'
+          summary-file: ${{ github.workspace }}/.crewai-job-output/current-job-summary.md
+
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-deploy-production
+          path: ${{ github.workspace }}/.crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true

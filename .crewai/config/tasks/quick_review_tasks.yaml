@@ -1,93 +1,51 @@
-quick_code_review:
+parse_and_contextualize:
   description: >
-    Perform fast code quality review and write findings to quick_review.json.
+    Parse the diff and commits to create structured context.
 
-    **MANDATORY STEPS (complete ALL steps)**:
+    SMART DIFF SAMPLING: - If diff < 100 lines: review entire diff - If diff
+    100-500 lines: sample files matching commit intent keywords - If diff > 500
+    lines: focus ONLY on high-risk files (auth, db, config, payment)
 
-    1. **Read and analyze code** - Call WorkspaceTool to read diff.txt and
-    analyze changes 2. **Write output file** - Call WorkspaceTool to write
-    quick_review.json
+    Read diff.txt and commits.json, then create a JSON analysis with: -
+    commit_intent: summary of what changed - total_changes: number of lines
+    added/deleted - changed_files: list of files with path, type
+    (modified/added/deleted), additions, deletions, risk_level -
+    review_focus_areas: list like ["security", "database", "config"] -
+    sampled_diff: the actual diff content to review
 
-    **STEP 1: Read and Analyze**
+    Return ONLY raw JSON without markdown formatting.
+  expected_output: 'Valid JSON with diff analysis'
 
-    Call WorkspaceTool to read diff.txt and analyze each changed file for:
+detect_code_issues:
+  description: >
+    Analyze the diff context and identify code issues.
 
-    **Code Quality Issues**: - Overly complex logic (nested loops, long methods)
-    - Magic numbers/strings without constants - Duplicate code patterns -
-    Missing error handling - Poor naming conventions
+    Look for: - Security issues (SQL injection, hardcoded secrets, eval/exec) -
+    Performance issues (N+1 queries, nested loops, missing pagination) - Quality
+    issues (magic numbers, poor error handling, duplicate code)
 
-    **Best Practices Violations**: - Missing documentation for public APIs -
-    Hardcoded credentials or secrets - Console.log/print statements left in code
-    - TODO/FIXME comments without tracking - Missing input validation
+    Return JSON with three arrays: critical[], warnings[], info[]. Each issue
+    must have: file, line, code_snippet, description. If no issues found, return
+    empty arrays.
 
-    **Performance Red Flags**: - N+1 query patterns - Unnecessary loops or
-    iterations - Missing database indexes - Inefficient data structures
+    Return ONLY raw JSON without markdown formatting.
+  expected_output: 'Valid JSON with issues array'
 
-    **Security Concerns**: - SQL injection vulnerabilities - Unvalidated user
-    input - Exposed sensitive data - Missing authentication checks
+synthesize_report:
+  description: >
+    Create the final review report from diff context and code issues.
 
-    **Categorize findings by severity**: - 🔴 **CRITICAL**: Security
-    vulnerabilities, data loss risks, breaking changes - 🟡 **WARNING**: Code
-    quality issues, missing docs, potential bugs - 🔵 **INFO**: Style
-    suggestions, minor improvements, best practices
+    Combine all findings into a comprehensive review with: - status: "ok",
+    "warning", or "critical" - summary: detailed review summary (minimum 100
+    characters) - total_findings: total number of issues - critical[]: array of
+    critical issues with file, line, code_snippet, description, fix_suggestion -
+    warnings[]: array of warnings with same structure - info[]: array of
+    informational notes - merge_status: "APPROVE", "REQUEST_CHANGES", or
+    "NEEDS_DISCUSSION" - merge_rationale: explanation for the merge decision
 
-    **STEP 2: Write Output File (CRITICAL)**
+    MERGE RECOMMENDATION LOGIC: - APPROVE: no critical or warning issues (info
+    only) - REQUEST_CHANGES: one or more critical issues - NEEDS_DISCUSSION:
+    warnings but no critical issues
 
-    Call WorkspaceTool to write quick_review.json with this structure: ```json {
-      "status": "warning",
-      "passed": false,
-      "summary": "Found 2 critical issues and 5 warnings",
-      "critical": [
-        {
-          "title": "SQL Injection Vulnerability",
-          "file": "api/users.py",
-          "line": "45",
-          "description": "User input concatenated directly into SQL query",
-          "fix_suggestion": "Use parameterized queries or ORM"
-        }
-      ],
-      "warnings": [],
-      "info": [],
-      "files_reviewed": 5,
-      "total_findings": 8
-    } ```
-
-    **If no issues found**, write: ```json {
-      "status": "success",
-      "passed": true,
-      "summary": "No issues found",
-      "critical": [],
-      "warnings": [],
-      "info": [],
-      "files_reviewed": 5,
-      "total_findings": 0
-    } ```
-
-    **OUTPUT FORMAT REQUIREMENTS**: - status: "success", "warning", or
-    "critical" - passed: boolean - summary: Brief text summary - critical: Array
-    (may be empty) - warnings: Array (may be empty) - info: Array (may be empty)
-    - files_reviewed: Number - total_findings: Number
-
-    **Each finding must have**: - title: Short title - file: File path - line:
-    Line number (string) - description: What's wrong - fix_suggestion: How to
-    fix it
-
-    **VALIDATION CHECKLIST**: - [ ] Did you call WorkspaceTool to read diff.txt?
-    - [ ] Did you analyze code changes? - [ ] Did you call WorkspaceTool with
-    operation="write"? - [ ] Did you set filename="quick_review.json"? - [ ]
-    Does content include all required fields? - [ ] Are arrays (critical,
-    warnings, info) present even if empty?
-
-    **IMPORTANT**: - Focus on NEW/CHANGED code only (lines starting with `+` in
-    diff) - Ignore formatting/style if CI handles it - Provide specific line
-    numbers from the diff - Every finding MUST have a concrete fix suggestion -
-    Be concise - this is a "quick" review - **YOU MUST WRITE THE FILE - do not
-    just return JSON as text**
-
-  expected_output: >
-    Confirmation message stating: "Successfully wrote quick_review.json to
-    workspace."
-
-    The file MUST exist in workspace with: - JSON object with all required
-    fields - Categorized findings (critical/warning/info) - File paths and line
-    numbers for each finding - Issue descriptions and fix suggestions
+    Return ONLY raw JSON without markdown formatting.
+  expected_output: 'Valid JSON with complete review'

@@ -1,120 +1,85 @@
-parse_ci_output:
+triage_failures:
   description: >
-    Parse CI outputs and write analysis to ci_summary.json.
+    Analyze CI logs using the enhanced CIOutputParserTool to extract ALL errors.
 
-    **MANDATORY STEPS (complete ALL steps)**:
+    CRITICAL STEPS: 1. Call CIOutputParserTool._run(ci_logs_dir="ci_results") to
+    get FULL parsed output
+       with detailed errors from stylelint, sqlfluff, markdownlint, etc.
+    2. Also call read_job_index() to get job metadata 3. Identify all jobs with
+    errors from the parser output (check critical_errors and warnings) 4. Create
+    investigation plan with:
+       - Jobs with detailed error counts from parser
+       - Specific tools that reported errors (stylelint, sqlfluff, etc.)
+       - File paths and line numbers from parser output
 
-    1. **Get CI status** - Call CIOutputParserTool to read CI job results 2.
-    **Read diff summary** - Call WorkspaceTool to read diff.json for statistics
-    3. **Extract checks performed** - Document which CI checks ran 4.
-    **Categorize issues** - Classify errors/warnings by severity 5. **Extract
-    error details** - Get file paths, line numbers, messages 6. **Analyze
-    auto-fixes** - Identify what format-and-lint fixed 7. **Write output file**
-    - Call WorkspaceTool to write ci_summary.json
-
-    **STEP 1: Get CI Status**
-
-    Call CIOutputParserTool to read CI environment variables: - CI job status
-    (success/failure) - CI job outputs (logs, errors) - Auto-fix information
-
-    **STEP 2: Read Diff Summary**
-
-    Call WorkspaceTool to read diff.json (NOT diff.txt - too large): - Get file
-    change statistics - Understand scope of changes (files
-    added/modified/deleted) - See line count changes
-
-    Note: diff.txt contains the full diff and may be truncated if large
-    (>100KB). Prefer diff.json for analysis as it contains structured summary
-    data.
-
-    **STEP 3: Extract Checks Performed**
-
-    Document which CI checks ran: - Code formatting (Black, Prettier, isort) -
-    Linting (pylint, flake8, ESLint, Ruff) - Type checking (mypy, TypeScript) -
-    Unit tests (pytest, jest) - Documentation link checking - Any other
-    automated checks
-
-    **STEP 4: Categorize Issues by Severity**
-
-    - **CRITICAL**: Build failures, type errors, syntax errors (blocks merge) -
-    **WARNING**: Lint warnings, format issues, style violations (should fix) -
-    **INFO**: Documentation links, minor suggestions (nice to have)
-
-    **STEP 5: Extract Error Details**
-
-    For each issue, extract: - Type (format error, lint error, type error, etc.)
-    - File path and line number (if available) - Specific error message - Root
-    cause analysis - Actionable fix suggestion
-
-    **STEP 6: Analyze Auto-Fixes**
-
-    Determine: - Did format-and-lint job auto-commit fixes? - What was fixed
-    (file count, line count)? - What still needs manual fixing?
-
-    **STEP 7: Write Output File (CRITICAL)**
-
-    Call WorkspaceTool to write ci_summary.json with this structure: ```json {
-      "status": "success",
-      "passed": true,
-      "summary": "Core CI: all checks passed successfully",
-      "checks_performed": [
-        "code-formatting",
-        "linting",
-        "type-checking",
-        "unit-tests"
-      ],
-      "critical_errors": [
-        {
-          "type": "Type Error",
-          "file": "src/utils.ts",
-          "line": "45",
-          "message": "Type 'string' is not assignable to type 'number'",
-          "fix_suggestion": "Change variable type or convert string to number"
-        }
-      ],
-      "warnings": [
-        {
-          "type": "Lint Warning",
-          "message": "Line too long (exceeds 100 chars)",
-          "count": 3,
-          "fix_suggestion": "Break long lines or adjust line length limit"
-        }
-      ],
-      "issue_analysis": {
-        "root_cause": "Recent refactor changed return types",
-        "fix_applied": "Auto-formatted 15 files, fixed import order",
-        "recommendation": "Review type definitions in changed files"
-      }
-    } ```
-
-    **OUTPUT FORMAT REQUIREMENTS**: - status: "success", "failure", or "warning"
-    - passed: boolean - summary: Brief text summary - checks_performed: Array of
-    check names - critical_errors: Array (may be empty) - warnings: Array (may
-    be empty) - issue_analysis: Object with root_cause, fix_applied,
-    recommendation
-
-    **VALIDATION CHECKLIST**: - [ ] Did you call CIOutputParserTool? - [ ] Did
-    you read diff.json (not diff.txt) for statistics? - [ ] Did you call
-    WorkspaceTool with operation="write"? - [ ] Did you set
-    filename="ci_summary.json"? - [ ] Does content include all required fields?
-    - [ ] Are arrays present even if empty?
-
-    **ERROR CATEGORIZATION GUIDE**: - Format errors (Prettier, Black) →
-    severity="warning" - Lint errors (ESLint, Ruff) → severity="warning" or
-    "critical" if many - Type errors (TypeScript, mypy) → severity="critical" -
-    Link check failures → severity="info" - Build failures → severity="critical"
-    - Test failures → severity="critical"
-
-    **CRITICAL**: - You MUST call WorkspaceTool to write ci_summary.json - DO
-    NOT return JSON as text - it must be written to a file - Your final answer
-    must confirm the file was written - Prefer diff.json over diff.txt to avoid
-    context overflow
-
+    The parser output contains structured data with: status, passed, summary,
+    checks_performed, critical_errors[], warnings[], jobs_analyzed[]. Use this
+    data directly for your analysis.
   expected_output: >
-    Confirmation message stating: "Successfully wrote ci_summary.json to
-    workspace."
+    Detailed investigation plan including: jobs with errors, specific CI tools
+    that failed, error counts from parser, and file paths needing review.
+  agent: ci_pipeline_lead
 
-    The file MUST exist in workspace with: - Overall CI status
-    (success/warning/failure) - List of checks performed - Categorized errors
-    and warnings with file paths - Actionable fix suggestions - Issue analysis
-    (root cause, auto-fixes, recommendations)
+# Task 2: Investigation - Get the evidence
+investigate_logs:
+  description: >
+    For each failed job identified in the triage phase, extract the specific
+    error evidence.
+
+    For each failed job: 1. Call check_log_size(folder_name) FIRST. 2. If log <
+    50KB: Use read_full_log(folder_name). 3. If log > 50KB: Use
+    search_log(folder_name, pattern) with smart patterns
+       (e.g., "error", "exception", "failed", "fatal").
+    4. Use get_log_stats(folder_name) to gauge error density.
+
+    Do NOT analyze the root cause yet—just extract the raw exception traces and
+    error messages.
+  expected_output: >
+    Detailed log snippets containing the specific error traces, stack dumps, or
+    failure messages for each failed job.
+  agent: log_pattern_specialist
+
+# Task 3: Resolution - Explain and Fix
+determine_root_cause:
+  description: >
+    Analyze the extracted log evidence to determine the technical root cause and
+    provide fixes.
+
+    For each error trace found: 1. Explain WHY it failed (e.g., "Missing
+    dependency", "Syntax error", "Timeout"). 2. Provide a specific, actionable
+    fix (e.g., "Add package X to package.json", "Fix typo in line 42"). 3.
+    Classify severity (Critical/Warning).
+  expected_output: >
+    A structured analysis of each failure, including Root Cause, Fix
+    Recommendation, and Severity.
+  agent: error_resolution_specialist
+
+# Task 4: Reporting - Final Summary
+compile_ci_report:
+  description: >
+    Synthesize all findings into the final ci_summary.json file.
+
+    STEPS: 1. Call CIOutputParserTool with ci_logs_dir="ci_results" to get
+    DETAILED
+       parsed output including all stylelint, sqlfluff, and other CI errors.
+    2. Combine the triage status, log evidence, and root cause analysis. 3. Use
+    WorkspaceTool to read diff.json for context if needed. 4. Write the final
+    JSON file using WorkspaceTool.
+
+    CRITICAL: You MUST call CIOutputParserTool._run with ci_logs_dir parameter
+    to get the full error details. Do NOT rely only on search_log results.
+
+    Required JSON structure: {
+      "status": "success|warning|failure",
+      "summary": "High-level summary with specific error counts",
+      "checks_performed": ["stylelint", "sqlfluff", ...],
+      "jobs_analyzed": [...],
+      "critical_errors": [{type, file, line, message, fix_suggestion, tool}],
+      "warnings": [...],
+      "merge_status": "APPROVE|REQUEST_CHANGES",
+      "merge_rationale": "..."
+    }
+  expected_output: >
+    "Successfully wrote ci_summary.json with N critical errors and M warnings
+    from specific tools."
+  agent: ci_pipeline_lead

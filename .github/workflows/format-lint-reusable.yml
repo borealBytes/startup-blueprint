@@ -28,6 +28,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Initialize job capture
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'core-ci'
+          mode: 'start'
+
       - name: Capture initial commit SHA
         id: initial_sha
         run: |
@@ -956,3 +962,52 @@ jobs:
             INITIAL_SHA="${{ steps.initial_sha.outputs.sha }}"
             echo "**Original Commit SHA:** \`$INITIAL_SHA\`" >> $GITHUB_STEP_SUMMARY
           fi
+
+      - name: Save summary and logs for capture
+        if: always()
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.crewai-job-output"
+
+          # Save step summary with fallback to prevent empty file
+          if [ -n "$GITHUB_STEP_SUMMARY" ] && [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            cp "$GITHUB_STEP_SUMMARY" "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          else
+            # Fallback if summary is missing or empty
+            echo "# Core CI Job Summary" > "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "" >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+            echo "No step summary was generated for this job." >> "$GITHUB_WORKSPACE/.crewai-job-output/current-job-summary.md"
+          fi
+
+          # Combine linter logs
+          LOG_FILE="$GITHUB_WORKSPACE/.crewai-job-output/current-job.log"
+          echo "=== Format & Lint Log ===" > "$LOG_FILE"
+          echo "" >> "$LOG_FILE"
+          for log in /tmp/prettier.log /tmp/black.log /tmp/isort.log /tmp/sqlfluff.log \
+                     /tmp/eslint.log /tmp/stylelint.log /tmp/markdownlint.log \
+                     /tmp/yamllint.log /tmp/shellcheck.log /tmp/ruff.log \
+                     /tmp/golangci.log /tmp/commitlint.log /tmp/typescript.log; do
+            if [ -f "$log" ] && [ -s "$log" ]; then
+              echo "--- $(basename "$log" .log) ---" >> "$LOG_FILE"
+              cat "$log" >> "$LOG_FILE"
+              echo "" >> "$LOG_FILE"
+            fi
+          done
+
+      - name: Finalize job capture
+        if: always()
+        uses: ./.github/actions/capture-job-output
+        with:
+          job-name: 'core-ci'
+          job-conclusion: ${{ job.status }}
+          mode: 'finish'
+          summary-file: ${{ github.workspace }}/.crewai-job-output/current-job-summary.md
+
+      - name: Upload job output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-job-output-core-ci
+          path: ${{ github.workspace }}/.crewai-job-output/
+          retention-days: 7
+          if-no-files-found: warn
+          include-hidden-files: true

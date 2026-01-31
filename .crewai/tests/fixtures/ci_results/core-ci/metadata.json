@@ -1,0 +1,13 @@
+{
+  "job_name": "core-ci",
+  "job_folder": "core-ci",
+  "conclusion": "success",
+  "workflow": "CI",
+  "run_id": "21549311826",
+  "run_number": "548",
+  "timestamp": "2026-01-31T18:59:24Z",
+  "summary_exists": true,
+  "log_exists": true,
+  "log_size_bytes": 140182,
+  "log_lines": 3929
+}

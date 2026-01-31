@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
@@ -21,8 +21,10 @@ class WorkspaceToolInput(BaseModel):
 
     operation: str = Field(description="Operation to perform: 'read', 'write', or 'exists'")
     filename: str = Field(description="Filename (relative to workspace directory)")
-    content: Union[str, dict, list, None] = Field(
-        default="",
+    # Changed from Union[str, dict, list, None] to Any to simplify JSON Schema for Gemini
+    # Gemini struggles with complex anyOf schemas and returns MALFORMED_FUNCTION_CALL errors
+    content: Any = Field(
+        default=None,
         description="Content to write (string, dict, or list). Dicts/lists auto-convert to JSON.",
     )
 
@@ -55,9 +57,7 @@ class WorkspaceTool(BaseTool):
         self.trace_dir.mkdir(exist_ok=True)
         logger.info(f"📁 WorkspaceTool initialized: {self.workspace_dir}")
 
-    def _run(
-        self, operation: str, filename: str, content: Union[str, dict, list, None] = None
-    ) -> Any:
+    def _run(self, operation: str, filename: str, content: Any = None) -> Any:
         """Execute workspace operation.
 
         Args:
@@ -87,7 +87,7 @@ class WorkspaceTool(BaseTool):
                     logger.error(f"❌ Failed to stringify JSON: {e}")
                     return f"Error: Could not stringify JSON - {e}"
 
-            return self.write(filename, content)
+            return self.write(filename, str(content))
         elif operation == "exists":
             return self.exists(filename)
         else:

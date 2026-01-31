@@ -1,0 +1,3929 @@
+=== Format & Lint Log ===
+
+--- sqlfluff ---
+The -f/--force option is deprecated as it is now the default behaviour.
+==== finding fixable violations ====
+==== no fixable linting violations found ====
+All Finished!
+  [1 unfixable linting violations found]
+== [apps/startup-blueprint/data/schema.sql] FAIL
+L:  15 | P:   3 | RF04 | Keywords should not be used as identifiers.
+                       | [references.keywords]
+All Finished!
+
+--- stylelint ---
+
+website/public/styles.css
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule indentation                                                                                            [2mindentation[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule linebreaks                                                                                             [2mlinebreaks[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule at-rule-name-case                                                                                      [2mat-rule-name-case[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule at-rule-name-newline-after                                                                             [2mat-rule-name-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule at-rule-name-space-after                                                                               [2mat-rule-name-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule at-rule-semicolon-newline-after                                                                        [2mat-rule-semicolon-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule at-rule-semicolon-space-before                                                                         [2mat-rule-semicolon-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-closing-brace-empty-line-before                                                                  [2mblock-closing-brace-empty-line-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-closing-brace-newline-after                                                                      [2mblock-closing-brace-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-closing-brace-newline-before                                                                     [2mblock-closing-brace-newline-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-closing-brace-space-after                                                                        [2mblock-closing-brace-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-closing-brace-space-before                                                                       [2mblock-closing-brace-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-opening-brace-newline-after                                                                      [2mblock-opening-brace-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-opening-brace-newline-before                                                                     [2mblock-opening-brace-newline-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-opening-brace-space-after                                                                        [2mblock-opening-brace-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule block-opening-brace-space-before                                                                       [2mblock-opening-brace-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule color-hex-case. Did you mean color-hex-alpha, color-hex-length?                                        [2mcolor-hex-case[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-bang-space-after                                                                           [2mdeclaration-bang-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-bang-space-before                                                                          [2mdeclaration-bang-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-block-semicolon-newline-after                                                              [2mdeclaration-block-semicolon-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-block-semicolon-newline-before                                                             [2mdeclaration-block-semicolon-newline-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-block-semicolon-space-after                                                                [2mdeclaration-block-semicolon-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-block-semicolon-space-before                                                               [2mdeclaration-block-semicolon-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-block-trailing-semicolon                                                                   [2mdeclaration-block-trailing-semicolon[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-colon-newline-after                                                                        [2mdeclaration-colon-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-colon-space-after                                                                          [2mdeclaration-colon-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule declaration-colon-space-before                                                                         [2mdeclaration-colon-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule function-comma-newline-after                                                                           [2mfunction-comma-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule function-comma-newline-before                                                                          [2mfunction-comma-newline-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule function-comma-space-after                                                                             [2mfunction-comma-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule function-comma-space-before                                                                            [2mfunction-comma-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule function-max-empty-lines                                                                               [2mfunction-max-empty-lines[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule function-parentheses-newline-inside                                                                    [2mfunction-parentheses-newline-inside[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule function-parentheses-space-inside                                                                      [2mfunction-parentheses-space-inside[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule max-empty-lines                                                                                        [2mmax-empty-lines[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule max-line-length                                                                                        [2mmax-line-length[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-feature-colon-space-after                                                                        [2mmedia-feature-colon-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-feature-colon-space-before                                                                       [2mmedia-feature-colon-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-feature-name-case                                                                                [2mmedia-feature-name-case[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-feature-parentheses-space-inside                                                                 [2mmedia-feature-parentheses-space-inside[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-query-list-comma-newline-after                                                                   [2mmedia-query-list-comma-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-query-list-comma-newline-before                                                                  [2mmedia-query-list-comma-newline-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-query-list-comma-space-after                                                                     [2mmedia-query-list-comma-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule media-query-list-comma-space-before                                                                    [2mmedia-query-list-comma-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule no-empty-first-line                                                                                    [2mno-empty-first-line[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule no-eol-whitespace                                                                                      [2mno-eol-whitespace[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule no-extra-semicolons                                                                                    [2mno-extra-semicolons[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule no-missing-end-of-source-newline                                                                       [2mno-missing-end-of-source-newline[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule number-leading-zero                                                                                    [2mnumber-leading-zero[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule number-no-trailing-zeros                                                                               [2mnumber-no-trailing-zeros[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule property-case                                                                                          [2mproperty-case[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-attribute-brackets-space-inside                                                               [2mselector-attribute-brackets-space-inside[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-attribute-operator-space-after                                                                [2mselector-attribute-operator-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-attribute-operator-space-before                                                               [2mselector-attribute-operator-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-combinator-space-after                                                                        [2mselector-combinator-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-combinator-space-before                                                                       [2mselector-combinator-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-descendant-combinator-no-non-space                                                            [2mselector-descendant-combinator-no-non-space[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-list-comma-newline-after                                                                      [2mselector-list-comma-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-list-comma-newline-before                                                                     [2mselector-list-comma-newline-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-list-comma-space-after                                                                        [2mselector-list-comma-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-list-comma-space-before                                                                       [2mselector-list-comma-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-max-empty-lines                                                                               [2mselector-max-empty-lines[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-pseudo-class-case                                                                             [2mselector-pseudo-class-case[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-pseudo-class-parentheses-space-inside                                                         [2mselector-pseudo-class-parentheses-space-inside[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule selector-pseudo-element-case                                                                           [2mselector-pseudo-element-case[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule string-quotes                                                                                          [2mstring-quotes[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule unicode-bom                                                                                            [2municode-bom[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule unit-case                                                                                              [2munit-case[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule value-list-comma-newline-after                                                                         [2mvalue-list-comma-newline-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule value-list-comma-newline-before                                                                        [2mvalue-list-comma-newline-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule value-list-comma-space-after                                                                           [2mvalue-list-comma-space-after[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule value-list-comma-space-before                                                                          [2mvalue-list-comma-space-before[22m
+    [2m1:1[22m   [31m[31m✖[39m  Unknown rule value-list-max-empty-lines                                                                             [2mvalue-list-max-empty-lines[22m
+  [2m498:1[22m   [31m[31m✖[39m  Expected selector ".payment-feature-card li" to come before selector ".comparison-list li:last-child", at line 282  [2mno-descending-specificity[22m
+  [2m740:1[22m   [31m[31m✖[39m  Expected selector ".benefits-list li" to come before selector ".comparison-list li:last-child", at line 282         [2mno-descending-specificity[22m
+  [2m780:1[22m   [31m[31m✖[39m  Expected selector ".feature-icon" to come before selector ".payment-feature-card .feature-icon", at line 482        [2mno-descending-specificity[22m
+  [2m906:12[22m  [31m[31m✖[39m  Expected keyframe name "fadeInUp" to be kebab-case                                                                  [2mkeyframes-name-pattern[22m
+
+[31m✖[39m 77 problems ([31m77 errors[39m, [33m0 warnings[39m)
+
+
+--- markdownlint ---
+markdownlint-cli2 v0.11.0 (markdownlint v0.32.1)
+Finding: **/*.md !node_modules !.github
+Linting: 61 file(s)
+Summary: 0 error(s)
+
+--- commitlint ---
+⧗   input: fix(crewai): simplify task descriptions to work with output_file mechanism
+
+Remove explicit WorkspaceTool instructions from quick review and final summary tasks. Let the output_file parameter capture agent JSON output directly. This should fix the issue where agents return 'I will write...' text instead of actual JSON.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): fix duration calculation in cost tracking callbacks
+
+Convert timedelta to seconds properly to fix type error: '>' not supported between instances of 'datetime.timedelta' and 'int'
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: debug(crewai): add INFO level logging to cost callbacks
+
+Change debug logs to INFO level so they appear in workflow output. This will help diagnose if litellm callbacks are being called.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✖   type must be one of [feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert] [type-enum]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: debug(crewai): add debug logging to cost tracking callbacks
+
+Add debug logs to litellm success/failure callbacks to diagnose why cost tracking shows 0 API calls.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✖   type must be one of [feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert] [type-enum]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: fix(crewai): add dummy completion tasks to ensure output_file works
+
+Add dummy completion_task() to quick_review_crew and final_summary_crew. This ensures the real file-writing tasks are not the LAST task in the crew, which appears to fix a CrewAI issue where output_file doesn't work for the final task.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (2)
+
+Prettier:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+
+Black:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): simplify task descriptions for clarity
+
+Shorten quick review and final summary task descriptions. Use folded style (>) and explicit single-line WorkspaceTool instructions to match working CI log analysis pattern.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): restore cost tracking callbacks and clean up imports
+
+Add litellm success/failure callbacks to main.py to restore cost tracking functionality. Remove broken import from router_crew.py that was referencing deleted crew.py file.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+
+Black:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): simplify task descriptions to prevent LLM confusion
+
+Simplify quick review and CI analysis task descriptions by removing aggressive warning symbols and 'MUST' language that was confusing the LLM. The tasks now have clear, straightforward instructions that are easier for the agent to follow.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): restore output_file parameters to quick review tasks
+
+Add output_file back to all 3 quick review tasks. The output_file parameter is what tells CrewAI to save the agent output to a file. Combined with strong task descriptions, this should force proper JSON output.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (2)
+
+Prettier:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+
+Black:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): enhance CI analysis to detect log errors even when jobs succeed
+
+Update triage_failures task to scan logs for hidden errors using get_log_stats(). Many jobs report 'success' in metadata but have errors in logs (e.g., PR #15 core-ci had 77 stylelint errors but reported success).
+
+Add get_log_stats and check_log_size tools to ci_pipeline_lead agent to enable log scanning during triage phase.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✖   footer's lines must not be longer than 100 characters [footer-max-line-length]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: fix(crewai): remove output_file to force manual WorkspaceTool usage
+
+Remove output_file parameter from all 3 quick review tasks. This forces agents to manually call WorkspaceTool instead of relying on crewai's automatic file writing. Combined with stronger task descriptions, this ensures agents properly use the tool to write structured JSON outputs.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): add imperative tool-usage language to quick review tasks
+
+Add ⚠️ MANDATORY/CRITICAL warnings to all 3 quick review tasks to force WorkspaceTool usage. Each task now explicitly warns that returning JSON as text = TASK FAILURE. This prevents agents from shortcutting by returning analysis as Final Answer instead of calling WorkspaceTool to write structured output files.
+
+Ultraworked with Sisyphus
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): remove strict pydantic validation from quick review tasks
+
+- Remove output_pydantic parameter from all 3 tasks to prevent validation errors
+- Keep output_file parameter so agents still write JSON via WorkspaceTool
+- Remove unused pydantic models (quick_review_models.py)
+- Fixes ValidationError: EOF while parsing JSON when agent output is slightly malformed
+- Agents will now write JSON files successfully even with minor formatting issues
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (4)
+
+Prettier:
+- .sisyphus/drafts/crewai-final-summary-debug.md
+- .sisyphus/notepads/crewai-final-summary/decisions.md
+- .sisyphus/notepads/crewai-final-summary/learnings.md
+- .sisyphus/plans/crewai-final-summary.md
+
+Black:
+- .crewai/tools/ci_tools.py
+- .sisyphus/drafts/crewai-final-summary-debug.md
+- .sisyphus/notepads/crewai-final-summary/decisions.md
+- .sisyphus/notepads/crewai-final-summary/learnings.md
+- .sisyphus/plans/crewai-final-summary.md
+
+isort:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .sisyphus/drafts/crewai-final-summary-debug.md
+- .sisyphus/notepads/crewai-final-summary/decisions.md
+- .sisyphus/notepads/crewai-final-summary/learnings.md
+- .sisyphus/plans/crewai-final-summary.md
+
+SQLFluff:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .sisyphus/drafts/crewai-final-summary-debug.md
+- .sisyphus/notepads/crewai-final-summary/decisions.md
+- .sisyphus/notepads/crewai-final-summary/learnings.md
+- .sisyphus/plans/crewai-final-summary.md
+
+ESLint:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .sisyphus/drafts/crewai-final-summary-debug.md
+- .sisyphus/notepads/crewai-final-summary/decisions.md
+- .sisyphus/notepads/crewai-final-summary/learnings.md
+- .sisyphus/plans/crewai-final-summary.md
+
+markdownlint:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .sisyphus/drafts/crewai-final-summary-debug.md
+- .sisyphus/notepads/crewai-final-summary/decisions.md
+- .sisyphus/notepads/crewai-final-summary/learnings.md
+- .sisyphus/plans/crewai-final-summary.md
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): enhance quick review output and final summary format with structured JSON requirements
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): ensure quick review outputs structured JSON and add executive summary format
+
+- Add output_file parameter to all 3 quick review tasks to ensure JSON files are written
+- Add pydantic models for structured output validation (DiffContext, CodeIssues, QuickReview)
+- Refactor final summary to include executive summary with status indicators
+- Add collapsible sections for critical issues, warnings, and positive findings
+- Executive summary reads only from JSON outputs (ci_summary, quick_review, router_decision, full_review)
+- Fixes issue where quick_review.json contained only status=completed with empty arrays
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (8)
+
+Prettier:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- CLEANUP_NOTES.md
+- IMPLEMENTATION_STATUS.md
+- QUICK_REVIEW_OPTIMIZATION.md
+- README_PROJECT_STATUS.md
+
+Black:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/tools/ci_tools.py
+- .crewai/tools/diff_parser.py
+- CLEANUP_NOTES.md
+- IMPLEMENTATION_STATUS.md
+- QUICK_REVIEW_OPTIMIZATION.md
+- README_PROJECT_STATUS.md
+
+isort:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/tools/diff_parser.py
+- .crewai/utils/__init__.py
+- CLEANUP_NOTES.md
+- IMPLEMENTATION_STATUS.md
+- QUICK_REVIEW_OPTIMIZATION.md
+- README_PROJECT_STATUS.md
+
+SQLFluff:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/tools/diff_parser.py
+- .crewai/utils/__init__.py
+- CLEANUP_NOTES.md
+- IMPLEMENTATION_STATUS.md
+- QUICK_REVIEW_OPTIMIZATION.md
+- README_PROJECT_STATUS.md
+
+ESLint:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/tools/diff_parser.py
+- .crewai/utils/__init__.py
+- CLEANUP_NOTES.md
+- IMPLEMENTATION_STATUS.md
+- QUICK_REVIEW_OPTIMIZATION.md
+- README_PROJECT_STATUS.md
+
+markdownlint:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/tools/diff_parser.py
+- .crewai/utils/__init__.py
+- CLEANUP_NOTES.md
+- IMPLEMENTATION_STATUS.md
+- QUICK_REVIEW_OPTIMIZATION.md
+- README_PROJECT_STATUS.md
+✔   found 0 problems, 0 warnings
+⧗   input: feat: optimize quick review crew with 3-agent architecture and smart diff sampling
+
+- Add diff_parser.py with adaptive diff sampling (60-80% token reduction on large PRs)
+- Refactor quick_review_crew to 3-agent specialized architecture:
+  * Diff Intelligence Specialist: Parses and contextualizes diffs
+  * Code Quality Investigator: Detects issues in focused context
+  * Review Synthesizer: Consolidates findings and prioritizes
+- Add 3 new task configurations (parse, detect, synthesize)
+- Enhance final_summary to consume all crew outputs (6 JSON files)
+- Add new agent definitions to agents.yaml
+- Remove legacy crew.py and obsolete config files
+- Add comprehensive documentation (4 guides):
+  * QUICK_REVIEW_OPTIMIZATION.md: Architecture and strategy
+  * CLEANUP_NOTES.md: Migration and cleanup details
+  * IMPLEMENTATION_STATUS.md: Project summary and verification
+  * README_PROJECT_STATUS.md: Quick start and FAQ
+- Bump version 0.1.0 → 0.2.0
+- Maintain 100% backward compatibility with router-based system
+
+Benefits:
+- Token efficiency: 60-80% reduction on PRs >500 lines
+- Better specialization: 3 focused agents vs 1 generic
+- Improved output: Merge recommendations and prioritized findings
+- Modular architecture: Each crew has its own config
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (2)
+
+Prettier:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+
+Black:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix: remove trailing spaces from YAML config files
+
+Ultraworked with [Sisyphus](https://github.com/code-yeongyu/oh-my-opencode)
+
+Co-authored-by: Sisyphus <clio-agent@sisyphuslabs.ai>
+✔   found 0 problems, 0 warnings
+⧗   input: Merge branch 'feat/crewai-optimize-crew' of https://github.com/borealBytes/startup-blueprint into feat/crewai-optimize-crew
+
+
+✔   found 0 problems, 0 warnings
+⧗   input: chore: remove outdated backlog and progress documentation
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+
+Black:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: refactor(crewai): implement multi-agent CI analysis crew
+
+Updated `CILogAnalysisCrew` to use the 3 new agents and 4 sequential tasks.
+- `ci_pipeline_lead`: Triage & Report
+- `log_pattern_specialist`: Investigation (Log Tools)
+- `error_resolution_specialist`: Root Cause Analysis
+- `compile_ci_report`: Final JSON synthesis
+✔   found 0 problems, 0 warnings
+⧗   input: refactor(crewai): split CI analysis into modular tasks
+
+Decomposed the monolithic `parse_ci_output` task into 4 distinct phases:
+1. `triage_failures`: Identify failed jobs (Lead)
+2. `investigate_logs`: Extract evidence (Pattern Specialist)
+3. `determine_root_cause`: Analyze and fix (Resolution Specialist)
+4. `compile_ci_report`: Write final JSON (Lead)
+
+This aligns tasks with the new multi-agent structure.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/agents.yaml
+
+Black:
+- .crewai/config/agents.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): implement multi-agent CI analysis structure
+
+Replaced the monolithic `ci_analyst` with three specialized agents:
+1. `ci_pipeline_lead`: Orchestration and reporting (The Director).
+2. `log_pattern_specialist`: Log searching and evidence extraction (The Investigator).
+3. `error_resolution_specialist`: Root cause analysis and fix generation (The Fixer).
+
+This improves separation of concerns and allows the Investigator and Fixer agents to be reused in other contexts.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/agents.yaml
+
+Black:
+- .crewai/config/agents.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/agents.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: refactor(crewai): decouple CI Analyst agent goal from implementation details
+
+Updated the CI Analyst agent's goal and backstory to be role-focused rather than step-focused.
+The specific procedural workflow is now left to the task definition and the agent's intelligent tool usage, making the agent persona more reusable.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/tools/ci_tools.py
+- .crewai/utils/model_config.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): switch default model to Gemini 2.0 Flash (as Gemini 3 Flash Preview)
+
+Switching away from Xiaomi MiMo V2 Flash which caused JSON errors.
+Using Google Gemini 2.0 Flash (mapped as 'gemini-3-flash' per request) for better reliability.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): robustly capture step summary for test-website
+
+Ensure current-job-summary.md is never empty before passing to capture action.
+Fallback to a placeholder message if GITHUB_STEP_SUMMARY is missing or empty.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): robustly capture step summary for test-docs-links
+
+Ensure current-job-summary.md is never empty before passing to capture action.
+Fallback to a placeholder message if GITHUB_STEP_SUMMARY is missing or empty.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): robustly capture step summary for core-ci
+
+Ensure current-job-summary.md is never empty before passing to capture action.
+Fallback to a placeholder message if GITHUB_STEP_SUMMARY is missing or empty.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .github/actions/capture-job-output/action.yml
+
+Black:
+- .crewai/tools/ci_tools.py
+- .github/actions/capture-job-output/action.yml
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): robust summary capture in capture-job-output action
+
+Ensure summary-file is only used if non-empty, otherwise try GITHUB_STEP_SUMMARY, otherwise create placeholder.
+Use -s checks to prevent creating empty summary.md files.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): remove list_ci_jobs from ci_log_analysis_crew.py
+
+The tool does not exist in ci_tools.py, so we remove it from imports and the agent tool list.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): remove non-existent imports from tools/__init__.py
+
+Remove CheckLogSizeTool and other class-based imports that don't exist in ci_tools.py.
+Remove list_ci_jobs which also doesn't exist.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): upload .crewai job output artifacts for all jobs
+
+Add start/finish capture and artifact upload to reusable workflows (core, tests, and deploy jobs).
+Use absolute paths for job output files so capture works from any working-directory.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(tests): correct crewai_tools import path
+
+Change import from 'from crewai_tools import tool' to 'from crewai.tools import tool' to fix ImportError in tests.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): pass explicit summary file to capture action
+
+The capture action now accepts a 'summary-file' input.
+Passing the generated /tmp/credential-validation-summary.md directly to it ensures the summary is captured correctly, bypassing the empty GITHUB_STEP_SUMMARY issue in composite actions.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .github/actions/capture-job-output/action.yml
+
+Black:
+- .crewai/tools/ci_tools.py
+- .github/actions/capture-job-output/action.yml
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+✔   found 0 problems, 0 warnings
+⧗   input: fix(action): support explicit summary file input
+
+Composite actions cannot read the GITHUB_STEP_SUMMARY of the parent workflow steps (it's empty for them).
+Added 'summary-file' input to allow passing a specific file to capture as the summary.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): enable hidden files upload for .crewai workspace and logs
+
+The artifact upload action v4 ignores hidden files/folders (starting with dot) by default.
+We must set include-hidden-files: true because both .crewai/workspace and .crewai-job-output start with a dot.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): enable hidden files upload for .crewai-job-output
+
+The artifact upload action v4 ignores hidden files/folders (starting with dot) by default.
+We must set include-hidden-files: true because our output folder is named .crewai-job-output.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): use absolute paths for CrewAI artifact uploads
+
+Apply the same fix to CrewAI workflow:
+- workspace artifacts: ${{ github.workspace }}/.crewai/workspace/
+- job output artifacts: ${{ github.workspace }}/.crewai-job-output/
+
+Both uploads need absolute paths when used after composite actions.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): use absolute path for artifact upload
+
+Use ${{ github.workspace }}/.crewai-job-output/ instead of relative path.
+actions/upload-artifact@v4 needs absolute paths when used after composite actions.
+
+Fixes: Files exist but upload can't find them due to working directory context.
+✔   found 0 problems, 0 warnings
+⧗   input: debug(ci): add directory listing before upload
+
+Adding debug step to see what's in the working directory
+right before upload to diagnose why files can't be found.
+✖   type must be one of [feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert] [type-enum]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: fix(ci): add artifact upload to CrewAI workflow
+
+Move upload-artifact step from composite action to workflow level.
+Same pattern as validate-environment workflow.
+
+Ensures crewai-review job output artifacts upload successfully.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): add artifact upload to workflow
+
+Move upload-artifact step from composite action to workflow.
+Composite actions can't reliably handle paths for other actions.
+
+Upload now happens at workflow level for better reliability.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): remove upload from composite action
+
+Composite actions can't reliably upload artifacts due to
+working directory context issues. Move upload to workflow.
+
+Composite action now only prepares files.
+Workflow handles upload.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): use full workspace path for artifact upload
+
+Composite actions need ${{ github.workspace }} for paths.
+Relative paths don't work reliably in composite actions.
+
+Fixes: "No files were found with the provided path" error
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- docs/ci-log-capture-implementation.md
+
+Black:
+- .crewai/tools/ci_tools.py
+- docs/ci-log-capture-implementation.md
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+✔   found 0 problems, 0 warnings
+⧗   input: docs: fix job pattern to show correct step ordering
+
+Update documentation to reflect the correct pattern:
+- Checkout FIRST (local actions need repo code)
+- THEN initialize capture (action now exists)
+- Then log checkout completion
+- Continue with rest
+
+This was the bug that caused "Can't find action.yml" errors
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): checkout before initializing log capture in CrewAI workflow
+
+Fix step ordering:
+- Checkout FIRST (local action needs repo)
+- Then initialize capture
+- Manually log checkout completion
+- Continue with rest of workflow
+
+Same fix as credential validation job
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): checkout before initializing log capture
+
+Fix step ordering in credential validation:
+- Checkout FIRST (local action needs repo)
+- Then initialize capture
+- Manually log checkout completion
+- Continue with rest of workflow
+
+Fixes: Can't find 'action.yml' error
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/tools/README.md
+
+Black:
+- .crewai/tools/README.md
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/README.md
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/README.md
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/README.md
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/README.md
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: docs: add CI tools usage guide
+
+Explain how to use the 6 intelligent CI log analysis tools:
+- When to use each tool
+- Recommended workflow
+- Examples with real scenarios
+- Common patterns and anti-patterns
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- PROGRESS.md
+
+Black:
+- .crewai/tools/ci_tools.py
+- PROGRESS.md
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- PROGRESS.md
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- PROGRESS.md
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- PROGRESS.md
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- PROGRESS.md
+✔   found 0 problems, 0 warnings
+⧗   input: docs: add progress summary for CI log capture implementation
+
+Track what's been completed and what's next:
+- Phase 1 (Core): 100% complete
+- Phase 2 (Jobs): 25% complete (1/4 jobs)
+- Phase 3 (Crews): 0% (tools exist, crew needs update)
+- Next steps: Update remaining jobs and CI analysis crew
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- BACKLOG.md
+
+Black:
+- .crewai/tools/ci_tools.py
+- BACKLOG.md
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- BACKLOG.md
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- BACKLOG.md
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- BACKLOG.md
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- BACKLOG.md
+✔   found 0 problems, 0 warnings
+⧗   input: docs: create backlog with CI log capture tasks
+
+Track implementation of CI log capture system:
+- Core components completed (capture action, tools, workflow)
+- Remaining work: update other CI jobs with capture pattern
+- Future enhancements: crew updates, testing, docs
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): add intelligent CI log analysis tools
+
+Create tools for size-aware CI log analysis:
+- read_job_index: Get overview of all jobs with sizes
+- check_log_size: Size check before reading
+- read_job_summary: Read GitHub step summaries
+- search_log: Grep for patterns in large logs
+- read_full_log: Full read with safety checks
+- get_log_stats: Quick error/warning counts
+
+Log size thresholds:
+- < 50KB: safe to read fully
+- 50-200KB: read with caution  
+- > 200KB: MUST use search/grep
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .github/actions/capture-job-output/action.yml
+
+Black:
+- .crewai/tools/ci_tools.py
+- .github/actions/capture-job-output/action.yml
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+✔   found 0 problems, 0 warnings
+⧗   input: feat(ci): add composite action for job output capture
+
+Create reusable action to capture complete job logs for CrewAI analysis:
+- Two modes: 'start' to initialize, 'finish' to finalize
+- Captures stdout/stderr from all job steps
+- Packages log, summary, and metadata
+- Uploads as artifact for CrewAI download
+- No API scraping needed (artifact-based)
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- docs/ci-log-capture-implementation.md
+
+Black:
+- .crewai/tools/ci_tools.py
+- docs/ci-log-capture-implementation.md
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+- docs/ci-log-capture-implementation.md
+✔   found 0 problems, 0 warnings
+⧗   input: docs: add CI log capture implementation summary
+
+Documents the complete log capture system:
+- Composite action for job output capture
+- Artifact-based data transfer (no API scraping)
+- Intelligent log analysis tools
+- Size-aware reading strategies
+- Complete visibility into all CI jobs and CrewAI execution
+✔   found 0 problems, 0 warnings
+⧗   input: feat(ci): add complete log capture and CI artifact download to CrewAI job
+
+- Initialize log capture at job start
+- Log checkout, dependencies, artifact download
+- Download all CI job artifacts for analysis
+- Organize artifacts into workspace/ci_results structure
+- Build job index for efficient crew access
+- Capture full CrewAI execution with cost tracking
+- Finalize log capture at job end
+
+This gives complete visibility into:
+- What data CrewAI received
+- Which tools were called
+- Token/cost usage
+- Execution timing
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): add intelligent CI log analysis tools
+
+- read_job_index: Get overview of all jobs with status/size
+- check_log_size: Check before reading to avoid token waste
+- read_job_summary: Always read summaries first (small)
+- search_log: Grep/search large logs for specific patterns
+- read_full_log: Read small logs completely (with safety)
+- get_log_stats: Quick error/warning counts without reading
+
+Log size thresholds:
+- <50KB = small (safe to read)
+- 50-200KB = medium (read with caution)
+- >200KB = large (MUST use search)
+✔   found 0 problems, 0 warnings
+⧗   input: feat(ci): add complete log capture to credential validation job
+
+- Initialize capture at job start
+- Log all setup and dependency installation steps  
+- Capture full validation script output
+- Finalize capture at job end with proper metadata
+- Upload as artifact for CrewAI analysis
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .github/actions/capture-job-output/action.yml
+
+Black:
+- .github/actions/capture-job-output/action.yml
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/utils/__init__.py
+- .github/actions/capture-job-output/action.yml
+✔   found 0 problems, 0 warnings
+⧗   input: feat(ci): add composite action for complete job log capture
+
+- Initialize/finalize log capture for any job
+- Captures all stdout/stderr to single log file
+- Creates metadata JSON with job info and log stats
+- Uploads as artifact for CrewAI analysis
+- Supports two modes: 'start' and 'finish'
+✔   found 0 problems, 0 warnings
+⧗   input: feat(ci): add log capture to all reusable workflows
+
+Capture command output to .crewai-job-output/current-job.log for CrewAI:
+- validate-credentials: capture validation script output
+- test-crewai: capture pytest output
+- link-check: capture lychee report
+- website-test-build: capture lint/test/build output
+- format-lint: combine all linter logs into single file
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): save step summaries to explicit file for capture action
+
+Composite actions can't access the parent workflow's $GITHUB_STEP_SUMMARY
+content. Fix by having workflows save their summary to an explicit file
+(.crewai-job-output/current-job-summary.md) that capture-job-output reads.
+
+Changes:
+- capture-job-output: check explicit file first, then GITHUB_STEP_SUMMARY
+- All reusable workflows: add "Save summary for capture" step before capture
+- validate-credentials: build summary in temp file, write to both locations
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: debug(ci): add verbose step summary file inspection
+
+Show actual file content and size to diagnose why summaries are empty
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✖   type must be one of [feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert] [type-enum]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: fix(ci): add debug output and improve step summary capture
+
+- Add debug output to trace GITHUB_STEP_SUMMARY path and size
+- Only copy step summary if file has content (use -s check)
+- Update metadata to accurately track if files have real content
+- Include file sizes in metadata for better diagnostics
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): simplify artifact download path for crewai workspace
+
+- Changed download path to 'ci-artifacts' (relative to working dir)
+- Added debug output to trace artifact download structure
+- Use recursive ls to show full ci_results structure
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): enable hidden files in upload-artifact
+
+The `.crewai-job-output` directory starts with a dot, making it hidden.
+upload-artifact@v4 defaults to `include-hidden-files: false`, which
+was causing "No files found" even though files existed.
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(ci): use absolute paths in capture-job-output action
+
+When upload-artifact runs inside a composite action, it resolves
+relative paths from $GITHUB_WORKSPACE, not from the shell's cwd.
+This caused "No files found" errors even though files existed.
+
+Changes:
+- Use $GITHUB_WORKSPACE prefix for OUTPUT_DIR and log file paths
+- Replace heredocs with echo/printf to avoid YAML indentation issues
+- Use ${{ github.workspace }} in upload-artifact path
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: style(crewai): fix line length and f-string lint issues
+
+- Split long description string to stay under 100 char limit
+- Remove unnecessary f-string prefix where no formatting was used
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (3)
+
+Prettier:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+
+Black:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/tools/ci_tools.py
+
+isort:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/agents.yaml
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/__init__.py
+- .crewai/tools/ci_tools.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): enhance CI log analysis tools and workflows for improved job output handling
+✔   found 0 problems, 0 warnings
+⧗   input: fix(cost): add tracker.set_current_task() to populate crew names
+
+Problem: All API calls showing "Unknown" as crew name
+Root cause: Cost tracker never told which crew/task is running
+
+Solution: Call tracker.set_current_task() before each crew runs
+- Router crew: "analyze_pr_and_route"
+- CI Analysis: "parse_ci_output" 
+- Quick Review: "quick_code_review"
+- Full Review: "full_technical_review"
+- Legal Review: "legal_compliance_check"
+- Final Summary: "synthesize_final_summary"
+
+These task names map to crew names via _infer_crew_from_task().
+✔   found 0 problems, 0 warnings
+⧗   input: feat(cost): add crew column and subtotals to cost breakdown table
+
+Enhancements:
+- Added "Crew" column to show which crew made each call
+- Added subtotal rows for each crew (calls, tokens, cost)
+- Kept grand total row at bottom
+- Uses cost_tracker's built-in format_as_markdown_table() method
+
+Before: Simple per-call table with grand total
+After: Grouped by crew with crew subtotals + grand total
+
+Makes it easy to see which crews are most expensive.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/crews/quick_review_crew.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): force tool usage by removing expected_output pattern
+
+Problem: Agent returns matching text without calling tools
+Root cause: Agent mimics expected_output without doing work
+
+Solution:
+- Remove expected_output from Task (use config only for description)
+- Agent has no template to copy, must execute to get data
+- Validation happens via workspace file check, not output pattern
+
+Forces actual tool execution by removing the shortcut.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): make quick_review impossible without tool execution
+
+Problem: Agent returns text without calling tools
+Root cause: Agent parrots expected_output without doing work
+
+Solution:
+- expected_output requires ACTUAL data from tool calls
+- Agent must call WorkspaceTool FIRST to get real numbers
+- Cannot fake output without executing tools
+
+Makes task completion verify tool usage.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): replace ALL curly braces in final_summary template
+
+Problem: {pr_number}, {sha}, {repository}, {timestamp} still using curly braces
+Solution: Replace with [pr_number], [sha], [repository], [timestamp]
+
+These are examples for the agent to fill in, not template variables for kickoff() inputs.
+
+Fixes ValueError: "Missing required template variable 'timestamp'"
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): enforce strict tool-only execution for router
+
+Applying same fix as other tasks:
+- Remove narrative STEP 1/2/3 format
+- Use ONLY tool call syntax
+- Require verification AFTER all tool calls
+- Forces execution before text returns
+
+Consistent with quick_review and final_summary fixes.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): enforce strict tool-only execution for final summary
+
+Applying same fix as quick review:
+- Remove narrative instructions
+- Use ONLY tool call syntax  
+- Require verification AFTER tool calls complete
+- Forces agent to execute before returning text
+
+Prevents premature Final Answer returns.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): enforce strict tool-only execution for quick review
+
+Problem: Agent returns "I'll execute..." as Final Answer before completing
+Solution: 
+- Remove ALL narrative instructions
+- Use ONLY tool call syntax
+- Require explicit confirmation AFTER both tools complete
+- Make expected_output verification-based
+
+This forces the agent to execute tools first, then verify completion.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): replace curly-brace placeholders to avoid template interpolation
+
+Problem: {status}, {N}, {M}, etc. are being interpreted as required template variables
+Solution: Replace curly braces with square brackets [status], [N], [M]
+
+These are examples for the agent, not actual template variables to interpolate.
+
+This fixes ValueError: "Missing required template variable 'status'"
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): switch to MiMo V2 Flash for reliable + affordable function calling
+
+Problem: Gemini 2.0 Flash generates MALFORMED_FUNCTION_CALL errors
+Solution: MiMo V2 Flash - affordable alternative with good function calling
+
+New default: mimo-v2-flash (xiaomi/mimo-v2-flash)
+Fallback: gemini-flash
+
+If MiMo also has issues, can easily switch back or try GPT-4o-mini.
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/final_summary_tasks.yaml
+
+Black:
+- .crewai/config/tasks/final_summary_tasks.yaml
+
+isort:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): remove trailing spaces from final_summary_tasks.yaml
+
+Fix yamllint errors:
+- Line 88: Remove trailing spaces after "EXECUTE the actions"
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/router_tasks.yaml
+
+Black:
+- .crewai/config/tasks/router_tasks.yaml
+
+isort:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): remove trailing spaces from router_tasks.yaml
+
+Fix yamllint errors:
+- Line 25: Remove trailing spaces after "100-500 lines"
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/final_summary_tasks.yaml
+
+Black:
+- .crewai/config/tasks/final_summary_tasks.yaml
+
+isort:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): remove {emoji} template variable from final_summary description
+
+Fix ValueError: "Missing required template variable 'emoji'"
+
+Problem: Task description uses {emoji} placeholder but main.py doesn't pass it
+
+Solution: Remove {emoji} from template - the status emoji is hardcoded (✅ or ❌)
+
+This allows the crew to execute without template errors.
+✔   found 0 problems, 0 warnings
+⧗   input: refactor(crewai): use centralized get_rate_limit_delay from model_config
+
+Remove duplicate rate limit logic from main.py:
+
+**Before**: Local function with hardcoded free tier model list
+- get_rate_limit_delay() function (lines 90-109)
+- Manually checking model name against free_tier_models list
+
+**After**: Import from centralized config
+- from utils.model_config import get_rate_limit_delay
+- Uses MODEL_REGISTRY's rate_limit_delay field
+
+**Benefits**:
+- Single source of truth in MODEL_REGISTRY
+- No duplicate free tier detection logic
+- Per-model customization already handled
+- Removed 27 lines of duplicate code
+✔   found 0 problems, 0 warnings
+⧗   input: refactor(crewai): centralize rate limit delays in MODEL_REGISTRY
+
+Move rate limit delay logic from main.py to model_config.py:
+
+**Added to ModelConfig**:
+- `rate_limit_delay: int` field (seconds between crews)
+- Auto-populated: 10s for free tier, 0s for paid (overridable)
+
+**Benefits**:
+- Single source of truth for model capabilities
+- Per-model customization (e.g. if a paid model needs throttling)
+- Cleaner main.py (no duplicate free tier detection)
+
+**Usage**:
+```python
+from utils.model_config import get_rate_limit_delay
+delay = get_rate_limit_delay()  # Returns delay for current model
+```
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/tools/workspace_tool.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): simplify workspace_tool schema for Gemini
+
+Fix MALFORMED_FUNCTION_CALL errors from Gemini 2.0 Flash:
+
+Problem: Union[str, dict, list, None] generates complex anyOf schema
+Gemini struggles with complex function schemas and returns:
+  finish_reason: "error"
+  native_finish_reason: "MALFORMED_FUNCTION_CALL"
+
+Solution: Change Pydantic field type to Any
+- Generates simpler JSON schema for LLM
+- Python code still accepts all types (str/dict/list/None)
+- Auto-stringify logic unchanged
+
+Result: Gemini can now properly format tool calls!
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/main.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/main.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/main.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/main.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/main.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): match template variable names in final summary
+
+Fix template variable mismatch causing:
+  ValueError: Template variable 'list' not found
+
+Changes:
+- 'workflows' → 'list' (for workflows list)
+- 'timestamp' → 'time' (for timestamp)
+- Keep 'repository' as-is (template uses {owner/repo} but repository works)
+
+Root cause: Task template in final_summary_tasks.yaml expects:
+  {pr_number}, {sha}, {owner/repo}, {list}, {time}
+
+Now passing correct variable names to match template.
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): fix sha template var + make rate limits model-specific
+
+Three fixes:
+
+1. **Final Summary template error**: Passing 'commit_sha' but template expects 'sha'
+   - Change kickoff inputs to use 'sha' key
+   - Fixes: ValueError: Missing required template variable 'sha'
+
+2. **Hardcoded 10s delays**: Model-specific rate limits instead
+   - gemini-2.0-flash: NO delay (paid tier, high RPM)
+   - Free models: 10s delay (20 RPM limit)
+   - Gets model from MODEL_REGISTRY or defaults to no delay
+
+3. **Crew breakdown**: Already fixed in cost_tracker.py (waiting for merge)
+
+Result: No more template errors + faster runs for paid models!
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/router_tasks.yaml
+
+Black:
+- .crewai/config/tasks/router_tasks.yaml
+
+isort:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(router): remove diff.txt reading to prevent context poisoning
+
+Router was reading diff.txt (44KB) which polluted conversation
+history for all subsequent crews:
+
+- Router call #6: 4,483 tokens
+- Final Summary calls #9-11: 27k tokens each!
+
+The router doesn't need code-level details - just metadata
+from diff.json and commits.json is sufficient for routing.
+
+Changes:
+- Remove "Optionally read diff.txt" line
+- Router only reads diff.json + commits.json
+- Full Review crew can read diff.txt when actually needed
+
+Expected savings: Another 25k tokens per run (~$0.0025)
+✖   footer must have leading blank line [footer-leading-blank]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/tools/cost_tracker.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/cost_tracker.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/cost_tracker.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/cost_tracker.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/tools/cost_tracker.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(cost-tracking): add crew identification and per-crew breakdown
+
+To help debug where costs are coming from:
+- Add crew_name to APICallMetrics
+- Infer crew from task name (if task contains 'route' → Router, etc)
+- Add crew-level summary rows to markdown table
+- Show breakdown: Router, CI Analysis, Quick Review, Final Summary
+
+Example output:
+```
+| Call | Crew | Model | In | Out | Cost |
+|------|------|-------|-----|------|------|
+
+| #1-5 | Router | ... | ... | ... | $0.01 |
+| **Router Total** | **5 calls** | ... | ... | **$0.01** |
+| #6-8 | CI Analysis | ... | ... | ... | $0.005 |
+...
+```
+✖   footer must have leading blank line [footer-leading-blank]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/quick_review_tasks.yaml
+
+Black:
+- .crewai/config/tasks/quick_review_tasks.yaml
+
+isort:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): prevent token explosion by not reading full diff
+
+QUICK REVIEW cost breakdown shows token explosion:
+
+- Call #7: 14k tokens (read 44KB diff.txt)
+- Call #15-24: 19k → 185k tokens (context growth)
+- Cost: $0.089 of $0.105 total (85%!)
+
+Changes:
+- DON'T read diff.txt (44KB) - causes context explosion
+- Use diff.json (271 bytes) for metadata only
+- Quick review = sanity check, not deep analysis
+- Full review can read diff.txt when needed
+
+Saves 95% of tokens (~180k tokens)
+✖   footer must have leading blank line [footer-leading-blank]
+
+✖   found 1 problems, 0 warnings
+ⓘ   Get help: https://github.com/conventional-changelog/commitlint/#what-is-commitlint
+
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (2)
+
+Prettier:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/router_tasks.yaml
+
+Black:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/router_tasks.yaml
+
+isort:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/final_summary_tasks.yaml
+- .crewai/config/tasks/router_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): make final summary task action-oriented
+
+Same issue - verbose instructions causing Gemini to describe
+instead of execute.
+
+Changes:
+- Simplify to 2 core actions: read all JSON files, write markdown
+- Remove excessive formatting examples (takes up context)
+- Keep requirements clear and imperative
+- Strong completion constraints
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): make router task action-oriented
+
+The router crew has the same issue - conversational instructions
+causing Gemini to say "I will..." instead of executing.
+
+Changes:
+- Simplify to 3 core actions: validate, analyze, write
+- Remove conversational language
+- Make imperative with clear tool calls
+- Add strong completion constraints
+- Keep all required fields/logic
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+
+Black:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+
+isort:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/ci_log_analysis_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): make CI analysis task action-oriented
+
+Same issue as quick review - verbose conversational instructions
+causing Gemini to say "I will do X" instead of actually doing it.
+
+Changes:
+- Remove conversational language
+- Make imperative and action-focused
+- Emphasize completion constraints
+- Simplify while keeping all requirements
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- .crewai/config/tasks/quick_review_tasks.yaml
+
+Black:
+- .crewai/config/tasks/quick_review_tasks.yaml
+
+isort:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/config/tasks/quick_review_tasks.yaml
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): make quick review task more action-oriented
+
+The verbose conversational instructions were causing Gemini to describe
+what it would do instead of actually doing it. The agent would read
+diff.txt, say "I will analyze..." and stop without writing the output.
+
+Changes:
+- Remove conversational "you will" language
+- Make it imperative: "Read diff.txt. Analyze. Write output."
+- Emphasize that BOTH steps must complete before task ends
+- Add explicit constraint about not stopping early
+- Simplify instructions while keeping all requirements
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): switch to Gemini Flash for reliable tool calling
+
+Mistral Devstral 2512 has compatibility issues with CrewAI's tool schema,
+generating malformed tool names like "TOOLCALLSworkspacetool" instead of "workspace_tool".
+This causes all tool calls to fail with "Tool not found" errors.
+
+Gemini 2.0 Flash has proven reliable tool calling support via OpenRouter.
+
+Changes:
+- Switch DEFAULT_MODEL_KEY to "gemini-flash" 
+- Keep Mistral as an option for future testing
+- Update fallback to gemini-flash-lite
+✔   found 0 problems, 0 warnings
+⧗   input: fix: add openrouter/ prefix for LiteLLM provider detection
+
+LiteLLM requires openrouter/ prefix to detect provider when using
+base_url. The prefix tells LiteLLM which provider logic to use,
+while base_url specifies the API endpoint.
+
+Format: openrouter/provider/model-name
+✔   found 0 problems, 0 warnings
+⧗   input: fix: correct OpenRouter model names and add reliability features
+
+- Fix Mistral model name: mistralai/devstral-2512 (was mistral-2512)
+- Remove openrouter/ prefix from all model names (not needed for API)
+- Add 120s timeout for slow model responses
+- Add extra_headers for OpenRouter caching and attribution
+- Add num_retries=3 for transient failures
+
+Model name format per OpenRouter docs: provider/model-name
+Not: openrouter/provider/model-name
+✔   found 0 problems, 0 warnings
+⧗   input: fix: Use OpenRouter model name format for Mistral
+
+- Change from 'mistralai/mistral-2512' to 'openrouter/mistralai/mistral-2512'
+- Fixes 'LLM Provider NOT provided' error with OpenRouter
+- Follows OpenRouter naming convention for all models
+✔   found 0 problems, 0 warnings
+⧗   input: fix: Update Mistral Devstral context window to 262.1K
+
+- Set context_window from 1M to accurate 262,144 tokens for mistral-2512
+- Reflects actual model capacity and prevents context overflow issues
+- Mistral Devstral 2512: 262.1K context window (not 1M)
+✔   found 0 problems, 0 warnings
+⧗   input: fix: Switch default model to Mistral Devstral 2512
+
+- Change DEFAULT_MODEL_KEY from gemini-flash-lite to mistral-devstral-2512
+- Update MODEL_REGISTRY with Mistral Devstral 2512 as primary model
+- Keep gemini-flash-lite as fallback for compatibility
+- Addresses MALFORMED_FUNCTION_CALL errors with Gemini 2.5 Flash Lite
+- Mistral Devstral provides better function calling stability
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (5)
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat: Implement centralized model configuration with global rate limiting
+
+- Add MODEL_REGISTRY with Gemini 2.5 Flash Lite as default
+- Implement GlobalRateLimiter singleton shared across crews
+- Create get_llm() factory function for centralized LLM creation
+- Update all 6 crews to use centralized config and global rate limits
+- Register models at startup in main.py
+- Support MODEL_KEY env var for easy model switching
+- Maintain backwards compatibility with register_trinity_model()
+
+Models available:
+- gemini-flash-lite (default, 60 RPM)
+- gemini-flash (60 RPM)
+- gemini-flash-free (20 RPM)
+- mimo-v2 (60 RPM)
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): update models to Gemini Flash 2.5 and register for function calling support
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): switch default model to arcee trinity
+
+Change from xiaomi/mimo-v2-flash to arcee-ai/trinity-large-preview:free
+for cost optimization while maintaining quality.
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): update all crews to use arcee trinity model
+
+Switch default model from xiaomi/mimo-v2-flash to
+arcee-ai/trinity-large-preview:free across all crew files:
+- router_crew.py
+- full_review_crew.py
+- legal_review_crew.py
+- final_summary_crew.py
+- quick_review_crew.py
+- ci_log_analysis_crew.py
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): update model name to remove :free suffix across all crews
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): revert model name changes to include :free suffix
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): register Trinity model for native function calling
+
+Register the arcee-ai/trinity-large-preview:free model with LiteLLM as
+function-calling capable. OpenRouter confirms Trinity supports tools and
+tool_choice, but LiteLLM doesn't recognize it by default, causing CrewAI
+to fall back to text-based ReAct pattern instead of native function calling.
+
+- Add utils/model_config.py with register_trinity_model() helper
+- Call registration in __init__ of all crew classes
+- Should fix tool execution failures where model hallucinates responses
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): register Trinity model at module level before imports
+
+Move model registration to happen at module import time, before any
+CrewAI crew classes are imported. CrewAI may check model capabilities
+during class decoration, so the registration must happen first.
+
+- Add registration to crews/__init__.py (before crew imports)
+- Add registration to main.py (before crew imports)
+- Keep existing registrations in __init__ methods as safety net
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): switch from Trinity to Gemini Flash 2.0
+
+Trinity model has message format compatibility issues with LiteLLM -
+when sending tool results back, LiteLLM omits the required `content`
+field from assistant messages, causing 422 errors from Arcee AI.
+
+Switch to Google's Gemini Flash 2.0 which is:
+- Free on OpenRouter
+- Fast (good for CI)
+- Has reliable function calling support
+- Well-supported by LiteLLM
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): switch to Gemini 2.5 Flash Lite model
+
+Use google/gemini-2.5-flash-lite for all crews - cost-effective option
+with good performance for code review tasks.
+
+Model: openrouter/google/gemini-2.5-flash-lite
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): switch to paid Gemini Flash 2.0 model
+
+Remove :free suffix to use paid tier which has higher rate limits.
+Free tier is being deprecated March 3, 2026.
+
+Model: openrouter/google/gemini-2.0-flash-exp
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): add rate limiting for OpenRouter free tier
+
+OpenRouter free models have 20 RPM limit. Add rate limiting to prevent
+429 errors:
+
+- Add max_rpm=10 to all crews (half the limit for safety margin)
+- Add 10-second delays between crew executions
+- Enable LiteLLM retries (num_retries=3) for rate limit errors
+- Set request_timeout=120s for slow responses
+
+Reference: https://openrouter.ai/docs/api-reference/limits
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (5)
+
+Black:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/utils/model_config.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/__init__.py
+- .crewai/utils/model_config.py
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): switch from Trinity to Gemini Flash 2.0
+
+Trinity model has message format compatibility issues with LiteLLM -
+when sending tool results back, LiteLLM omits the required `content`
+field from assistant messages, causing 422 errors from Arcee AI.
+
+Switch to Google's Gemini Flash 2.0 which is:
+- Free on OpenRouter
+- Fast (good for CI)
+- Has reliable function calling support
+- Well-supported by LiteLLM
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: fix(crewai): register Trinity model at module level before imports
+
+Move model registration to happen at module import time, before any
+CrewAI crew classes are imported. CrewAI may check model capabilities
+during class decoration, so the registration must happen first.
+
+- Add registration to crews/__init__.py (before crew imports)
+- Add registration to main.py (before crew imports)
+- Keep existing registrations in __init__ methods as safety net
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Black:
+- .crewai/utils/model_config.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/model_config.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/model_config.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/model_config.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- .crewai/utils/model_config.py
+
+ruff:
+- .crewai/utils/model_config.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): register Trinity model for native function calling
+
+Register the arcee-ai/trinity-large-preview:free model with LiteLLM as
+function-calling capable. OpenRouter confirms Trinity supports tools and
+tool_choice, but LiteLLM doesn't recognize it by default, causing CrewAI
+to fall back to text-based ReAct pattern instead of native function calling.
+
+- Add utils/model_config.py with register_trinity_model() helper
+- Call registration in __init__ of all crew classes
+- Should fix tool execution failures where model hallucinates responses
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (4)
+
+Black:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/quick_review_crew.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+ruff:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/quick_review_crew.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): revert model name changes to include :free suffix
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): update model name to remove :free suffix across all crews
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (4)
+
+Black:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/quick_review_crew.py
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+
+ruff:
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/quick_review_crew.py
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): update all crews to use arcee trinity model
+
+Switch default model from xiaomi/mimo-v2-flash to
+arcee-ai/trinity-large-preview:free across all crew files:
+- router_crew.py
+- full_review_crew.py
+- legal_review_crew.py
+- final_summary_crew.py
+- quick_review_crew.py
+- ci_log_analysis_crew.py
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: feat(crewai): switch default model to arcee trinity
+
+Change from xiaomi/mimo-v2-flash to arcee-ai/trinity-large-preview:free
+for cost optimization while maintaining quality.
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+⧗   input: chore: auto-format and lint fixes
+
+Applied automatic formatting and linting fixes.
+
+📝 Changed Files (1)
+
+Prettier:
+- docs/pr/00011-feat(crewai)-optimize-crew.md
+
+Black:
+- docs/pr/00011-feat(crewai)-optimize-crew.md
+
+isort:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- docs/pr/00011-feat(crewai)-optimize-crew.md
+
+SQLFluff:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- docs/pr/00011-feat(crewai)-optimize-crew.md
+
+ESLint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- docs/pr/00011-feat(crewai)-optimize-crew.md
+
+markdownlint:
+- .crewai/crew.py
+- .crewai/crews/ci_log_analysis_crew.py
+- .crewai/crews/final_summary_crew.py
+- .crewai/crews/full_review_crew.py
+- .crewai/crews/legal_review_crew.py
+- .crewai/crews/quick_review_crew.py
+- .crewai/crews/router_crew.py
+- .crewai/tests/test_workspace_tool.py
+- docs/pr/00011-feat(crewai)-optimize-crew.md
+
+ruff:
+- docs/pr/00011-feat(crewai)-optimize-crew.md
+✔   found 0 problems, 0 warnings
+⧗   input: docs(crewai): add PR tracking document for crew optimization
+
+Tracks goals and implementation plan for optimizing CrewAI code review:
+- Reliability improvements
+- Cost optimization with cheaper models
+- Board of Directors expansion (Security, Marketing, Legal)
+- PR tag routing for forced review paths
+- Git-based long-term memory with JSONL persistence
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+✔   found 0 problems, 0 warnings
+
+
+========================================
+Job Completed: 2026-01-31 18:59:24 UTC
+Conclusion: success
+========================================
