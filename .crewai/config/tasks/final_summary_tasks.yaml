@@ -1,14 +1,11 @@
 synthesize_summary:
   description: >
-    Synthesize all crew outputs into a comprehensive final summary.
-    Read ci_summary.json, quick_review.json, router_decision.json, and optionally
-    full_review.json and legal_review.json. Create a markdown report with:
-    - PR metadata and commit info
-    - CI Analysis results (status, errors, warnings)
-    - Quick Review findings (critical issues, warnings, suggestions)
-    - Full Technical Review (if available)
-    - Legal Review (if available)
-    - Merge recommendations
-    Use <details> tags for collapsible sections. Open critical issues, collapse warnings.
-    Return the complete markdown content.
+    Synthesize all crew outputs into a comprehensive final summary. Read
+    ci_summary.json, quick_review.json, router_decision.json, and optionally
+    full_review.json and legal_review.json. Create a markdown report with: - PR
+    metadata and commit info - CI Analysis results (status, errors, warnings) -
+    Quick Review findings (critical issues, warnings, suggestions) - Full
+    Technical Review (if available) - Legal Review (if available) - Merge
+    recommendations Use <details> tags for collapsible sections. Open critical
+    issues, collapse warnings. Return the complete markdown content.
   expected_output: 'Complete markdown summary'
