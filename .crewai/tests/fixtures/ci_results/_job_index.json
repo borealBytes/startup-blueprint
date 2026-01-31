@@ -1,0 +1,71 @@
+{
+  "run_id": 21549311826,
+  "run_number": 548,
+  "jobs": [
+    {
+      "job_name": "core-ci",
+      "job_folder": "core-ci",
+      "conclusion": "success",
+      "workflow": "CI",
+      "run_id": "21549311826",
+      "run_number": "548",
+      "timestamp": "2026-01-31T18:59:24Z",
+      "summary_exists": true,
+      "log_exists": true,
+      "log_size_bytes": 140182,
+      "log_lines": 3929
+    },
+    {
+      "job_name": "credential-validation",
+      "job_folder": "credential-validation",
+      "conclusion": "success",
+      "workflow": "CI",
+      "run_id": "21549311826",
+      "run_number": "548",
+      "timestamp": "2026-01-31T18:59:00Z",
+      "summary_exists": true,
+      "log_exists": true,
+      "log_size_bytes": 6725,
+      "log_lines": 121
+    },
+    {
+      "job_name": "test-crewai",
+      "job_folder": "test-crewai",
+      "conclusion": "success",
+      "workflow": "CI",
+      "run_id": "21549311826",
+      "run_number": "548",
+      "timestamp": "2026-01-31T19:00:28Z",
+      "summary_exists": true,
+      "log_exists": true,
+      "log_size_bytes": 3937,
+      "log_lines": 56
+    },
+    {
+      "job_name": "test-docs-links",
+      "job_folder": "test-docs-links",
+      "conclusion": "success",
+      "workflow": "CI",
+      "run_id": "21549311826",
+      "run_number": "548",
+      "timestamp": "2026-01-31T18:59:36Z",
+      "summary_exists": true,
+      "log_exists": true,
+      "log_size_bytes": 8468,
+      "log_lines": 88
+    },
+    {
+      "job_name": "test-website",
+      "job_folder": "test-website",
+      "conclusion": "success",
+      "workflow": "CI",
+      "run_id": "21549311826",
+      "run_number": "548",
+      "timestamp": "2026-01-31T18:59:32Z",
+      "summary_exists": true,
+      "log_exists": true,
+      "log_size_bytes": 276,
+      "log_lines": 10
+    }
+  ]
+}
