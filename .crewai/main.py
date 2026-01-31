@@ -33,7 +33,6 @@ def _litellm_success_callback(kwargs, completion_response, start_time, end_time)
     try:
         model = kwargs.get("model", "unknown")
         response_obj = completion_response
-        logger.info(f"📞 Cost callback: success for {model}")
         if hasattr(response_obj, "usage"):
             usage = response_obj.usage
             tokens_in = getattr(usage, "prompt_tokens", 0)
@@ -41,14 +40,17 @@ def _litellm_success_callback(kwargs, completion_response, start_time, end_time)
         else:
             tokens_in = 0
             tokens_out = 0
-        # Convert timedelta to seconds
-        if hasattr(end_time, "total_seconds"):
-            duration = (end_time - start_time).total_seconds()
-        else:
+        # Handle both timedelta and float duration formats
+        try:
             duration = float(end_time - start_time)
+        except (TypeError, ValueError):
+            # If it's a timedelta or other object, try to convert
+            if hasattr(end_time - start_time, "total_seconds"):
+                duration = (end_time - start_time).total_seconds()
+            else:
+                duration = 0.0
         cost = getattr(response_obj, "cost", 0.0) or 0.0
         _cost_tracker.log_api_call(model, tokens_in, tokens_out, cost, duration)
-        logger.info(f"✅ Cost tracked: {tokens_in}/{tokens_out} tokens, ${cost:.6f}")
     except Exception as e:
         logger.warning(f"⚠️ Cost tracking error (success): {e}")
 
@@ -57,12 +59,14 @@ def _litellm_failure_callback(kwargs, error, start_time, end_time):
     """Track failed LLM calls for monitoring."""
     try:
         model = kwargs.get("model", "unknown")
-        logger.info(f"📞 Cost callback: failure for {model}")
-        # Convert timedelta to seconds
-        if hasattr(end_time, "total_seconds"):
-            duration = (end_time - start_time).total_seconds()
-        else:
+        # Handle both timedelta and float duration formats
+        try:
             duration = float(end_time - start_time)
+        except (TypeError, ValueError):
+            if hasattr(end_time - start_time, "total_seconds"):
+                duration = (end_time - start_time).total_seconds()
+            else:
+                duration = 0.0
         _cost_tracker.log_api_call(model, 0, 0, 0.0, duration)
     except Exception as e:
         logger.warning(f"⚠️ Cost tracking error (failure): {e}")
