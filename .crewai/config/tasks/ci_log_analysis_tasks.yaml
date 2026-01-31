@@ -1,33 +1,22 @@
 # Task 1: Triage - Identify what broke
 triage_failures:
   description: >
-    Analyze CI job index AND scan logs for hidden errors. Many jobs report
-    "success" in metadata but have errors in their logs.
+    Analyze CI job index and scan logs for errors.
 
-    1. Call read_job_index() to get the full list of jobs. 2. For EVERY job (not
-    just failed ones):
+    1. Call read_job_index() to get all jobs
+    2. For each job:
        - Call read_job_summary(folder_name) for metadata
-       - Call get_log_stats(folder_name) to check error/warning counts
-       - Call check_log_size(folder_name) to determine reading strategy
+       - Call get_log_stats(folder_name) to check log content for errors
     3. Identify jobs needing investigation:
-       - Jobs with conclusion="failure" or "cancelled" (obvious failures)
-       - Jobs with log_stats.errors > 0 (hidden failures, log has errors)
-       - Jobs with log_stats.warnings > 10 (elevated warning count)
-    4. Create structured investigation plan with:
-       - Job name, folder, and why it needs investigation
-       - Whether failure is from metadata or log analysis
-       - Recommended log reading strategy based on size
+       - Jobs with conclusion="failure" or "cancelled"
+       - Jobs with log_stats showing errors in log content
+    4. Create investigation plan with job details and error counts
 
-    ⚠️ CRITICAL: Many CI jobs (especially format-and-lint) report "success" in
-    job metadata but actually have errors in the log content. You MUST call
-    get_log_stats() for every job to catch these hidden failures.
-
-    Example from PR #15: core-ci reported "success" but had 77 stylelint errors
-    + 1 sqlfluff FAIL in the actual log output.
+    Note: Some jobs report "success" in metadata but have errors in logs.
+    Always check get_log_stats() to find hidden errors.
   expected_output: >
-    JSON-structured list of jobs needing investigation, including those with log
-    errors even if metadata shows "success". Report ALL jobs where
-    get_log_stats() shows errors or high warning counts.
+    List of jobs needing investigation with their error counts from both
+    metadata and log analysis.
   agent: ci_pipeline_lead
 
 # Task 2: Investigation - Get the evidence
