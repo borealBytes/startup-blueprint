@@ -1,5 +1,7 @@
 parse_and_contextualize:
   description: |
+    ⚠️ CRITICAL: You MUST use WorkspaceTool. Returning JSON as text will FAIL this task.
+
     YOU MUST READ THE DIFF AND COMMIT MESSAGES:
 
     STEP 1: Call WorkspaceTool(operation="read", filename="diff.txt", content="")
@@ -27,13 +29,19 @@ parse_and_contextualize:
       "sampled_diff": "the filtered/focused diff text (for next agent)"
     }
 
-    CRITICAL: Call WorkspaceTool(operation="write", filename="diff_context.json", content=<dict with above structure>)
+    ⚠️ MANDATORY - CALL WorkspaceTool:
+    You MUST call WorkspaceTool(operation="write", filename="diff_context.json", content=<dict with above structure>)
     The content parameter MUST be a Python dict, NOT a string. WorkspaceTool will auto-convert to JSON.
+    
+    ⚠️ WARNING: Returning JSON as your answer without calling WorkspaceTool = TASK FAILURE.
+    The ONLY valid task completion is successfully calling WorkspaceTool to write the file.
   expected_output: |
-    "Context prepared: N files analyzed, X focus areas identified, diff sampled"
+    "Context prepared: N files analyzed, X focus areas identified, diff_context.json written via WorkspaceTool"
 
 detect_code_issues:
   description: |
+    ⚠️ MANDATORY: Call WorkspaceTool - DO NOT return analysis as text.
+
     Using the diff context from the previous agent, detect code issues.
 
     STEP 1: Call WorkspaceTool(operation="read", filename="diff_context.json", content="")
@@ -74,14 +82,20 @@ detect_code_issues:
       ]
     }
 
-    CRITICAL: Call WorkspaceTool(operation="write", filename="code_issues.json", content=<dict with above structure>)
+    ⚠️ MANDATORY - CALL WorkspaceTool:
+    You MUST call WorkspaceTool(operation="write", filename="code_issues.json", content=<dict with above structure>)
     The content parameter MUST be a Python dict, NOT a string. WorkspaceTool will auto-convert to JSON.
     If no issues found, use empty arrays: {"critical": [], "warnings": [], "info": []}
+    
+    ⚠️ WARNING: Task fails if you don't use WorkspaceTool to write code_issues.json.
+    Returning JSON as text = WRONG. You MUST use the tool.
   expected_output: |
-    "Analysis complete: N critical issues, M warnings detected"
+    "Analysis complete: N critical issues, M warnings detected, code_issues.json written via WorkspaceTool"
 
 synthesize_report:
   description: |
+    ⚠️ CRITICAL: MUST use WorkspaceTool to write quick_review.json - DO NOT return JSON as text.
+
     Create the final quick_review.json by synthesizing findings.
 
     STEP 1: Call WorkspaceTool(operation="read", filename="diff_context.json", content="")
@@ -129,12 +143,15 @@ synthesize_report:
       "merge_rationale": "Detailed explanation of why this merge decision was made"
     }
 
-    CRITICAL REQUIREMENTS:
-    - Call WorkspaceTool(operation="write", filename="quick_review.json", content=<dict with above structure>)
-    - The content parameter MUST be a Python dict, NOT a string. WorkspaceTool will auto-convert to JSON.
+    ⚠️ MANDATORY - CALL WorkspaceTool:
+    You MUST call WorkspaceTool(operation="write", filename="quick_review.json", content=<dict with above structure>)
+    The content parameter MUST be a Python dict, NOT a string. WorkspaceTool will auto-convert to JSON.
     - Summary MUST be at least 100 characters long
     - Include ALL findings from code_issues.json (no truncation)
     - merge_status MUST be exactly one of: APPROVE, REQUEST_CHANGES, NEEDS_DISCUSSION
     - If no issues found, use empty arrays but still provide meaningful summary
+    
+    ⚠️ WARNING: Returning JSON as answer = TASK FAILURE. 
+    You MUST use WorkspaceTool. The ONLY valid completion is calling the tool successfully.
   expected_output: |
-    "Review synthesis complete: quick_review.json written with [N] findings"
+    "Review synthesis complete: quick_review.json written via WorkspaceTool with [N] findings"
