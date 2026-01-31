@@ -25,23 +25,6 @@ class RouterCrew:
         # Set LiteLLM base URL for OpenRouter
         os.environ["OPENROUTER_API_BASE"] = "https://openrouter.ai/api/v1"
 
-        # Register cost tracking callbacks (if available)
-        try:
-            import litellm
-
-            # Import callbacks if they exist
-            try:
-                from crew import litellm_failure_callback, litellm_success_callback
-
-                litellm.success_callback = [litellm_success_callback]
-                litellm.failure_callback = [litellm_failure_callback]
-                litellm.set_verbose = True
-                logger.info("Cost tracking callbacks registered")
-            except ImportError:
-                logger.debug("Cost tracking callbacks not available")
-        except ImportError:
-            logger.debug("LiteLLM cost tracking not available")
-
         # Get LLM from centralized config
         self.llm = get_llm()
         logger.info(f"Router using model: {self.llm.model}")

@@ -20,8 +20,45 @@ import litellm
 
 # Enable retries for rate limit errors (429)
 # OpenRouter free tier: 20 RPM limit
-litellm.num_retries = 3  # Retry up to 3 times
-litellm.request_timeout = 120  # 2 minute timeout per request
+litellm.num_retries = 3
+litellm.request_timeout = 120
+
+from tools.cost_tracker import get_tracker
+
+_cost_tracker = get_tracker()
+
+
+def _litellm_success_callback(kwargs, completion_response, start_time, end_time):
+    """Track successful LLM calls for cost monitoring."""
+    try:
+        model = kwargs.get("model", "unknown")
+        response_obj = completion_response
+        if hasattr(response_obj, "usage"):
+            usage = response_obj.usage
+            tokens_in = getattr(usage, "prompt_tokens", 0)
+            tokens_out = getattr(usage, "completion_tokens", 0)
+        else:
+            tokens_in = 0
+            tokens_out = 0
+        duration = end_time - start_time
+        cost = getattr(response_obj, "cost", 0.0) or 0.0
+        _cost_tracker.log_api_call(model, tokens_in, tokens_out, cost, duration)
+    except Exception:
+        pass
+
+
+def _litellm_failure_callback(kwargs, error, start_time, end_time):
+    """Track failed LLM calls for monitoring."""
+    try:
+        model = kwargs.get("model", "unknown")
+        duration = end_time - start_time
+        _cost_tracker.log_api_call(model, 0, 0, 0.0, duration)
+    except Exception:
+        pass
+
+
+litellm.success_callback = [_litellm_success_callback]
+litellm.failure_callback = [_litellm_failure_callback]
 
 from crews.ci_log_analysis_crew import CILogAnalysisCrew
 from crews.final_summary_crew import FinalSummaryCrew
