@@ -1,14 +1,47 @@
-"""Quick review crew with optimized 3-agent architecture."""
+"""Quick review crew with adaptive diff sampling."""
 
 import logging
+from typing import List
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from pydantic import BaseModel, Field
 
 from tools.workspace_tool import WorkspaceTool
 from utils.model_config import get_llm, get_rate_limiter
 
 logger = logging.getLogger(__name__)
+
+
+class DiffContext(BaseModel):
+    """Schema for diff context output."""
+
+    commit_intent: str = Field(description="Summary of what changed")
+    total_changes: int = Field(description="Total lines added/deleted")
+    changed_files: List[dict] = Field(description="List of changed files with metadata")
+    review_focus_areas: List[str] = Field(description="Areas to focus review on")
+    sampled_diff: str = Field(description="The actual diff content")
+
+
+class CodeIssues(BaseModel):
+    """Schema for code issues output."""
+
+    critical: List[dict] = Field(default_factory=list, description="Critical issues")
+    warnings: List[dict] = Field(default_factory=list, description="Warning issues")
+    info: List[dict] = Field(default_factory=list, description="Info notes")
+
+
+class QuickReview(BaseModel):
+    """Schema for final quick review output."""
+
+    status: str = Field(description="ok|warning|critical")
+    summary: str = Field(description="Detailed review summary")
+    total_findings: int = Field(description="Total number of issues")
+    critical: List[dict] = Field(default_factory=list, description="Critical issues")
+    warnings: List[dict] = Field(default_factory=list, description="Warning issues")
+    info: List[dict] = Field(default_factory=list, description="Info notes")
+    merge_status: str = Field(description="APPROVE|REQUEST_CHANGES|NEEDS_DISCUSSION")
+    merge_rationale: str = Field(description="Explanation for merge decision")
 
 
 @CrewBase
@@ -68,6 +101,7 @@ class QuickReviewCrew:
         return Task(
             config=self.tasks_config["parse_and_contextualize"],
             agent=self.diff_intelligence_specialist(),
+            output_pydantic=DiffContext,
             output_file="diff_context.json",
         )
 
@@ -77,6 +111,7 @@ class QuickReviewCrew:
         return Task(
             config=self.tasks_config["detect_code_issues"],
             agent=self.code_quality_investigator(),
+            output_pydantic=CodeIssues,
             output_file="code_issues.json",
         )
 
@@ -86,12 +121,13 @@ class QuickReviewCrew:
         return Task(
             config=self.tasks_config["synthesize_report"],
             agent=self.review_synthesizer(),
+            output_pydantic=QuickReview,
             output_file="quick_review.json",
         )
 
     @task
     def completion_task(self) -> Task:
-        """Dummy task to ensure synthesize_report output_file works."""
+        """Dummy task to ensure file writing works."""
         return Task(
             description="Confirm quick review completed.",
             expected_output="Done",
