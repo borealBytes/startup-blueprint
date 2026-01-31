@@ -4,8 +4,8 @@ triage_failures:
     Analyze CI job index AND scan logs for hidden errors. Many jobs report
     "success" in metadata but have errors in their logs.
 
-    1. Call read_job_index() to get the full list of jobs.
-    2. For EVERY job (not just failed ones):
+    1. Call read_job_index() to get the full list of jobs. 2. For EVERY job (not
+    just failed ones):
        - Call read_job_summary(folder_name) for metadata
        - Call get_log_stats(folder_name) to check error/warning counts
        - Call check_log_size(folder_name) to determine reading strategy
@@ -18,15 +18,15 @@ triage_failures:
        - Whether failure is from metadata or log analysis
        - Recommended log reading strategy based on size
 
-    ⚠️ CRITICAL: Many CI jobs (especially format-and-lint) report "success"
-    in job metadata but actually have errors in the log content. You MUST
-    call get_log_stats() for every job to catch these hidden failures.
+    ⚠️ CRITICAL: Many CI jobs (especially format-and-lint) report "success" in
+    job metadata but actually have errors in the log content. You MUST call
+    get_log_stats() for every job to catch these hidden failures.
 
-    Example from PR #15: core-ci reported "success" but had 77 stylelint
-    errors + 1 sqlfluff FAIL in the actual log output.
+    Example from PR #15: core-ci reported "success" but had 77 stylelint errors
+    + 1 sqlfluff FAIL in the actual log output.
   expected_output: >
-    JSON-structured list of jobs needing investigation, including those with
-    log errors even if metadata shows "success". Report ALL jobs where
+    JSON-structured list of jobs needing investigation, including those with log
+    errors even if metadata shows "success". Report ALL jobs where
     get_log_stats() shows errors or high warning counts.
   agent: ci_pipeline_lead
 

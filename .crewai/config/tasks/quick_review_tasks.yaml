@@ -32,7 +32,7 @@ parse_and_contextualize:
     ⚠️ MANDATORY - CALL WorkspaceTool:
     You MUST call WorkspaceTool(operation="write", filename="diff_context.json", content=<dict with above structure>)
     The content parameter MUST be a Python dict, NOT a string. WorkspaceTool will auto-convert to JSON.
-    
+
     ⚠️ WARNING: Returning JSON as your answer without calling WorkspaceTool = TASK FAILURE.
     The ONLY valid task completion is successfully calling WorkspaceTool to write the file.
   expected_output: |
@@ -86,7 +86,7 @@ detect_code_issues:
     You MUST call WorkspaceTool(operation="write", filename="code_issues.json", content=<dict with above structure>)
     The content parameter MUST be a Python dict, NOT a string. WorkspaceTool will auto-convert to JSON.
     If no issues found, use empty arrays: {"critical": [], "warnings": [], "info": []}
-    
+
     ⚠️ WARNING: Task fails if you don't use WorkspaceTool to write code_issues.json.
     Returning JSON as text = WRONG. You MUST use the tool.
   expected_output: |
@@ -150,7 +150,7 @@ synthesize_report:
     - Include ALL findings from code_issues.json (no truncation)
     - merge_status MUST be exactly one of: APPROVE, REQUEST_CHANGES, NEEDS_DISCUSSION
     - If no issues found, use empty arrays but still provide meaningful summary
-    
+
     ⚠️ WARNING: Returning JSON as answer = TASK FAILURE. 
     You MUST use WorkspaceTool. The ONLY valid completion is calling the tool successfully.
   expected_output: |
