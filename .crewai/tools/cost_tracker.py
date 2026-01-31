@@ -98,6 +98,32 @@ class CostTracker:
         self.current_crew = self._infer_crew_from_task(task_name)
         logger.info(f"🏷️  Tracking costs for: {task_name} (Crew: {self.current_crew})")
 
+    def _calculate_cost(self, model: str, tokens_in: int, tokens_out: int) -> float:
+        """Calculate cost based on model and token counts.
+
+        Pricing for common models (per 1M tokens):
+        - gemini-2.0-flash: $0.10 input, $0.40 output
+        - gemini-1.5-flash: $0.075 input, $0.30 output
+        - gpt-4o-mini: $0.15 input, $0.60 output
+        """
+        model_lower = model.lower()
+
+        if "gemini-2.0-flash" in model_lower:
+            input_cost = tokens_in * 0.0000001  # $0.10 per 1M
+            output_cost = tokens_out * 0.0000004  # $0.40 per 1M
+        elif "gemini-1.5-flash" in model_lower:
+            input_cost = tokens_in * 0.000000075  # $0.075 per 1M
+            output_cost = tokens_out * 0.0000003  # $0.30 per 1M
+        elif "gpt-4o-mini" in model_lower:
+            input_cost = tokens_in * 0.00000015  # $0.15 per 1M
+            output_cost = tokens_out * 0.0000006  # $0.60 per 1M
+        else:
+            # Default to Gemini Flash pricing
+            input_cost = tokens_in * 0.0000001
+            output_cost = tokens_out * 0.0000004
+
+        return input_cost + output_cost
+
     def log_api_call(
         self,
         model: str,
@@ -126,6 +152,10 @@ class CostTracker:
         # Use current task or "Unknown" if not set
         task_name = self.current_task or "Unknown"
         crew_name = self.current_crew or self._infer_crew_from_task(task_name)
+
+        # If cost is 0 (OpenRouter free tier doesn't report costs), calculate manually
+        if cost == 0.0:
+            cost = self._calculate_cost(model, tokens_in, tokens_out)
 
         metrics = APICallMetrics(
             call_number=self.call_counter,
