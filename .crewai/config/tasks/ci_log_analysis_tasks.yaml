@@ -3,19 +3,19 @@ triage_failures:
   description: >
     Analyze CI logs using the enhanced CIOutputParserTool to extract ALL errors.
 
-    CRITICAL STEPS:
-    1. Call CIOutputParserTool._run(ci_logs_dir="ci_results") to get FULL parsed output
+    CRITICAL STEPS: 1. Call CIOutputParserTool._run(ci_logs_dir="ci_results") to
+    get FULL parsed output
        with detailed errors from stylelint, sqlfluff, markdownlint, etc.
-    2. Also call read_job_index() to get job metadata
-    3. Identify all jobs with errors from the parser output (check critical_errors and warnings)
-    4. Create investigation plan with:
+    2. Also call read_job_index() to get job metadata 3. Identify all jobs with
+    errors from the parser output (check critical_errors and warnings) 4. Create
+    investigation plan with:
        - Jobs with detailed error counts from parser
        - Specific tools that reported errors (stylelint, sqlfluff, etc.)
        - File paths and line numbers from parser output
 
     The parser output contains structured data with: status, passed, summary,
-    checks_performed, critical_errors[], warnings[], jobs_analyzed[].
-    Use this data directly for your analysis.
+    checks_performed, critical_errors[], warnings[], jobs_analyzed[]. Use this
+    data directly for your analysis.
   expected_output: >
     Detailed investigation plan including: jobs with errors, specific CI tools
     that failed, error counts from parser, and file paths needing review.
@@ -60,12 +60,12 @@ compile_ci_report:
   description: >
     Synthesize all findings into the final ci_summary.json file.
 
-    STEPS:
-    1. Call CIOutputParserTool with ci_logs_dir="ci_results" to get DETAILED
+    STEPS: 1. Call CIOutputParserTool with ci_logs_dir="ci_results" to get
+    DETAILED
        parsed output including all stylelint, sqlfluff, and other CI errors.
-    2. Combine the triage status, log evidence, and root cause analysis.
-    3. Use WorkspaceTool to read diff.json for context if needed.
-    4. Write the final JSON file using WorkspaceTool.
+    2. Combine the triage status, log evidence, and root cause analysis. 3. Use
+    WorkspaceTool to read diff.json for context if needed. 4. Write the final
+    JSON file using WorkspaceTool.
 
     CRITICAL: You MUST call CIOutputParserTool._run with ci_logs_dir parameter
     to get the full error details. Do NOT rely only on search_log results.
@@ -81,5 +81,6 @@ compile_ci_report:
       "merge_rationale": "..."
     }
   expected_output: >
-    "Successfully wrote ci_summary.json with N critical errors and M warnings from specific tools."
+    "Successfully wrote ci_summary.json with N critical errors and M warnings
+    from specific tools."
   agent: ci_pipeline_lead
