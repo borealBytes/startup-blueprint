@@ -1,41 +1,9 @@
 synthesize_summary:
-  description: |
-    Synthesize all crew outputs into a comprehensive final summary.
-
-    READ ALL AVAILABLE OUTPUTS:
-    1. WorkspaceTool(operation="read", filename="ci_summary.json", content="")
-    2. WorkspaceTool(operation="read", filename="quick_review.json", content="")
-    3. WorkspaceTool(operation="read", filename="router_decision.json", content="")
-    4. WorkspaceTool(operation="read", filename="full_review.json", content="")  (if exists)
-    5. WorkspaceTool(operation="read", filename="legal_review.json", content="")  (if exists)
-    6. WorkspaceTool(operation="read", filename="diff_context.json", content="")  (from quick review)
-
-    SYNTHESIZE INTO MARKDOWN:
-    - Header with PR/commit metadata (from task inputs)
-    - CI Analysis section (status, summary, critical errors, warnings)
-    - Quick Review section (critical issues, warnings, suggestions with details)
-    - Full Technical Review section (if it ran - show top 3-5 high-severity issues)
-    - Legal Review section (if it ran - show any compliance issues)
-    - Router Suggestions section (recommendations for future PRs)
-
-    FORMAT:
-    - Use <details> tags for collapsible sections
-    - Open <details open> for critical issues (always visible)
-    - Collapse warnings/suggestions for readability
-    - Include counts: "N critical, M warnings, K suggestions"
-    - Each finding should show: title, file:line, description, fix suggestion
-    - Add positive observations if you see good practices
-    - Footer with timestamp
-
-    WRITE FINAL OUTPUT:
-    WorkspaceTool(operation="write", filename="final_summary.md", content="...markdown...")
-
-    SUCCESS CRITERIA:
-    - All JSON files read (even if some don't exist)
-    - Final markdown >1000 characters
-    - Covers all executed crews (ci, quick, full if present, legal if present)
-    - Critical issues always visible (open details)
-    - Actionable recommendations for developer
-
-  expected_output: |
-    "Synthesis complete: final_summary.md written with findings from all crews"
+  description: >
+    Synthesize all crew outputs into final_summary.md.
+    1. Read ci_summary.json, quick_review.json, router_decision.json using WorkspaceTool.
+    2. Read full_review.json and legal_review.json if they exist.
+    3. Create comprehensive markdown summary with all findings.
+    4. Write result to final_summary.md using WorkspaceTool(operation="write", filename="final_summary.md", content=markdown).
+    Include: PR metadata, CI status, review findings, merge recommendations.
+  expected_output: "final_summary.md written"
