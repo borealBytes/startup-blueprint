@@ -15,13 +15,10 @@ from utils.model_config import get_rate_limit_delay, register_models
 
 register_models()
 
-# Configure LiteLLM for rate limit handling
 import litellm
 
-# Enable retries for rate limit errors (429)
-# OpenRouter free tier: 20 RPM limit
 litellm.num_retries = 3
-litellm.request_timeout = 120
+setattr(litellm, "request_timeout", 120)
 
 from tools.cost_tracker import get_tracker
 
@@ -82,6 +79,7 @@ from crews.legal_review_crew import LegalReviewCrew
 from crews.quick_review_crew import QuickReviewCrew
 from crews.router_crew import RouterCrew
 from tools.cost_tracker import get_tracker
+from tools.github_tools import CommitDiffTool
 from tools.workspace_tool import WorkspaceTool
 
 # Configure logging
@@ -254,6 +252,7 @@ def run_ci_analysis(env_vars):
     tracker.set_current_task("parse_ci_output")
 
     try:
+        prepare_ci_results_inputs()
         ci_crew = CILogAnalysisCrew()
         result = ci_crew.crew().kickoff(inputs={"core_ci_result": env_vars["core_ci_result"]})
 
@@ -314,7 +313,77 @@ def run_ci_analysis(env_vars):
         return False
 
 
-def run_quick_review():
+def prepare_review_inputs(env_vars):
+    workspace = WorkspaceTool()
+    commit_sha = env_vars["commit_sha"]
+    repository = env_vars["repository"]
+
+    diff_result = CommitDiffTool._run(commit_sha=commit_sha, repository=repository)
+    if diff_result.get("error"):
+        logger.warning(f"⚠️ Could not fetch diff: {diff_result['error']}")
+        return False
+
+    diff_content = diff_result.get("diff_content", "")
+    if diff_content:
+        workspace.write("diff.txt", diff_content)
+
+    commits_payload = [
+        {
+            "sha": diff_result.get("commit_sha", commit_sha),
+            "message": diff_result.get("message", ""),
+            "author": diff_result.get("author", ""),
+            "total_additions": diff_result.get("total_additions", 0),
+            "total_deletions": diff_result.get("total_deletions", 0),
+            "total_changes": diff_result.get("total_changes", 0),
+            "files": diff_result.get("files", []),
+        }
+    ]
+
+    workspace.write_json("commits.json", {"commits": commits_payload})
+    workspace.write_json(
+        "diff.json",
+        {
+            "commit_sha": diff_result.get("commit_sha", commit_sha),
+            "message": diff_result.get("message", ""),
+            "author": diff_result.get("author", ""),
+            "files": diff_result.get("files", []),
+            "total_additions": diff_result.get("total_additions", 0),
+            "total_deletions": diff_result.get("total_deletions", 0),
+            "total_changes": diff_result.get("total_changes", 0),
+        },
+    )
+
+    return True
+
+
+def prepare_ci_results_inputs():
+    workspace_dir = Path(__file__).parent / "workspace"
+    target_dir = workspace_dir / "ci_results"
+    if target_dir.exists():
+        return True
+
+    env_path = os.getenv("CI_RESULTS_DIR")
+    candidates = []
+    if env_path:
+        candidates.append(Path(env_path))
+
+    github_workspace = os.getenv("GITHUB_WORKSPACE")
+    if github_workspace:
+        candidates.append(Path(github_workspace) / ".crewai" / "workspace" / "ci_results")
+        candidates.append(Path(github_workspace) / "ci_results")
+
+    for source_dir in candidates:
+        if source_dir.exists():
+            import shutil
+
+            target_dir.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(source_dir, target_dir)
+            return True
+
+    return False
+
+
+def run_quick_review(env_vars):
     """Run quick review crew.
 
     Returns:
@@ -329,6 +398,7 @@ def run_quick_review():
     tracker.set_current_task("quick_code_review")
 
     try:
+        prepare_review_inputs(env_vars)
         quick_crew = QuickReviewCrew()
         result = quick_crew.crew().kickoff()
 
@@ -1095,9 +1165,13 @@ def main():
         workflows_executed = []
         workflow_success = {}  # Track which workflows succeeded
 
-        # STEP 1: Router decides workflows
-        decision = run_router(env_vars)
-        workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
+        skip_router = os.getenv("SKIP_ROUTER", "true").lower() == "true"
+        if skip_router:
+            logger.info("⏩ SKIP_ROUTER enabled - using default workflows directly")
+            workflows = ["ci-log-analysis", "quick-review"]
+        else:
+            decision = run_router(env_vars)
+            workflows = decision.get("workflows", ["ci-log-analysis", "quick-review"])
 
         # Rate limit delay: centralized in MODEL_REGISTRY (0s for paid, 10s for free)
         rate_limit_delay = get_rate_limit_delay()
@@ -1116,7 +1190,7 @@ def main():
 
         # STEP 3: Always run quick review (default)
         if "quick-review" in workflows:
-            success = run_quick_review()
+            success = run_quick_review(env_vars)
             workflows_executed.append("quick-review")
             workflow_success["quick-review"] = success
             if not success:

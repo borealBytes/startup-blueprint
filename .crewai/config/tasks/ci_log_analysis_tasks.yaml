@@ -1,4 +1,3 @@
-# Task 1: Triage - Identify what broke using enhanced parser
 triage_failures:
   description: >
     Analyze CI logs using the enhanced CIOutputParserTool to extract ALL errors.

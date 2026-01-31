@@ -85,7 +85,8 @@ class CIOutputParserTool(BaseTool):
             issue_analysis={},
         )
 
-        job_index_path = Path(ci_logs_dir) / "_job_index.json"
+        resolved_logs_dir = self._resolve_ci_logs_dir(ci_logs_dir)
+        job_index_path = Path(resolved_logs_dir) / "_job_index.json"
         if job_index_path.exists():
             try:
                 with open(job_index_path) as f:
@@ -95,13 +96,13 @@ class CIOutputParserTool(BaseTool):
                 logger.warning(f"Could not read job index: {e}")
                 job_index = {"jobs": []}
         else:
-            job_index = self._discover_jobs(ci_logs_dir)
+            job_index = self._discover_jobs(resolved_logs_dir)
 
         all_errors = []
         for job in job_index.get("jobs", []):
             job_name = job.get("job_name", "unknown")
             job_folder = job.get("job_folder", job_name)
-            log_path = Path(ci_logs_dir) / job_folder / "log.txt"
+            log_path = Path(resolved_logs_dir) / job_folder / "log.txt"
 
             if log_path.exists():
                 logger.info(f"🔍 Analyzing {job_name} logs...")
@@ -153,10 +154,24 @@ class CIOutputParserTool(BaseTool):
         ci_summary.issue_analysis = self._generate_issue_analysis(all_errors)
 
         if search_patterns:
-            search_results = self._search_logs(ci_logs_dir, search_patterns)
+            search_results = self._search_logs(resolved_logs_dir, search_patterns)
             ci_summary.issue_analysis["search_results"] = search_results
 
         return ci_summary.model_dump()
+
+    def _resolve_ci_logs_dir(self, ci_logs_dir: str) -> str:
+        logs_path = Path(ci_logs_dir)
+        if logs_path.is_absolute():
+            return str(logs_path)
+
+        if logs_path.exists():
+            return str(logs_path)
+
+        workspace_logs = Path(__file__).parent.parent / "workspace" / ci_logs_dir
+        if workspace_logs.exists():
+            return str(workspace_logs)
+
+        return str(logs_path)
 
     def _discover_jobs(self, ci_logs_dir: str) -> dict:
         """Discover CI jobs from directory structure."""
